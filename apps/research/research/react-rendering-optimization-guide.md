@@ -35,12 +35,9 @@ published: true
 
 ## React Compiler 이후의 최적화 지도
 
-React Compiler는 `useMemo`, `useCallback`, `React.memo`를 **자동으로 삽입**해준다. 그럼 이 강의 내용 중 뭐가 남는가?
+React Compiler는 `useMemo` / `useCallback` / `React.memo`를 **자동 삽입**해준다. 그럼 뭐가 남는가?
 
-**컴파일러가 자동화해주는 영역**
-
-- Part 3 — `React.memo`, 수동 비교
-- Part 4 — `useMemo` / `useCallback`
+**자동화되는 영역**: Part 3 (`React.memo`) · Part 4 (`useMemo` / `useCallback`)
 
 **컴파일러 이후에도 남는 영역**
 
@@ -659,16 +656,15 @@ function ScrollProgress() {
 
 function ScrollPage() {
   return (
-    <div>
+    <>
       <ScrollProgress />
-      <Article /> {/* 리렌더 안 됨 */}
-      <Comments /> {/* 리렌더 안 됨 */}
-    </div>
+      <Article /> <Comments /> {/* 리렌더 안 됨 */}
+    </>
   )
 }
 ```
 
-자주 바뀌는 state를 가진 부분만 별도 컴포넌트로 쪼개면, 나머지는 영향을 받지 않는다.
+자주 바뀌는 state를 별도 컴포넌트로 쪼개면 나머지는 영향을 받지 않는다.
 
 ---
 
@@ -697,14 +693,11 @@ React 빌트인으로는 **`useSyncExternalStore`**가 있다. 외부 스토어(
 ```jsx
 function SearchPage() {
   const [query, setQuery] = useState('')
-  const [isPending, startTransition] = useTransition()
-
+  const [, startTransition] = useTransition()
   return (
     <>
       <input
-        onChange={(e) => {
-          startTransition(() => setQuery(e.target.value))
-        }}
+        onChange={(e) => startTransition(() => setQuery(e.target.value))}
       />
       <HeavyList query={query} />
     </>
@@ -712,11 +705,9 @@ function SearchPage() {
 }
 ```
 
-무거운 리렌더를 **낮은 우선순위**로 표시한다. 입력 중에 더 중요한 렌더(input 반응)가 들어오면 React가 리스트 렌더를 중단하고 다시 시작한다.
+무거운 렌더를 **낮은 우선순위**로 표시. 더 급한 렌더(input 반응)가 들어오면 React가 리스트 렌더를 중단·재시작한다. `useDeferredValue`는 값 자체에 지연을 걸어 props 전달에 쓰기 좋다.
 
-`useDeferredValue`는 값 자체에 지연을 건다. props로 내려받는 값에 쓰기 좋음.
-
-> "리렌더를 없애는 것"이 아니라 "리렌더가 UX를 막지 않게 밀어두는 것."
+> "리렌더를 없애는 것"이 아니라 "UX를 막지 않게 밀어두는 것."
 
 ---
 
