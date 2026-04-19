@@ -33,6 +33,26 @@ published: true
 
 ---
 
+## React Compiler 이후의 최적화 지도
+
+React Compiler는 `useMemo`, `useCallback`, `React.memo`를 **자동으로 삽입**해준다. 그럼 이 강의 내용 중 뭐가 남는가?
+
+**컴파일러가 자동화해주는 영역**
+
+- Part 3 — `React.memo`, 수동 비교
+- Part 4 — `useMemo` / `useCallback`
+
+**컴파일러 이후에도 남는 영역**
+
+- Part 0 — 리렌더링 원리 (디버깅의 토대)
+- Part 2 — 훅 deps 설계 (라이브러리 API 설계)
+- Part 5 — 구조적 최적화 (컴파일러 무관)
+- Part 6 — 측정
+
+> 컴파일러는 "어떻게 메모할까"를 대신해준다. "어디서부터 렌더가 새어 나오는가"는 여전히 우리가 안다.
+
+---
+
 ## Part 0 — 리렌더링은 언제 일어나는가
 
 ---
@@ -61,15 +81,15 @@ function Greeting({name}) {
 
 > "props가 바뀌어서 리렌더링되는 거 아닌가요?"
 
-**아닙니다.**
+**반쯤 맞고 반쯤 틀리다.** 부모가 리렌더되면 props가 바뀐 것처럼 보이지만, 순서가 거꾸로다.
 
-리렌더링의 트리거는 딱 세 가지:
+리렌더링의 실제 트리거는 딱 세 가지:
 
 1. **`setState`** 호출
 2. **부모 컴포넌트**가 리렌더링됨
 3. **Context** 값이 변경됨
 
-부모가 리렌더되면, 자식은 **props가 바뀌든 안 바뀌든** 전부 리렌더된다.
+부모가 리렌더되면, 자식은 **props가 같든 다르든** 일단 함수가 다시 호출된다. React는 기본적으로 props를 비교하지 않는다 — 비교를 시키려면 `React.memo`를 명시적으로 걸어야 한다.
 
 ---
 
@@ -652,6 +672,77 @@ function ScrollPage() {
 
 ---
 
+## 패턴 4: 구독 기반 상태로 범위 좁히기
+
+```jsx
+// ❌ context 하나에 다 넣으면, 뭐 하나만 바뀌어도 모든 consumer 리렌더
+<AppContext.Provider value={{user, theme, notifications, cart}}>
+```
+
+```jsx
+// ✅ zustand/jotai — selector가 반환한 값이 바뀔 때만 리렌더
+const userName = useStore((s) => s.user.name)
+```
+
+`cart`가 바뀌어도 `userName`만 구독하는 컴포넌트는 영향 없음.
+
+React 빌트인으로는 **`useSyncExternalStore`**가 있다. 외부 스토어(웹소켓, 브라우저 API, 커스텀 이벤트버스 등)를 리렌더와 연결하면서 selector로 범위를 좁히는 표준 API.
+
+> context value를 memo로 감싸는 것보다, 애초에 **필요한 조각만 구독하게** 만드는 게 근본적이다.
+
+---
+
+## 패턴 5: 우선순위로 처리 — `useTransition` / `useDeferredValue`
+
+```jsx
+function SearchPage() {
+  const [query, setQuery] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <>
+      <input
+        onChange={(e) => {
+          startTransition(() => setQuery(e.target.value))
+        }}
+      />
+      <HeavyList query={query} />
+    </>
+  )
+}
+```
+
+무거운 리렌더를 **낮은 우선순위**로 표시한다. 입력 중에 더 중요한 렌더(input 반응)가 들어오면 React가 리스트 렌더를 중단하고 다시 시작한다.
+
+`useDeferredValue`는 값 자체에 지연을 건다. props로 내려받는 값에 쓰기 좋음.
+
+> "리렌더를 없애는 것"이 아니라 "리렌더가 UX를 막지 않게 밀어두는 것."
+
+---
+
+## 패턴 6: 경계 밖으로 — Server Components
+
+```jsx
+// app/page.tsx — 기본값은 서버 컴포넌트
+export default async function Page() {
+  const posts = await db.posts.findMany()
+  return (
+    <>
+      <PostList posts={posts} /> {/* 서버에서 렌더, 클라 번들 0 */}
+      <InteractiveFilter /> {/* 'use client' — 여기만 클라이언트 */}
+    </>
+  )
+}
+```
+
+Server Component는 **애초에 클라이언트 리렌더 대상이 아니다.** 번들에도 포함되지 않고, hydration도 없다.
+
+`'use client'` 경계를 **최대한 좁게** 잡는 것이 최상위 구조적 최적화다.
+
+> 리렌더 최적화의 최종 형태: **렌더할 컴포넌트 자체를 줄이는 것.**
+
+---
+
 ## 구조적 최적화 정리
 
 | 패턴              | 핵심                                  | memo 필요? |
@@ -659,6 +750,9 @@ function ScrollPage() {
 | State 내리기      | state를 사용하는 곳으로 이동          | 불필요     |
 | Children as props | 부모가 children을 전달                | 불필요     |
 | 컴포넌트 분리     | 변하는 부분과 안 변하는 부분을 쪼개기 | 불필요     |
+| 구독 기반 상태    | selector로 구독 범위를 좁힘           | 불필요     |
+| 우선순위 조정     | `useTransition` / `useDeferredValue`  | 불필요     |
+| 서버 경계         | `'use client'` 바깥으로 밀기          | 불필요     |
 
 > memo를 쓰기 전에 먼저 구조를 의심하라.
 
@@ -711,6 +805,16 @@ Ranked 탭은 렌더링 시간 순으로 정렬해준다.
 - 리렌더 횟수 × 소요 시간 = 실제 체감 영향
 
 Flamegraph로 "어디서" 발생하는지, Ranked로 "뭐가 가장 비싼지" 파악한다.
+
+---
+
+## 수치 기준 — "얼마나 빨라야 충분한가"
+
+- **16ms** — 60fps 프레임 버짓. 한 번의 렌더가 이걸 넘으면 프레임 드롭.
+- **50ms** — Long Task 기준. 사용자가 "끊긴다"고 느끼기 시작하는 지점.
+- **INP 200ms** — Core Web Vitals의 상호작용 응답성 "Good" 임계값. 클릭/입력 후 다음 페인트까지.
+
+Profiler의 숫자를 이 기준과 비교한다. "막연히 느리다"가 아니라 **"이 인터랙션이 320ms인데 목표가 200ms"**로 바꿔야 우선순위가 정해진다.
 
 ---
 
@@ -920,6 +1024,32 @@ React Compiler는 useMemo/useCallback을 **자동으로 삽입**해준다. Part 
 ```
 
 `ref`로 업데이트하는 요소는 **React가 내용을 제어하지 않는 빈 요소**여야 한다. React가 children을 렌더하는 요소에 직접 DOM 조작을 하면 다음 리렌더 시 React가 덮어쓴다.
+
+---
+
+## Q. zustand/jotai 같은 상태관리가 memo를 대체하나요?
+
+상당 부분 대체한다. 이들은 **selector 기반 구독**이라 관심 있는 조각만 리렌더에 연결된다.
+
+```jsx
+// context + memo 조합: Provider 리렌더 시 value 안정화가 필요
+const value = useMemo(() => ({user, cart}), [user, cart])
+
+// zustand: selector가 반환한 값이 바뀔 때만 리렌더
+const user = useStore((s) => s.user)
+```
+
+context + memo는 "전역 상태를 한 덩어리로 다루면서 참조를 안정시키는" 접근이고, 구독 기반은 "애초에 필요한 조각만 듣는" 접근이다. 후자가 더 근본적이지만, 라이브러리 의존성과 학습 비용이 추가된다.
+
+---
+
+## Q. Server Components 쓰면 이 내용 다 의미 없어지나요?
+
+의미 없어지지 않는다. 오히려 **무엇이 클라이언트로 넘어가는지 의식하게** 만든다.
+
+- `'use client'` 경계 **안쪽**에서는 이 강의의 모든 원칙이 그대로 적용된다.
+- RSC는 "렌더할 컴포넌트 자체를 줄이는" 구조적 최적화의 최상위 형태일 뿐, 클라이언트에서 일어나는 리렌더 문제를 없애지는 않는다.
+- "이 컴포넌트가 정말 클라이언트여야 하는가?"를 매번 묻게 되니, 최적화 사고 자체가 강화된다.
 
 ---
 
