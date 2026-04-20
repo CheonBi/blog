@@ -3,7 +3,6 @@
 import {useSearchParams} from 'next/navigation'
 import {Suspense} from 'react'
 
-import SocialIcon from '@/components/icons'
 import ProfileImage from '@/components/ProfileImage'
 import {SiteConfig} from '@/config'
 
@@ -389,30 +388,6 @@ function ResumeContent() {
   )
 }
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-6 py-3 font-semibold transition-all ${
-        active
-          ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400'
-          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-      }`}
-    >
-      {children}
-    </button>
-  )
-}
-
 function AboutPageContent() {
   const searchParams = useSearchParams()
   const tab = searchParams.get('tab') || 'about'
@@ -429,45 +404,95 @@ function AboutPageContent() {
   }
 
   return (
-    <div>
-      <div className="flex flex-col items-center pt-8">
-        <ProfileImage size={192} />
-        <h3 className="pt-4 pb-2 text-2xl font-bold leading-8 tracking-tight">
-          {SiteConfig.author.name}
-        </h3>
-        <div className="text-gray-500 dark:text-gray-400">
-          Frontend Engineer
+    <div className="page-view">
+      <section className="about-hero">
+        <div>
+          <div className="hero-eyebrow">
+            <span className="dot" />
+            FRONTEND ENGINEER · SEOUL
+          </div>
+          <h1 className="page-title">
+            {SiteConfig.author.name}
+            <span className="accent">.</span>
+          </h1>
+          <p className="page-sub">
+            확장 가능한 시스템, 공유 라이브러리, 개발자 도구처럼 팀의 생산성을
+            높이는 일에 관심이 많습니다. 화려함보다 본질을 중요하게 생각합니다.
+          </p>
+          <div className="about-socials">
+            <a href={`mailto:${SiteConfig.author.contacts.email}`}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M4 4h16v16H4z" />
+                <path d="m4 4 8 8 8-8" />
+              </svg>
+              {SiteConfig.author.contacts.email}
+            </a>
+            <a
+              href={SiteConfig.author.contacts.github}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+              </svg>
+              yceffort
+            </a>
+            <a
+              href={SiteConfig.author.contacts.twitter}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M22 5.8a8.49 8.49 0 0 1-2.36.64 4.13 4.13 0 0 0 1.81-2.27 8.21 8.21 0 0 1-2.61 1 4.1 4.1 0 0 0-7 3.74A11.64 11.64 0 0 1 3.39 4.62a4.16 4.16 0 0 0-.55 2.07 4.09 4.09 0 0 0 1.82 3.41 4.05 4.05 0 0 1-1.86-.51v.05a4.1 4.1 0 0 0 3.3 4 3.93 3.93 0 0 1-1.1.17 4.9 4.9 0 0 1-.77-.07 4.11 4.11 0 0 0 3.83 2.84A8.22 8.22 0 0 1 3 18.34a11.57 11.57 0 0 0 6.29 1.85A11.59 11.59 0 0 0 21 8.45v-.53a8.43 8.43 0 0 0 2-2.12z" />
+              </svg>
+              yceffort_dev
+            </a>
+          </div>
         </div>
-        <div className="text-gray-500 dark:text-gray-400">Seoul, Korea</div>
-        <div className="flex space-x-3 pt-6">
-          <SocialIcon
-            kind="mail"
-            href={`mailto:${SiteConfig.author.contacts.email}`}
-          />
-          <SocialIcon kind="github" href={SiteConfig.author.contacts.github} />
-          <SocialIcon
-            kind="twitter"
-            href={SiteConfig.author.contacts.twitter}
-          />
+        <div className="flex justify-center md:justify-end">
+          <ProfileImage size={192} />
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8 flex justify-center border-b border-gray-200 dark:border-gray-700">
-        <TabButton
-          active={tab === 'about'}
+      <div className="tabs">
+        <button
+          type="button"
+          data-active={tab === 'about'}
           onClick={() => handleTabChange('about')}
         >
           About
-        </TabButton>
-        <TabButton
-          active={tab === 'resume'}
+        </button>
+        <button
+          type="button"
+          data-active={tab === 'resume'}
           onClick={() => handleTabChange('resume')}
         >
           Resume
-        </TabButton>
+        </button>
+        <span
+          className="tabs-underline"
+          style={{transform: `translateX(${tab === 'about' ? 0 : 100}%)`}}
+        />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-4">
         {tab === 'about' ? <AboutContent /> : <ResumeContent />}
       </div>
     </div>
