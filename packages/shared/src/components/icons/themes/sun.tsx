@@ -5,10 +5,11 @@ export default function Sun() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-6 w-6 text-amber-500 dark:text-amber-400"
+      width="18"
+      height="18"
       suppressHydrationWarning
     >
       <circle cx="12" cy="12" r="4" />

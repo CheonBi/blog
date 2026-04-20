@@ -5,10 +5,11 @@ export default function Monitor() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-6 w-6 text-gray-600 dark:text-gray-400"
+      width="18"
+      height="18"
       suppressHydrationWarning
     >
       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
