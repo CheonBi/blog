@@ -18,4 +18,10 @@ export default defineConfig([
       'jsx-a11y/anchor-is-valid': 'off',
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ])
