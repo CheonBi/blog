@@ -69,6 +69,9 @@ export async function generateMetadata(props: {
         ko: `${SiteConfig.url}/${post.fields.slug}`,
       },
       canonical: `${SiteConfig.url}/en/${post.fields.slug}`,
+      types: {
+        'text/markdown': `${SiteConfig.url}/en/${post.fields.slug}.md`,
+      },
     },
   }
 }

@@ -68,13 +68,17 @@ export async function generateMetadata(props: {
       title: post.frontMatter.title,
       description: post.frontMatter.description,
     },
-    ...(enPost && {
-      alternates: {
+    alternates: {
+      canonical: `${SiteConfig.url}/${post.fields.slug}`,
+      ...(enPost && {
         languages: {
           en: `${SiteConfig.url}/en/${post.fields.slug}`,
         },
+      }),
+      types: {
+        'text/markdown': `${SiteConfig.url}/${post.fields.slug}.md`,
       },
-    }),
+    },
   }
 }
 

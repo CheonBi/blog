@@ -11,6 +11,20 @@ const config: NextConfig = {
   outputFileTracingIncludes: {
     '/*': ['./posts/**/*'],
   },
+  async rewrites() {
+    return [
+      {source: '/llms.txt', destination: '/api/llms'},
+      {source: '/llms-full.txt', destination: '/api/llms-full'},
+      {
+        source: '/en/:year(\\d{4})/:slug*.md',
+        destination: '/api/posts-raw/en/:year/:slug*',
+      },
+      {
+        source: '/:year(\\d{4})/:slug*.md',
+        destination: '/api/posts-raw/:year/:slug*',
+      },
+    ]
+  },
   async redirects() {
     return [
       {
