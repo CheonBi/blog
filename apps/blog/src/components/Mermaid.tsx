@@ -1,15 +1,76 @@
 'use client'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
+import {createPortal} from 'react-dom'
 
 import Panzoom from '@panzoom/panzoom'
 import mermaid from 'mermaid'
 import {useTheme} from 'next-themes'
 // @ts-expect-error - react-dom types issue with React 19
-import {createPortal} from 'react-dom'
+
+function readTokenColor(
+  style: CSSStyleDeclaration,
+  name: string,
+  fallback: string,
+) {
+  const value = style.getPropertyValue(name).trim()
+  return value || fallback
+}
+
+function buildThemeVariables(isDark: boolean) {
+  if (typeof document === 'undefined') {
+    return {fontSize: 20}
+  }
+  const s = getComputedStyle(document.documentElement)
+  const primary = readTokenColor(s, '--primary', isDark ? '#818cf8' : '#6366f1')
+  const primary2 = readTokenColor(
+    s,
+    '--primary-2',
+    isDark ? '#a78bfa' : '#a78bfa',
+  )
+  const primary3 = readTokenColor(
+    s,
+    '--primary-3',
+    isDark ? '#f472b6' : '#ec4899',
+  )
+  const surface = readTokenColor(s, '--surface', isDark ? '#16161f' : '#ffffff')
+  const surface2 = readTokenColor(
+    s,
+    '--surface-2',
+    isDark ? '#1c1c28' : '#f5f5f8',
+  )
+  const bg = readTokenColor(s, '--bg', isDark ? '#0a0a0f' : '#fafafa')
+  const ink = readTokenColor(s, '--ink', isDark ? '#f5f5fa' : '#0a0a0f')
+  const ink2 = readTokenColor(s, '--ink-2', isDark ? '#c9c9d6' : '#2a2a35')
+  const border = readTokenColor(s, '--border-2', isDark ? '#33334d' : '#d4d4dc')
+  return {
+    darkMode: isDark,
+    background: bg,
+    primaryColor: surface,
+    primaryBorderColor: primary,
+    primaryTextColor: ink,
+    secondaryColor: surface2,
+    secondaryBorderColor: primary2,
+    secondaryTextColor: ink,
+    tertiaryColor: surface,
+    tertiaryBorderColor: primary3,
+    tertiaryTextColor: ink,
+    lineColor: primary,
+    textColor: ink2,
+    mainBkg: surface,
+    secondBkg: surface2,
+    mainContrastColor: ink,
+    nodeBorder: primary,
+    clusterBkg: bg,
+    clusterBorder: border,
+    edgeLabelBackground: bg,
+    defaultLinkColor: primary,
+    fontSize: 20,
+  }
+}
 
 export default function Mermaid({chart}: {chart: string}) {
-  const {theme} = useTheme()
+  const {resolvedTheme} = useTheme()
   const ref = useRef<HTMLDivElement>(null)
   const [rendered, setRendered] = useState(false)
   const [svgMarkup, setSvgMarkup] = useState('')
@@ -22,12 +83,14 @@ export default function Mermaid({chart}: {chart: string}) {
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRendered(false)
     setSvgMarkup('')
 
+    const isDark = resolvedTheme === 'dark'
     mermaid.initialize({
       startOnLoad: false,
-      theme: theme === 'dark' ? 'base' : 'default',
+      theme: isDark ? 'dark' : 'base',
       securityLevel: 'loose',
       fontFamily: 'inherit',
       fontSize: 20,
@@ -36,39 +99,13 @@ export default function Mermaid({chart}: {chart: string}) {
       gantt: {useMaxWidth: false},
       journey: {useMaxWidth: false},
       timeline: {useMaxWidth: false},
-      themeVariables:
-        theme === 'dark'
-          ? {
-              darkMode: true,
-              background: '#111827',
-              primaryColor: '#1f2937',
-              primaryBorderColor: '#60a5fa',
-              primaryTextColor: '#f3f4f6',
-              secondaryColor: '#374151',
-              secondaryBorderColor: '#60a5fa',
-              secondaryTextColor: '#f3f4f6',
-              tertiaryColor: '#1f2937',
-              tertiaryBorderColor: '#60a5fa',
-              tertiaryTextColor: '#f3f4f6',
-              lineColor: '#60a5fa',
-              textColor: '#f3f4f6',
-              mainBkg: '#1f2937',
-              secondBkg: '#374151',
-              mainContrastColor: '#f3f4f6',
-              nodeBorder: '#60a5fa',
-              clusterBkg: '#111827',
-              clusterBorder: '#60a5fa',
-              edgeLabelBackground: '#111827',
-              defaultLinkColor: '#60a5fa',
-              fontSize: 20,
-            }
-          : {
-              fontSize: 20,
-            },
+      themeVariables: buildThemeVariables(isDark),
     })
 
     const renderChart = async () => {
-      if (!ref.current) return
+      if (!ref.current) {
+        return
+      }
 
       try {
         const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`
@@ -102,8 +139,7 @@ export default function Mermaid({chart}: {chart: string}) {
           }
           setRendered(true)
         }
-      } catch (error) {
-        console.error('Mermaid rendering failed:', error)
+      } catch {
         if (!cancelled && ref.current) {
           ref.current.innerText = 'Invalid Mermaid syntax'
           setRendered(true)
@@ -116,9 +152,10 @@ export default function Mermaid({chart}: {chart: string}) {
     return () => {
       cancelled = true
     }
-  }, [chart, theme])
+  }, [chart, resolvedTheme])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -230,8 +267,8 @@ export default function Mermaid({chart}: {chart: string}) {
               >
                 <div
                   ref={zoomContentRef}
-                  className="mermaid-zoom-content"
                   dangerouslySetInnerHTML={{__html: svgMarkup}}
+                  className="mermaid-zoom-content"
                   style={{touchAction: 'none'}}
                 />
               </div>
