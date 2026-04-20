@@ -1,5 +1,6 @@
 import './tailwind.css'
 
+import {Fraunces, Inter, JetBrains_Mono} from 'next/font/google'
 import Script from 'next/script'
 
 import {Analytics as VercelAnalytics} from '@vercel/analytics/react'
@@ -8,8 +9,27 @@ import {SpeedInsights as VercelSpeedInsights} from '@vercel/speed-insights/next'
 import type {Metadata} from 'next'
 import type {ReactNode} from 'react'
 
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+})
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-serif',
+  style: ['italic', 'normal'],
+})
+
+import AmbientEffects from '@/components/AmbientEffects'
 import {BotTracker} from '@/components/BotTracker'
-import CommandPalette from '@/components/CommandPalette'
 import {GoogleAnalyticsWebVitalsTracker} from '@/components/GoogleAnalyticsWebVitalsTracker'
 import LayoutWrapper from '@/components/LayoutWrapper'
 import NavigationDirection from '@/components/NavigationDirection'
@@ -87,8 +107,18 @@ const GA_MEASUREMENT_ID = SiteConfig.googleAnalyticsId
 export default async function Layout({children}: {children: ReactNode}) {
   return (
     <>
-      <html lang="ko" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <html
+        lang="ko"
+        data-scroll-behavior="smooth"
+        suppressHydrationWarning
+        className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}
+      >
         <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)tw-theme=([^;]+)/);if(m){localStorage.setItem('theme',decodeURIComponent(m[1]));}}catch(e){}})();`,
+            }}
+          />
           <link
             rel="alternate"
             type="application/rss+xml"
@@ -110,11 +140,11 @@ export default async function Layout({children}: {children: ReactNode}) {
           />
           <link rel="manifest" href="/favicon/site.webmanifest" />
         </head>
-        <body className="bg-white text-black antialiased dark:bg-gray-800 dark:text-white">
+        <body className="antialiased">
           <NavigationDirection />
+          <AmbientEffects />
           <Providers>
             <LayoutWrapper>{children}</LayoutWrapper>
-            <CommandPalette />
           </Providers>
           {GA_MEASUREMENT_ID && (
             <>
