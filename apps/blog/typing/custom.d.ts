@@ -4,7 +4,7 @@ declare module '*.svg' {
 }
 
 declare module '@panzoom/panzoom' {
-  type PanzoomOptions = {
+  interface PanzoomOptions {
     maxScale?: number
     minScale?: number
     contain?: 'inside' | 'outside'
@@ -16,7 +16,12 @@ declare module '@panzoom/panzoom' {
     zoomIn: (options?: {animate?: boolean; step?: number}) => void
     zoomOut: (options?: {animate?: boolean; step?: number}) => void
     reset: (options?: {animate?: boolean}) => void
-    zoomTo: (x: number, y: number, scale: number, options?: {animate?: boolean}) => void
+    zoomTo: (
+      x: number,
+      y: number,
+      scale: number,
+      options?: {animate?: boolean},
+    ) => void
     pan: (x: number, y: number, options?: {animate?: boolean}) => void
     getScale: () => number
     destroy: () => void
