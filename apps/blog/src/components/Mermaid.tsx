@@ -1,7 +1,6 @@
 'use client'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
-// @ts-expect-error - react-dom types issue with React 19
 import {createPortal} from 'react-dom'
 
 import Panzoom from '@panzoom/panzoom'

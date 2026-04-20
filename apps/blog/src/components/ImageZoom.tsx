@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import {useState, useCallback, useEffect, useRef} from 'react'
-// @ts-expect-error - react-dom types issue with React 19
 import {createPortal} from 'react-dom'
 
 interface ImageZoomProps {
@@ -28,6 +27,7 @@ export default function ImageZoom({
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     return () => {
       if (closeTimeoutRef.current) {
