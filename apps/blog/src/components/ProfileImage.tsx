@@ -3,10 +3,11 @@ import {ViewTransition} from 'react'
 
 import profile from '@/public/profile.jpeg'
 
-type ProfileImageSize = 32 | 40 | 192
+type ProfileImageSize = 32 | 36 | 40 | 192
 
 const sizeClasses: Record<ProfileImageSize, string> = {
   32: 'h-8 w-8',
+  36: 'h-9 w-9',
   40: 'h-10 w-10',
   192: 'h-48 w-48',
 }
