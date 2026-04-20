@@ -21,6 +21,7 @@ pre-commit:
       run: pnpm exec prettier --write {staged_files}
       stage_fixed: true
     stylelint:
+      root: 'apps/blog/'
       glob: '*.{scss,css}'
       run: pnpm exec stylelint --fix {staged_files}
       stage_fixed: true
