@@ -61,6 +61,12 @@ export async function generateMetadata(props: {
   return {
     title: data.title,
     description: data.description,
+    alternates: {
+      canonical: `${SiteConfig.url}/slides/${params.slug}`,
+      types: {
+        'text/markdown': `${SiteConfig.url}/slides/${params.slug}.md`,
+      },
+    },
     openGraph: {
       title: data.title,
       description: data.description,
