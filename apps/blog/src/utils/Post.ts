@@ -1,5 +1,7 @@
 import fs from 'fs'
 
+import {cache} from 'react'
+
 import frontMatter from 'front-matter'
 import {sync} from 'glob'
 import readingTime from 'reading-time'
@@ -13,17 +15,9 @@ const THUMB_DIR = `${process.cwd()}/public/thumbnails`
 
 export type Locale = 'ko' | 'en'
 
-export async function findPostByYearAndSlug(
-  year: string,
-  slug: string[],
+export const getAllPosts = cache(async function getAllPosts(
   locale: Locale = 'ko',
-) {
-  const slugs = [year, ...slug].join('/')
-  const posts = await getAllPosts(locale)
-  return posts.find((p) => p?.fields?.slug === slugs)
-}
-
-export async function getAllPosts(locale: Locale = 'ko'): Promise<Post[]> {
+): Promise<Post[]> {
   const files = sync(`${POST_PATH}/**/*.md*`).reverse()
 
   const posts = files
@@ -82,9 +76,19 @@ export async function getAllPosts(locale: Locale = 'ko'): Promise<Post[]> {
     })
 
   return posts
-}
+})
 
-export async function getAllTagsFromPosts(
+export const findPostByYearAndSlug = cache(async function findPostByYearAndSlug(
+  year: string,
+  slug: string[],
+  locale: Locale = 'ko',
+) {
+  const slugs = [year, ...slug].join('/')
+  const posts = await getAllPosts(locale)
+  return posts.find((p) => p?.fields?.slug === slugs)
+})
+
+export const getAllTagsFromPosts = cache(async function getAllTagsFromPosts(
   locale: Locale = 'ko',
 ): Promise<TagWithCount[]> {
   const posts = await getAllPosts(locale)
@@ -99,9 +103,9 @@ export async function getAllTagsFromPosts(
   return Array.from(tagCountMap.entries())
     .map(([tag, count]) => ({tag, count}))
     .sort((a, b) => b.count - a.count)
-}
+})
 
-export async function getSeriesPosts(
+export const getSeriesPosts = cache(async function getSeriesPosts(
   seriesName: string,
   locale: Locale = 'ko',
 ): Promise<Post[]> {
@@ -112,4 +116,4 @@ export async function getSeriesPosts(
       (a, b) =>
         (a.frontMatter.seriesOrder ?? 0) - (b.frontMatter.seriesOrder ?? 0),
     )
-}
+})

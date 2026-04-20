@@ -3,9 +3,11 @@ import type {MetadataRoute} from 'next'
 import {getAllPosts, getAllTagsFromPosts} from '@/utils/Post'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getAllPosts()
-  const enPosts = await getAllPosts('en')
-  const tags = await getAllTagsFromPosts()
+  const [posts, enPosts, tags] = await Promise.all([
+    getAllPosts(),
+    getAllPosts('en'),
+    getAllTagsFromPosts(),
+  ])
 
   const enSlugs = new Set(enPosts.map((p) => p.fields.slug))
 
