@@ -12,7 +12,7 @@
  */
 
 import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs'
-import {resolve, basename, dirname, relative} from 'node:path'
+import {resolve, dirname, relative} from 'node:path'
 
 const BLOG_ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..')
 const POSTS_DIR = resolve(BLOG_ROOT, 'posts')
@@ -27,13 +27,13 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL
 function loadApiKey() {
   const env = readFileSync(ENV_PATH, 'utf-8')
   const match = env.match(/GEMINI_API_KEY=(.+)/)
-  if (!match) throw new Error('GEMINI_API_KEY not found in .env.local')
+  if (!match) {throw new Error('GEMINI_API_KEY not found in .env.local')}
   return match[1].trim()
 }
 
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
-  if (!match) throw new Error('No frontmatter found')
+  if (!match) {throw new Error('No frontmatter found')}
   const raw = match[1]
   const get = (key) => {
     const m = raw.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
@@ -108,7 +108,7 @@ async function generateImage(apiKey, prompt) {
   const data = await res.json()
   const parts = data.candidates?.[0]?.content?.parts || []
   const imagePart = parts.find((p) => p.inlineData)
-  if (!imagePart) throw new Error('No image returned from Gemini')
+  if (!imagePart) {throw new Error('No image returned from Gemini')}
 
   return Buffer.from(imagePart.inlineData.data, 'base64')
 }

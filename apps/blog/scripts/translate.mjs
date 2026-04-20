@@ -11,8 +11,9 @@
 
 import {readFileSync, writeFileSync, existsSync} from 'node:fs'
 import {resolve, dirname, basename} from 'node:path'
-import {sync} from 'glob'
+
 import Anthropic from '@anthropic-ai/sdk'
+import {sync} from 'glob'
 
 const BLOG_ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..')
 const ENV_PATH = resolve(BLOG_ROOT, '.env.local')
@@ -21,19 +22,19 @@ const POST_PATH = resolve(BLOG_ROOT, 'posts')
 function loadApiKey() {
   const env = readFileSync(ENV_PATH, 'utf-8')
   const match = env.match(/ANTHROPIC_API_KEY=(.+)/)
-  if (!match) throw new Error('ANTHROPIC_API_KEY not found in .env.local')
+  if (!match) {throw new Error('ANTHROPIC_API_KEY not found in .env.local')}
   return match[1].trim()
 }
 
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
-  if (!match) throw new Error('No frontmatter found')
+  if (!match) {throw new Error('No frontmatter found')}
   return {raw: match[1], fullMatch: match[0], body: content.slice(match[0].length).trim()}
 }
 
 function fixFrontmatterQuotes(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
-  if (!match) return content
+  if (!match) {return content}
   const fixed = match[1].replace(
     /^(title|description):\s*'(.*)'$/gm,
     (_, key, val) => val.includes("'") ? `${key}: "${val}"` : `${key}: '${val}'`,
@@ -92,7 +93,7 @@ function splitIntoChunks(content) {
       current += section
     }
   }
-  if (current) chunks.push(current)
+  if (current) {chunks.push(current)}
 
   // Prepend frontmatter to first chunk
   chunks[0] = fullMatch + '\n\n' + chunks[0]
