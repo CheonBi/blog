@@ -486,10 +486,6 @@ function AboutPageContent() {
         >
           Resume
         </button>
-        <span
-          className="tabs-underline"
-          style={{transform: `translateX(${tab === 'about' ? 0 : 100}%)`}}
-        />
       </div>
 
       <div className="mt-4">

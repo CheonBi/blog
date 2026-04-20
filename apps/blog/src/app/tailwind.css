@@ -2002,6 +2002,7 @@ body[data-minimal='true'] .hero-title .accent {
   gap: 0;
 }
 .tabs button {
+  position: relative;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
@@ -2012,14 +2013,19 @@ body[data-minimal='true'] .hero-title .accent {
 .tabs button[data-active='true'] {
   color: var(--ink);
 }
-.tabs-underline {
+.tabs button::after {
+  content: '';
   position: absolute;
+  right: 0;
   bottom: -1px;
   left: 0;
-  width: 50%;
   height: 2px;
   background: var(--primary);
-  transition: transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  transform: scaleX(0);
+  transition: transform 240ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.tabs button[data-active='true']::after {
+  transform: scaleX(1);
 }
 .remark-code-title {
   @apply px-5 py-3 font-mono text-sm font-bold rounded-t;
