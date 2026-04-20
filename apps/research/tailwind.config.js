@@ -10,7 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-sans)', 'Inter', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
+        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],
       },
       colors: {
         primary: colors.indigo,
@@ -19,6 +21,11 @@ export default {
         dark: '#09090b',
         light: '#ffffff',
         gray: colors.zinc,
+        bg: 'var(--bg)',
+        surface: 'var(--surface)',
+        ink: 'var(--ink)',
+        'ink-2': 'var(--ink-2)',
+        'ink-3': 'var(--ink-3)',
         code: {
           green: '#a4f4c0',
           yellow: '#ffeb99',

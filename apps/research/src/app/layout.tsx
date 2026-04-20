@@ -1,5 +1,6 @@
 import './tailwind.css'
 
+import {Fraunces, Inter, JetBrains_Mono} from 'next/font/google'
 import Script from 'next/script'
 
 import {Analytics} from '@vercel/analytics/react'
@@ -7,8 +8,28 @@ import {Analytics} from '@vercel/analytics/react'
 import type {Metadata} from 'next'
 import type {ReactNode} from 'react'
 
+import AmbientEffects from '@/components/AmbientEffects'
 import {Providers} from '@/components/Provider'
 import {SiteConfig} from '@/config'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+})
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-serif',
+  style: ['italic', 'normal'],
+})
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
@@ -67,8 +88,17 @@ export const metadata: Metadata = {
 export default function Layout({children}: {children: ReactNode}) {
   return (
     <>
-      <html lang="kr" suppressHydrationWarning>
+      <html
+        lang="kr"
+        suppressHydrationWarning
+        className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}
+      >
         <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)tw-theme=([^;]+)/);if(m){localStorage.setItem('theme',decodeURIComponent(m[1]));}}catch(e){}})();`,
+            }}
+          />
           <link
             rel="icon"
             type="image/png"
@@ -84,7 +114,8 @@ export default function Layout({children}: {children: ReactNode}) {
           />
           <link rel="manifest" href="/favicon/site.webmanifest" />
         </head>
-        <body className="bg-white text-black antialiased dark:bg-gray-800 dark:text-white">
+        <body className="antialiased">
+          <AmbientEffects />
           <Providers>{children}</Providers>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${SiteConfig.googleAnalyticsId}`}

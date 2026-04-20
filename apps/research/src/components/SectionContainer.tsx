@@ -7,7 +7,7 @@ export default function SectionContainer({
   children: ReactNode
   className?: string
 }) {
-  const baseClass = 'mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-5xl xl:px-0'
+  const baseClass = 'mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-5xl lg:px-8'
 
   return <div className={`${baseClass} ${className ?? ''}`}>{children}</div>
 }
