@@ -2003,6 +2003,7 @@ body[data-minimal='true'] .hero-title .accent {
 }
 .tabs button {
   position: relative;
+  flex: 1;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
