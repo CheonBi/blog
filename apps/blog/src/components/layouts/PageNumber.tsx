@@ -12,30 +12,23 @@ export default function PageNumber({
   hasNextPage?: boolean
 }) {
   return (
-    <div className="flex">
-      <div className="flex w-1/2 justify-start text-base font-medium leading-6">
+    <nav className="pagination" aria-label="pagination">
+      <div className="pagination-slot">
         {pageNo !== 1 && prev && (
-          <Link
-            href={prev}
-            className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
-            aria-label="all posts"
-          >
-            Page {pageNo - 1} &larr;
+          <Link href={prev} className="pagination-link">
+            <span aria-hidden="true">←</span>
+            <span>Page {pageNo - 1}</span>
           </Link>
         )}
       </div>
-
-      <div className="flex w-1/2 justify-end text-base font-medium leading-6">
+      <div className="pagination-slot end">
         {hasNextPage && (
-          <Link
-            href={next}
-            className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
-            aria-label="all posts"
-          >
-            Page {pageNo + 1} &rarr;
+          <Link href={next} className="pagination-link">
+            <span>Page {pageNo + 1}</span>
+            <span aria-hidden="true">→</span>
           </Link>
         )}
       </div>
-    </div>
+    </nav>
   )
 }

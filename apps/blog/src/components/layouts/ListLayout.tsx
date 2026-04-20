@@ -1,6 +1,6 @@
 import type {Post} from '@/type'
 
-import PostCard from '@/components/PostCard'
+import PostRow from '@/components/PostRow'
 
 export default function ListLayout({
   posts,
@@ -12,16 +12,20 @@ export default function ListLayout({
   pathPrefix?: string
 }) {
   return (
-    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-      <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-        <h1 className="text-3xl font-black leading-9 tracking-tight text-black dark:text-white sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
-          {title}
-        </h1>
+    <div className="page-view">
+      <div className="sec-head">
+        <div>
+          <span className="sec-count">
+            {String(posts.length).padStart(2, '0')} POSTS
+          </span>
+          <h2>{title}</h2>
+        </div>
+        <div className="line" />
       </div>
-      <ul className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="post-row-list">
         {posts.map((post, index) => (
-          <li key={`${post.fields.slug}_${index}`} className="py-2">
-            <PostCard post={post} pathPrefix={pathPrefix} />
+          <li key={`${post.fields.slug}_${index}`}>
+            <PostRow post={post} pathPrefix={pathPrefix} />
           </li>
         ))}
       </ul>
