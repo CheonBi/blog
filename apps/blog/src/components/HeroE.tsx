@@ -1,96 +1,98 @@
 'use client'
 
-import {memo, useEffect, useState} from 'react'
+import {memo, useEffect, useRef} from 'react'
 
-import {SiteConfig} from '@/config'
-
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&'
-
-function ScrambleText({
-  text,
-  delay = 0,
-  className = '',
-}: {
-  text: string
-  delay?: number
-  className?: string
-}) {
-  const [display, setDisplay] = useState('')
-  const [started, setStarted] = useState(false)
-
-  useEffect(() => {
-    let frameId = 0
-    let startTime = 0
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime
-      const duration = 1200
-      const progress = Math.min(elapsed / duration, 1)
-
-      const revealed = Math.floor(progress * text.length)
-      let result = ''
-      for (let i = 0; i < text.length; i++) {
-        if (text[i] === ' ') {
-          result += ' '
-        } else if (i < revealed) {
-          result += text[i]
-        } else {
-          result += CHARS[Math.floor(Math.random() * CHARS.length)]
-        }
-      }
-      setDisplay(result)
-
-      if (progress < 1) {
-        frameId = requestAnimationFrame(animate)
-      }
-    }
-
-    const timer = setTimeout(() => {
-      setStarted(true)
-      startTime = Date.now()
-      frameId = requestAnimationFrame(animate)
-    }, delay)
-
-    return () => {
-      clearTimeout(timer)
-      cancelAnimationFrame(frameId)
-    }
-  }, [text, delay])
-
-  if (!started) {
-    return <span className={`${className} invisible`}>{text}</span>
-  }
-
-  return <span className={className}>{display}</span>
+interface HeroProps {
+  postCount: number
+  tagCount: number
+  yearsWriting: number
 }
 
-const Hero = memo(function Hero() {
-  return (
-    <div className="relative mb-8 py-10 sm:py-14 lg:py-16">
-      <div className="mx-auto w-full">
-        {/* Subtitle */}
-        <p className="hero-fade-1 mb-3 font-mono text-xs tracking-[0.3em] text-indigo-600 dark:text-indigo-400 sm:text-sm">
-          <ScrambleText text="FRONTEND ENGINEER" delay={200} />
-        </p>
+const Hero = memo(function Hero({
+  postCount,
+  tagCount,
+  yearsWriting,
+}: HeroProps) {
+  const titleRef = useRef<HTMLHeadingElement>(null)
 
-        {/* Name with continuous gradient animation */}
-        <h1 className="mb-4 font-black leading-tight tracking-tighter sm:mb-5">
-          <span className="hero-gradient-text block bg-gradient-to-r from-indigo-600 via-purple-600 via-50% to-pink-600 bg-[length:200%_auto] bg-clip-text text-[14vw] text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 sm:text-[11vw] md:text-[9vw] lg:text-[7vw]">
-            <ScrambleText text={SiteConfig.author.name} delay={400} />
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (media.matches) {
+      return
+    }
+
+    const el = titleRef.current
+    if (!el) {
+      return
+    }
+    const lines = el.querySelectorAll<HTMLSpanElement>('.ln')
+
+    let raf = 0
+    let targetX = 0
+    let targetY = 0
+
+    const onMove = (e: PointerEvent) => {
+      targetX = e.clientX / window.innerWidth - 0.5
+      targetY = e.clientY / window.innerHeight - 0.5
+      if (!raf) {
+        raf = window.requestAnimationFrame(() => {
+          lines.forEach((ln, i) => {
+            const depth = (i + 1) * 6
+            ln.style.transform = `translate3d(${targetX * depth}px, ${targetY * depth}px, 0)`
+          })
+          raf = 0
+        })
+      }
+    }
+
+    window.addEventListener('pointermove', onMove, {passive: true})
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      if (raf) {
+        window.cancelAnimationFrame(raf)
+      }
+    }
+  }, [])
+
+  return (
+    <section className="home-hero">
+      <div className="home-hero-inner">
+        <div className="hero-eyebrow">
+          <span className="dot" />
+          LIVE · SEOUL · {new Date().getFullYear()}
+        </div>
+        <h1 ref={titleRef} className="hero-title">
+          <span className="ln">GRIND.</span>
+          <span className="ln">
+            <span className="accent">LEARN</span>
+            <span className="stroke">,</span>
+          </span>
+          <span className="ln">
+            REPEAT<span className="accent">.</span>
           </span>
         </h1>
-
-        {/* Animated divider */}
-        <div className="hero-fade-2 mb-4 sm:mb-5">
-          <div className="hero-glow-line h-px w-full bg-gradient-to-r from-indigo-500/60 via-purple-500/40 to-transparent dark:from-indigo-500/80 dark:via-purple-500/60" />
+        <div className="hero-sub">
+          <p>
+            A blog by <b style={{color: 'var(--ink)'}}>yceffort</b> — a frontend
+            engineer writing about the shape of software, one week at a time.
+          </p>
+          <div className="hero-stats">
+            <span>
+              <b>{String(postCount).padStart(3, '0')}</b>posts
+            </span>
+            <span>
+              <b>{String(tagCount).padStart(3, '0')}</b>tags
+            </span>
+            <span>
+              <b>{String(yearsWriting).padStart(2, '0')}y</b>writing
+            </span>
+          </div>
         </div>
-
-        {/* Description */}
-        <p className="hero-fade-2 mb-5 max-w-md text-sm text-gray-600 dark:text-gray-400 sm:mb-6 sm:text-base">
-          {SiteConfig.subtitle}
-        </p>
       </div>
-    </div>
+    </section>
   )
 })
 
