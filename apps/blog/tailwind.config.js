@@ -20,7 +20,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-sans)', 'Inter', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
+        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],
       },
       colors: {
         primary: colors.indigo,
@@ -29,6 +31,20 @@ export default {
         dark: '#09090b', // zinc-950
         light: '#ffffff',
         gray: colors.zinc,
+        // Design tokens (alias to CSS variables)
+        bg: 'var(--bg)',
+        'bg-2': 'var(--bg-2)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        ink: 'var(--ink)',
+        'ink-2': 'var(--ink-2)',
+        'ink-3': 'var(--ink-3)',
+        'ink-4': 'var(--ink-4)',
+        brand: {
+          1: 'var(--primary)',
+          2: 'var(--primary-2)',
+          3: 'var(--primary-3)',
+        },
         code: {
           green: '#a4f4c0',
           yellow: '#ffeb99',
