@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import {notFound} from 'next/navigation'
+import Script from 'next/script'
 import {ViewTransition} from 'react'
 
 import {format} from 'date-fns'
@@ -16,7 +16,6 @@ import remarkToc from 'remark-toc'
 import MathLoader from '@/components/layouts/Post/math'
 import MDXComponents from '@/components/MDXComponents'
 import ProfileImage from '@/components/ProfileImage'
-import ReadingProgressBar from '@/components/ReadingProgressBar'
 import SeriesNavigation from '@/components/SeriesNavigation'
 import TableOfContents from '@/components/TableOfContents'
 import Tag from '@/components/Tag'
@@ -129,14 +128,8 @@ export default async function Page(props: {
     path: '/' + postSlug,
     thumbnail,
   })
-  const ogImageUrlLarge = buildOgImageUrl({
-    title,
-    description,
-    tags,
-    path: '/' + postSlug,
-    thumbnail,
-    size: 'large',
-  })
+
+  const postYear = new Date(date).getFullYear()
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -153,78 +146,94 @@ export default async function Page(props: {
     },
   }
 
+  const titleWords = title.split(' ')
+  const firstWord = titleWords[0] ?? title
+  const restTitle = titleWords.slice(1).join(' ')
+
   return (
     <>
-      <script
-        dangerouslySetInnerHTML={{__html: JSON.stringify(jsonLd)}}
+      <Script
+        id={`jsonld-${postSlug.replace(/\//g, '-')}`}
         type="application/ld+json"
-      />
-      <ReadingProgressBar />
+        strategy="afterInteractive"
+      >
+        {JSON.stringify(jsonLd)}
+      </Script>
       <MathLoader />
-      <div className="relative">
-        <article>
-          {/* Cover Image */}
-          <ViewTransition name={`${transitionName}-thumbnail`}>
-            <div className="relative mb-6 aspect-[1200/630] w-full overflow-hidden rounded-xl border border-gray-200 shadow-lg dark:border-gray-700">
-              <Image
-                src={ogImageUrlLarge}
-                alt={title}
-                fill
-                className="object-cover md:hidden"
-                priority
-                unoptimized
-              />
-              <Image
-                src={ogImageUrl}
-                alt={title}
-                fill
-                className="hidden object-cover md:block"
-                priority
-                unoptimized
-              />
-            </div>
-          </ViewTransition>
+      <div className="page-view relative">
+        <Link href="/" className="post-back">
+          <span className="dot">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            >
+              <path d="M15 18 9 12l6-6" />
+            </svg>
+          </span>
+          BACK TO INDEX
+        </Link>
 
-          {/* Post Meta */}
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+        <section className="post-masthead">
+          <div className="post-eyebrow">
+            ◆ {series ? `SERIES · ${series}` : 'ESSAY'}
+          </div>
+          <ViewTransition name={transitionName}>
+            <h1 className="post-title">
+              <em>{firstWord}</em>
+              {restTitle ? ` ${restTitle}` : ''}
+            </h1>
+          </ViewTransition>
+          <div className="post-meta-row">
+            <div className="post-author">
               <ProfileImage
-                size={32}
+                size={36}
                 transitionName={`${transitionName}-avatar`}
               />
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {SiteConfig.author.name}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <time dateTime={updatedAt}>{updatedAt}</time>
-                  <span>·</span>
-                  <span>{readingTime}분</span>
+                <div className="nm">{SiteConfig.author.name}</div>
+                <div className="sub">
+                  {updatedAt} · {readingTime}분
                 </div>
               </div>
             </div>
-            {tags && (
-              <ViewTransition name={`${transitionName}-tags`}>
-                <div className="flex flex-wrap gap-2">
-                  {tags.slice(0, 4).map((tag) => (
-                    <Tag key={tag} text={tag} />
-                  ))}
-                </div>
-              </ViewTransition>
-            )}
+            <div className="post-stats">
+              <div>
+                <b>{readingTime}</b>min
+              </div>
+              <div>
+                <b>{postYear}</b>year
+              </div>
+              <div>
+                <b>KO</b>original
+              </div>
+            </div>
           </div>
-
-          {/* Series Navigation */}
-          {series && seriesPosts.length > 1 && (
-            <SeriesNavigation
-              seriesName={series}
-              seriesPosts={seriesPosts}
-              currentSlug={postSlug}
-            />
+          {tags && (
+            <ViewTransition name={`${transitionName}-tags`}>
+              <div className="post-tags-row">
+                {tags.slice(0, 5).map((tag) => (
+                  <Tag key={tag} text={tag} />
+                ))}
+              </div>
+            </ViewTransition>
           )}
+        </section>
 
-          {/* Content */}
-          <div className="prose max-w-none pb-8 dark:prose-dark">
+        {series && seriesPosts.length > 1 && (
+          <SeriesNavigation
+            seriesName={series}
+            seriesPosts={seriesPosts}
+            currentSlug={postSlug}
+          />
+        )}
+
+        <div className="post-layout">
+          <article className="post-article prose max-w-none dark:prose-dark">
             <MDXRemote
               source={body}
               components={MDXComponents}
@@ -243,30 +252,17 @@ export default async function Page(props: {
                 },
               }}
             />
-          </div>
+          </article>
+        </div>
 
-          {/* Footer */}
-          <footer className="border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Link
-                href="/"
-                className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-              >
-                &larr; Back to the blog
-              </Link>
-              <Link
-                href={link}
-                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                Issue on GitHub
-              </Link>
-            </div>
-          </footer>
-        </article>
-        <aside className="fixed right-8 top-24 w-64">
-          <TableOfContents />
-        </aside>
+        <footer className="post-footer">
+          <Link href="/">&larr; Back to the blog</Link>
+          <Link href={link} className="issue">
+            Issue on GitHub →
+          </Link>
+        </footer>
       </div>
+      <TableOfContents />
     </>
   )
 }
