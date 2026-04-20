@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 import {notFound} from 'next/navigation'
+import {cache} from 'react'
 
 import matter from 'gray-matter'
 
@@ -16,7 +17,9 @@ interface SlideData {
   notes: string[]
 }
 
-async function getSlideData(slug: string): Promise<SlideData | null> {
+const getSlideData = cache(async function getSlideData(
+  slug: string,
+): Promise<SlideData | null> {
   const filePath = path.join(process.cwd(), 'research', `${slug}.md`)
 
   if (!fs.existsSync(filePath)) {
@@ -30,7 +33,7 @@ async function getSlideData(slug: string): Promise<SlideData | null> {
   const {html, css, fonts, notes} = await generateRenderedMarp(markdown)
 
   return {title, html, css, fonts, notes}
-}
+})
 
 export async function generateStaticParams() {
   const researchPath = path.join(process.cwd(), 'research')

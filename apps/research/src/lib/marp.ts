@@ -28,7 +28,27 @@ const postcssStripFontFace = Object.assign(
   {postcss: true as const},
 )
 
-export async function generateRenderedMarp(markdown: string) {
+interface RenderedMarp {
+  markdown: string
+  html: string[]
+  css: string
+  fonts: string[]
+  notes: string[]
+}
+
+const marpCache = new Map<string, Promise<RenderedMarp>>()
+
+export function generateRenderedMarp(markdown: string): Promise<RenderedMarp> {
+  const cached = marpCache.get(markdown)
+  if (cached) {
+    return cached
+  }
+  const pending = renderMarp(markdown)
+  marpCache.set(markdown, pending)
+  return pending
+}
+
+async function renderMarp(markdown: string): Promise<RenderedMarp> {
   const marp = new MarpCore({
     container: false,
     script: false,

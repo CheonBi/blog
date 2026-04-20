@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
+import {cache} from 'react'
+
 import matter from 'gray-matter'
 
 export interface SlideIndexEntry {
@@ -15,7 +17,7 @@ export interface SlideIndexEntry {
 
 const RESEARCH_DIR = path.join(process.cwd(), 'research')
 
-export function getAllSlides(): SlideIndexEntry[] {
+export const getAllSlides = cache(function getAllSlides(): SlideIndexEntry[] {
   const files = fs.readdirSync(RESEARCH_DIR).filter((f) => f.endsWith('.md'))
 
   return files
@@ -38,9 +40,11 @@ export function getAllSlides(): SlideIndexEntry[] {
       const bd = b.date ?? ''
       return bd.localeCompare(ad)
     })
-}
+})
 
-export function getSlideBySlug(slug: string): SlideIndexEntry | null {
+export const getSlideBySlug = cache(function getSlideBySlug(
+  slug: string,
+): SlideIndexEntry | null {
   const filePath = path.join(RESEARCH_DIR, `${slug}.md`)
   if (!fs.existsSync(filePath)) {
     return null
@@ -56,4 +60,4 @@ export function getSlideBySlug(slug: string): SlideIndexEntry | null {
     published: data.published !== false,
     markdown,
   }
-}
+})
