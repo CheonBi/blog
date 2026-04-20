@@ -26,7 +26,6 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "@yceffort/shared": "workspace:*",
-    "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "front-matter": "^4.0.2",
     "glob": "^13.0.6",
