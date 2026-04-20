@@ -4,7 +4,6 @@ import {useCallback, useEffect, useRef, useState} from 'react'
 import {createPortal} from 'react-dom'
 
 import Panzoom from '@panzoom/panzoom'
-import mermaid from 'mermaid'
 import {useTheme} from 'next-themes'
 // @ts-expect-error - react-dom types issue with React 19
 
@@ -83,26 +82,27 @@ export default function Mermaid({chart}: {chart: string}) {
 
   useEffect(() => {
     let cancelled = false
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRendered(false)
-    setSvgMarkup('')
 
     const isDark = resolvedTheme === 'dark'
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: isDark ? 'dark' : 'base',
-      securityLevel: 'loose',
-      fontFamily: 'inherit',
-      fontSize: 20,
-      flowchart: {useMaxWidth: false},
-      sequence: {useMaxWidth: false},
-      gantt: {useMaxWidth: false},
-      journey: {useMaxWidth: false},
-      timeline: {useMaxWidth: false},
-      themeVariables: buildThemeVariables(isDark),
-    })
+    const run = async () => {
+      const {default: mermaid} = await import('mermaid')
+      if (cancelled) {
+        return
+      }
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'base',
+        securityLevel: 'loose',
+        fontFamily: 'inherit',
+        fontSize: 20,
+        flowchart: {useMaxWidth: false},
+        sequence: {useMaxWidth: false},
+        gantt: {useMaxWidth: false},
+        journey: {useMaxWidth: false},
+        timeline: {useMaxWidth: false},
+        themeVariables: buildThemeVariables(isDark),
+      })
 
-    const renderChart = async () => {
       if (!ref.current) {
         return
       }
@@ -147,7 +147,7 @@ export default function Mermaid({chart}: {chart: string}) {
       }
     }
 
-    renderChart()
+    run()
 
     return () => {
       cancelled = true
@@ -155,7 +155,7 @@ export default function Mermaid({chart}: {chart: string}) {
   }, [chart, resolvedTheme])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMounted(true)
   }, [])
 
