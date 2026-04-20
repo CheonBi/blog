@@ -1,11 +1,19 @@
+import fs from 'fs'
+import path from 'path'
+
+import frontMatter from 'front-matter'
+
+import type {FrontMatter} from '@/type'
+
 import {SiteConfig} from '@/config'
-import {getAllPosts} from '@/utils/Post'
-import {getPostRawBySlug} from '@/utils/postsRaw'
+import {getAllPostFiles} from '@/utils/postsRaw'
 
 export const dynamic = 'error'
 
-export async function GET() {
-  const posts = await getAllPosts('ko')
+const POST_ROOT = path.join(process.cwd(), 'posts')
+
+export function GET() {
+  const files = getAllPostFiles('ko')
 
   const parts: string[] = []
   parts.push(`# ${SiteConfig.title}`)
@@ -13,15 +21,27 @@ export async function GET() {
   parts.push(`> Full markdown of every published post (Korean).`)
   parts.push('')
 
-  for (const post of posts) {
-    const [year, ...rest] = post.fields.slug.split('/')
-    const raw = getPostRawBySlug(year, rest, 'ko')
-    if (!raw) {
-      continue
-    }
+  const entries = files
+    .map((file) => {
+      const raw = fs.readFileSync(file, 'utf-8')
+      const {attributes} = frontMatter<FrontMatter>(raw)
+      const slug = file
+        .slice(POST_ROOT.length + 1)
+        .replace(/\.mdx?$/, '')
+        .replace(/\.en$/, '')
+      return {slug, raw, attributes}
+    })
+    .filter(({attributes}) => attributes.published)
+    .sort(
+      (a, b) =>
+        new Date(b.attributes.date).getTime() -
+        new Date(a.attributes.date).getTime(),
+    )
+
+  for (const {slug, raw} of entries) {
     parts.push('---')
     parts.push('')
-    parts.push(`Source: ${SiteConfig.url}/${post.fields.slug}.md`)
+    parts.push(`Source: ${SiteConfig.url}/${slug}.md`)
     parts.push('')
     parts.push(raw.trim())
     parts.push('')
