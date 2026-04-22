@@ -35,7 +35,9 @@ published: true
 
 ## 이 강의의 메시지
 
-> `useEffect`는 **탈출구**(escape hatch). 쓰는 순간 React 바깥 세계와 동기화 중이라는 뜻.
+> `useEffect`는 **탈출구**(escape hatch).
+
+React의 기본 모델은 "state/props를 선언하면 화면이 따라온다"는 선언적 세계. `useEffect`는 이 세계를 벗어나 **명령형으로 외부(DOM, 네트워크, 타이머…)를 건드려야 할 때** 쓰는 비상구다.
 
 필요 없는데 쓰고 있다면 **원인 불명의 버그**가 숨어 있을 가능성이 높다.
 
@@ -64,13 +66,14 @@ published: true
 ## 실행 타이밍 (기본)
 
 ```
-1. state 변경 → 컴포넌트 함수 호출 (render)
-2. React가 DOM에 반영 (commit)
-3. 브라우저 paint
-4. useEffect 실행
+1. render  — 컴포넌트 함수 실행, 가상 트리 계산 (순수해야 함)
+2. commit  — React가 실제 DOM에 반영
+3. paint   — 브라우저가 화면에 그림
+4. effect  — useEffect 콜백 실행
 ```
 
-Effect 안에서 state를 바꾸면 **리렌더가 한 번 더** 일어난다. Effect가 많다 = 렌더가 여러 번. (세부 타이밍은 Part 5)
+- **render는 순수해야 해서 사이드이펙트 금지.** 외부 동기화는 commit 뒤(= effect)로 미뤄진다.
+- Effect 안에서 state를 바꾸면 **리렌더가 한 번 더** 일어난다. (세부 타이밍은 Part 5)
 
 ---
 
@@ -191,12 +194,16 @@ useEffect(() => {
 }, [query])
 ```
 
-`a` → `ab` 빠르게 입력:
+`a` → `ab` 빠르게 입력했을 때:
 
-1. `a` fetch 시작 (3초)
-2. `ab` fetch 시작 (1초)
-3. `ab` 응답 먼저 표시 ✓
-4. **`a` 응답 나중 도착 → 덮어씀** ✗
+```
+시간 ──────────────────────────────▶
+ a   ├──── fetch "a"  (3초) ──────┤ 응답 도착
+ ab    ├── fetch "ab" (1초) ─┤ 응답 도착
+화면                         "ab결과" → "a결과" ✗
+```
+
+두 요청이 **동시에 살아있고**, 늦게 도착한 `a` 응답이 `ab`의 결과를 덮어쓴다.
 
 ---
 
@@ -211,12 +218,13 @@ useEffect(() => {
     .catch((err) => {
       if (err.name !== 'AbortError') throw err
     })
-  return () => controller.abort()
+  return () => controller.abort() // deps 바뀌면 이전 요청 취소
 }, [query])
 ```
 
-- 요청 자체 중단 → 서버 부하 감소
-- 모바일 저속 네트워크 데이터 절약
+- `signal`은 fetch에게 넘기는 **취소 리모컨**. `controller.abort()` → fetch가 `AbortError`로 reject.
+- cleanup에서 abort → 이전 `query`의 요청이 멈추므로 **덮어쓸 응답 자체가 도착하지 않는다**.
+- 부가 효과: 서버 부하 감소, 모바일 데이터 절약.
 
 ---
 
@@ -258,15 +266,16 @@ async function toggleLike(postId) {
 ## Optimistic update 해결: 요청에 번호 붙이기
 
 ```jsx
+// 모듈 스코프 — 렌더마다 초기화되지 않는다 (컴포넌트 안이면 useRef로)
 let latestId = 0
 
 async function toggleLike(postId) {
-  const myId = ++latestId
+  const myId = ++latestId // 내 요청의 번호표
   setLiked(true)
   try {
     await api.like(postId)
   } catch {
-    if (myId === latestId) setLiked(false) // 내가 최신일 때만 롤백
+    if (myId === latestId) setLiked(false) // 내가 마지막일 때만 롤백
   }
 }
 ```
@@ -278,6 +287,38 @@ async function toggleLike(postId) {
 ---
 
 ## Part 3 — Stale Closure
+
+---
+
+## 먼저 — 클로저 1분 복습
+
+**클로저**: 함수가 선언될 때 주변 스코프의 변수를 **함께 기억**하는 JS의 기본 메커니즘.
+
+```js
+function makeCounter() {
+  let count = 0
+  return () => ++count // ← 바깥의 count를 기억
+}
+const tick = makeCounter()
+tick() // 1
+tick() // 2  ← 같은 count를 공유
+```
+
+`tick`은 `makeCounter`가 이미 끝났는데도 **그때의 `count` 변수**를 움켜쥐고 산다.
+
+> 함수 = 코드 + 주변 변수의 스냅샷.
+
+---
+
+## Stale closure — 오래된 스냅샷
+
+React 컴포넌트는 state가 바뀔 때마다 **함수 자체가 다시 실행**된다. 즉, 렌더할 때마다 새 클로저가 만들어진다.
+
+하지만 **이전 렌더에서 만들어진 함수**(setInterval 콜백, 이벤트 핸들러, Effect 안의 함수 등)가 아직 살아 있다면, 그 함수는 **과거 렌더의 값**을 여전히 움켜쥐고 있다.
+
+> **Stale closure** = 과거 렌더의 state/props를 캡처한 채 지금도 돌아가는 함수.
+
+모든 React 버그의 흔한 원인 중 하나. 아래 데모가 대표 사례다.
 
 ---
 
@@ -300,36 +341,52 @@ function Counter() {
 
 ---
 
+## 한 단계씩 — 왜 멈추는가
+
+1. **첫 렌더**: `Counter()` 실행 → 이때 `count = 0` → `setInterval`에 콜백 `() => setCount(count + 1)` 등록. 이 콜백은 **JS 클로저로 "그때의 count = 0"을 캡처**한다.
+2. 1초 뒤 콜백 실행 → `setCount(0 + 1)` → 리렌더.
+3. **두 번째 렌더**: `Counter()`가 다시 실행되고 새로운 `count = 1`이 생기지만, **deps가 `[]`라 Effect는 재실행되지 않는다** → 첫 렌더의 interval 콜백이 그대로 살아 있음.
+4. 다음 tick에서도 `setCount(0 + 1)` → 화면 `1`에서 고정.
+
+```
+첫 렌더 → count=0 ─┐
+두 번째 렌더 → count=1 (새) │  첫 렌더의 interval 콜백은
+세 번째 렌더 → count=1 ──┘  여전히 "count=0"을 움켜쥠
+```
+
+---
+
 ## 핵심: 매 렌더는 스냅샷
 
-Dan Abramov의 [_A Complete Guide to useEffect_](https://overreacted.io/a-complete-guide-to-useeffect/):
+> Dan Abramov: **Each render has its own props, state, effects, and event handlers.**
+> ([_A Complete Guide to useEffect_](https://overreacted.io/a-complete-guide-to-useeffect/))
 
-> **Each render has its own props, state, effects, and event handlers.**
-
-첫 렌더의 클로저는 **첫 렌더의 `count = 0`** 을 움켜쥔 채 interval 안에서 영원히 산다.
+렌더는 `Counter()` 함수가 **다시 실행**되는 것. 매 렌더마다 새로운 `count`, 새로운 클로저가 만들어지지만, 이전 렌더가 만들어둔 함수(interval 콜백, 이벤트 핸들러 등)는 **그 시점의 값을 움켜쥔 채 살아남는다**.
 
 이게 stale closure — 오래된 스냅샷을 보는 함수.
 
 ---
 
-## 해결 3종
+## 해결 2종
 
 ```jsx
-// 1. deps에 정직하게 — count 바뀔 때마다 interval 재등록
+// 1. functional update — "최신 state"를 인자로 받음 (기본)
 useEffect(() => {
-  setInterval(/*...*/)
-}, [count])
+  const id = setInterval(() => setCount((prev) => prev + 1), 1000)
+  return () => clearInterval(id)
+}, [])
 
-// 2. functional update — 클로저에 값 안 넣음 (권장)
-setCount((prev) => prev + 1)
-
-// 3. ref — 값을 "바깥 저장소"에
+// 2. ref — 값을 "렌더 바깥 저장소"에 두고 최신 값 읽기
 useEffect(() => {
   countRef.current = count
 })
+useEffect(() => {
+  const id = setInterval(() => setCount(countRef.current + 1), 1000)
+  return () => clearInterval(id)
+}, [])
 ```
 
-1번은 단순히 비효율이 아니라 **매 1초마다 타이머가 해제·재등록되어 타이밍이 어긋난다.** 그래서 보통 2번(functional update)이 권장된다.
+1번이 기본. ref(2번)는 매 렌더가 **같은 객체**를 공유하므로 `.current`로 항상 최신 값을 읽을 수 있다 — state 여러 개를 함께 참조해야 할 때 유용.
 
 ---
 
@@ -353,11 +410,11 @@ Effect 안에서 참조하는 값은 두 부류:
 
 **Reactive value** — 바뀌면 effect를 **다시 실행해야** 하는 값
 
-- 예: `roomId` — 방이 바뀌면 재연결해야 함
+- 예: `roomId` — 방이 바뀌면 WebSocket을 끊고 **재연결**해야 함
 
 **Latest value** — 값은 최신으로 읽되 **재실행은 안 해야** 하는 값
 
-- 예: `theme` — 메시지 로그에 현재 테마를 찍지만, 테마 바뀌었다고 재연결 X
+- 예: `isMuted` — 메시지가 올 때 음소거 여부에 따라 알림음을 낼지 결정. 하지만 **음소거를 토글했다고 연결을 다시 맺을 이유는 없음**.
 
 ---
 
@@ -367,34 +424,36 @@ Effect 안에서 참조하는 값은 두 부류:
 useEffect(() => {
   const conn = connect(roomId)
   conn.on('message', (msg) => {
-    log(`[${theme}] ${msg}`) // theme도 쓰임
+    if (!isMuted) playSound() // isMuted도 참조
   })
   return () => conn.disconnect()
-}, [roomId, theme]) // ← theme 넣으면 재연결됨
-// theme 빼면 → stale closure
+}, [roomId, isMuted]) // ← isMuted 넣으면 토글할 때마다 재연결
+// isMuted 빼면 → stale closure (과거의 isMuted를 봄)
 ```
 
 ref로 우회는 가능하지만 수동이고 실수 쉽다.
 
 ---
 
-## useEffectEvent (React 19.2)
+## useEffectEvent
 
 ```jsx
+// 2026-04 현재 experimental. 실제 import:
+// import {experimental_useEffectEvent as useEffectEvent} from 'react'
 import {useEffectEvent} from 'react'
 
 const onMessage = useEffectEvent((msg) => {
-  log(`[${theme}] ${msg}`) // 항상 최신 theme
+  if (!isMuted) playSound() // 호출될 때마다 최신 isMuted를 읽음
 })
 
 useEffect(() => {
   const conn = connect(roomId)
   conn.on('message', onMessage)
   return () => conn.disconnect()
-}, [roomId]) // ✅ theme deps 없이 최신값 보장
+}, [roomId]) // ✅ isMuted는 deps에 없지만 최신값이 반영됨
 ```
 
-`useEffectEvent`는 **"reactive가 아닌 값을 읽는 창구"**.
+`useEffectEvent`는 **"reactive가 아닌 값을 읽는 창구"**. 내부 구현은 ref와 비슷하지만 ESLint deps 규칙이 이를 인식해서 "deps 빠졌다"는 경고를 내지 않으므로, 수동 ref보다 안전하다.
 
 ---
 
@@ -512,16 +571,40 @@ useInsertionEffect(() => {
 
 ## Tearing — 동시성 모드의 숨은 적
 
+**전제**: React 18부터 렌더를 여러 조각으로 쪼개 실행할 수 있다 (concurrent rendering). 즉, **한 번의 렌더 패스 중간에 React가 잠시 멈췄다가 이어 그릴 수 있다**.
+
 ```
 1. 외부 스토어 값 = 10
 2. 컴포넌트 A 렌더 → 10 읽음
-3. (React가 양보, yield)
-4. 외부 스토어 값 = 20 (다른 코드가 바꿈)
-5. 컴포넌트 B 렌더 → 20 읽음
-6. 같은 화면에 A=10, B=20  ← tearing
+3. React가 양보 (yield) — 다른 급한 일 처리
+4. 외부 스토어 값 = 20  ← 이 사이에 변경됨
+5. 이어서 컴포넌트 B 렌더 → 20 읽음
+6. 같은 화면에 A=10, B=20  ← tearing (찢어짐)
 ```
 
-`useState + useEffect`로 외부 값을 구독하면 **이게 실제로 발생 가능**.
+`useState + useEffect`로 외부 값을 구독하면 렌더 도중 값이 바뀌는 걸 막을 방법이 없어 발생 가능.
+
+---
+
+## 잠깐 — "외부 세계" vs "외부 스토어"
+
+용어가 헷갈릴 수 있어 정리:
+
+- **외부 세계** (넓은 개념) — React 컴포넌트 밖의 모든 것. DOM, 네트워크 요청, 타이머, 서드파티 라이브러리 인스턴스 등. → `useEffect`의 영역.
+- **외부 스토어** (좁은 개념) — 외부 세계 중에서 다음 두 조건을 모두 만족하는 **"읽기 전용 데이터 원천"**:
+  1. **현재 값을 동기적으로 읽을 수 있다** (스냅샷)
+  2. **값이 바뀌면 구독자에게 알린다** (pub/sub)
+
+| 대상                                | 외부 스토어? |
+| ----------------------------------- | ------------ |
+| Redux / Zustand / Jotai store       | ✅           |
+| `navigator.onLine` + online/offline | ✅           |
+| `window.matchMedia(...)`            | ✅           |
+| `document.title`에 문자열 쓰기      | ❌ (일회성)  |
+| fetch 응답                          | ❌ (1회성)   |
+| setInterval로 일 시키기             | ❌           |
+
+**외부 스토어를 구독해 렌더에 반영**하는 경우에만 `useSyncExternalStore`. 나머지는 여전히 `useEffect`.
 
 ---
 
@@ -529,16 +612,19 @@ useInsertionEffect(() => {
 
 ```jsx
 const value = useSyncExternalStore(
-  subscribe, // 구독 등록/해제
-  getSnapshot, // 현재 값 (동기)
-  getServerSnapshot, // SSR용
+  subscribe, // "값이 바뀌면 알려줘" — 변화 알림 채널
+  getSnapshot, // "지금 값이 뭐지?" — 동기적으로 현재값 반환
+  getServerSnapshot, // SSR 초기값
 )
 ```
 
-- React가 렌더 중 일관성을 위해 `getSnapshot()`을 **동기적으로** 호출
-- 같은 렌더 패스 안에서는 항상 같은 값
-- 렌더 도중 값이 바뀌면 React가 자동으로 다시 렌더
-- Zustand, Jotai, Redux 최신 버전이 내부적으로 사용
+왜 함수가 두 개로 쪼개져 있나:
+
+- **변화를 감지하는 것**(pub/sub)과 **현재 값을 읽는 것**은 다른 일. 분리돼야 React가 렌더 도중 원할 때 "지금 값"을 확인할 수 있다.
+- `getSnapshot()`을 **동기적으로** 호출 → 같은 렌더 패스 안에서는 항상 같은 값 → tearing 없음.
+- 렌더 도중 값이 바뀌면 React가 자동으로 다시 렌더.
+
+Zustand, Jotai, Redux 최신 버전이 내부적으로 사용.
 
 ---
 
@@ -588,20 +674,20 @@ const isOnline = useSyncExternalStore(
 
 ```jsx
 function UserProfile({userPromise, postsPromise}) {
-  const user = use(userPromise) // suspend
-  const posts = use(postsPromise) // suspend
+  const user = use(userPromise) // pending이면 컴포넌트 일시중단
+  const posts = use(postsPromise)
   return <Layout user={user} posts={posts} />
 }
 
 ;<Suspense fallback={<Spinner />}>
   <UserProfile
     userPromise={fetchUser(id)} // 병렬 시작
-    postsPromise={fetchPosts(id)} // 병렬 시작
+    postsPromise={fetchPosts(id)}
   />
 </Suspense>
 ```
 
-**useEffect도, useState도 없음.** 로딩/에러는 Suspense / ErrorBoundary가 담당.
+**동작 원리**: promise가 pending이면 `use()`가 내부적으로 그 promise를 **throw** → 가장 가까운 `<Suspense>`가 캐치해 fallback 표시 → promise가 resolve되면 React가 컴포넌트를 다시 실행. **useEffect도, useState도 없음**, 로딩/에러는 Suspense / ErrorBoundary가 담당.
 
 ---
 
@@ -816,15 +902,18 @@ function Page() {
 ## Server Component 패턴
 
 ```jsx
+// 'use client' 없음 = Server Component.
+// 서버에서 한 번 실행되고, 결과 HTML(+직렬화 데이터)만 브라우저로 내려간다.
+// 브라우저에서는 다시 렌더되지 않음.
 async function Page() {
-  const data = await fetchPosts()
+  const data = await fetchPosts() // 서버에서 바로 await
   return <Posts data={data} />
 }
 ```
 
-- **Effect 없음, useState 없음, 로딩 상태 없음**
-- race condition 원천 차단
-- 번들 사이즈도 감소
+- **Effect 없음, useState 없음, 로딩 상태 없음** — 렌더 전에 이미 데이터가 있음
+- race condition 원천 차단 — 서버에서 딱 한 번 실행
+- 번들 사이즈도 감소 — 서버 전용 코드는 클라이언트로 안 내려감
 
 > 데이터 페칭에 한해서는 **Effect 없는 세계**가 이미 와 있다.
 
