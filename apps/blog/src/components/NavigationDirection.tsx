@@ -1,7 +1,7 @@
 'use client'
 
 import {usePathname} from 'next/navigation'
-import {useEffect} from 'react'
+import {useEffect, useLayoutEffect} from 'react'
 
 const ATTR = 'data-vt-direction'
 
@@ -32,6 +32,13 @@ export default function NavigationDirection() {
       window.removeEventListener('popstate', onPopState)
     }
   }, [])
+
+  useLayoutEffect(() => {
+    const dir = document.documentElement.getAttribute(ATTR)
+    if (dir === 'forward' && !window.location.hash) {
+      window.scrollTo({top: 0, left: 0, behavior: 'instant'})
+    }
+  }, [pathname])
 
   useEffect(() => {
     const id = setTimeout(() => {
