@@ -588,23 +588,17 @@ useInsertionEffect(() => {
 
 ## 잠깐 — "외부 세계" vs "외부 스토어"
 
-용어가 헷갈릴 수 있어 정리:
-
-- **외부 세계** (넓은 개념) — React 컴포넌트 밖의 모든 것. DOM, 네트워크 요청, 타이머, 서드파티 라이브러리 인스턴스 등. → `useEffect`의 영역.
-- **외부 스토어** (좁은 개념) — 외부 세계 중에서 다음 두 조건을 모두 만족하는 **"읽기 전용 데이터 원천"**:
-  1. **현재 값을 동기적으로 읽을 수 있다** (스냅샷)
-  2. **값이 바뀌면 구독자에게 알린다** (pub/sub)
+- **외부 세계** — React 밖 전부 (DOM, fetch, 타이머 등). → `useEffect`의 영역
+- **외부 스토어** — 외부 세계 중 ① 동기 스냅샷 ② 변경 알림(pub/sub) 을 모두 만족하는 데이터 원천
 
 | 대상                                | 외부 스토어? |
 | ----------------------------------- | ------------ |
-| Redux / Zustand / Jotai store       | ✅           |
-| `navigator.onLine` + online/offline | ✅           |
-| `window.matchMedia(...)`            | ✅           |
-| `document.title`에 문자열 쓰기      | ❌ (일회성)  |
-| fetch 응답                          | ❌ (1회성)   |
-| setInterval로 일 시키기             | ❌           |
+| Redux / Zustand / Jotai             | ✅           |
+| `navigator.onLine`, `matchMedia(…)` | ✅           |
+| fetch 응답, `document.title` 쓰기   | ❌ (일회성)  |
+| setInterval                         | ❌           |
 
-**외부 스토어를 구독해 렌더에 반영**하는 경우에만 `useSyncExternalStore`. 나머지는 여전히 `useEffect`.
+**외부 스토어 구독**만 `useSyncExternalStore`. 나머지는 `useEffect`.
 
 ---
 
@@ -716,7 +710,7 @@ function useChat(roomId) {
 
 ## 커스텀 훅 설계 원칙
 
-1. **Effect를 반환값으로 돌려주지 마라** — 호출자가 다시 effect로 묶으면 타이밍이 꼬인다
+1. **동기화는 훅 안에서 끝내라** — `useEffect`를 훅 내부에서 실행하지 않고, "호출자가 `useEffect`에 넣을 setup 함수"를 반환하는 식으로 설계하지 말 것. 타이밍과 cleanup이 호출자에게 새어나가 의존성 배열이 꼬인다
 2. **객체 props는 destructure** — `useHook({a, b})` 받으면 내부에서 꺼내서 각각 deps에
 3. **한 훅 = 한 관심사** — 독립된 동기화는 여러 훅으로
 4. **cleanup 경계를 명확히** — 훅이 제공한 리소스는 훅의 cleanup에서 회수
