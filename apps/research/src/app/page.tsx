@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
+import {cacheLife, cacheTag} from 'next/cache'
 import Link from 'next/link'
 
 import {compareDesc} from 'date-fns/compareDesc'
@@ -28,10 +29,15 @@ interface Slide {
 }
 
 function ResearchCard({slide}: {slide: Slide}) {
-  const {slug, date, tags, title, preview} = slide
+  const {slug, date, tags, title, preview, published} = slide
 
   return (
     <article className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-500/10 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-sky-500 dark:hover:shadow-sky-500/20">
+      {!published && (
+        <span className="absolute right-2 top-2 z-10 rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold uppercase text-white shadow">
+          Draft
+        </span>
+      )}
       <Link href={`/slides/${slug}`} className="block">
         <SlidePreview
           html={preview.html}
@@ -73,7 +79,11 @@ function ResearchCard({slide}: {slide: Slide}) {
   )
 }
 
-export default async function Page() {
+async function getHomeSlides(): Promise<Slide[]> {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('research:home')
+
   const researchPath = path.join(process.cwd(), 'research')
   const allFiles = fs.readdirSync(researchPath)
   const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
@@ -109,9 +119,14 @@ export default async function Page() {
   })
 
   const allSlides = await Promise.all(slidesPromises)
-  const slides = allSlides
-    .filter((slide) => slide.published)
+  const isDev = process.env.NODE_ENV !== 'production'
+  return allSlides
+    .filter((slide) => isDev || slide.published)
     .sort((a, b) => compareDesc(a.date, b.date))
+}
+
+export default async function Page() {
+  const slides = await getHomeSlides()
 
   return (
     <LayoutWrapper>

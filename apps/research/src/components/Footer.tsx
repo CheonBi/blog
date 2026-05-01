@@ -3,6 +3,8 @@ import Link from 'next/link'
 import SocialIcon from '@/components/icons'
 import {SiteConfig} from '@/config'
 
+const YEAR = new Date().getFullYear()
+
 export default function Footer() {
   return (
     <footer>
@@ -27,7 +29,7 @@ export default function Footer() {
         <div className="mb-2 flex space-x-2 text-sm text-gray-500 dark:text-gray-400">
           <div>{SiteConfig.author.name}</div>
           <div>{` • `}</div>
-          <div>{`© ${new Date().getFullYear()}`}</div>
+          <div>{`© ${YEAR}`}</div>
           <div>{` • `}</div>
           <Link href="/">{SiteConfig.url}</Link>
         </div>

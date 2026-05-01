@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
+import {cacheLife, cacheTag} from 'next/cache'
 import {notFound} from 'next/navigation'
-import {cache} from 'react'
 
 import matter from 'gray-matter'
 
@@ -17,11 +17,14 @@ interface SlideData {
   html: string[]
   css: string
   fonts: string[]
+  published: boolean
 }
 
-const getSlideData = cache(async function getSlideData(
-  slug: string,
-): Promise<SlideData | null> {
+async function getSlideData(slug: string): Promise<SlideData | null> {
+  'use cache'
+  cacheLife('max')
+  cacheTag(`slide:${slug}`)
+
   const filePath = path.join(process.cwd(), 'research', `${slug}.md`)
 
   if (!fs.existsSync(filePath)) {
@@ -34,10 +37,11 @@ const getSlideData = cache(async function getSlideData(
   const title = data.title ? String(data.title) : slug
   const description = data.description ? String(data.description) : undefined
   const tags = data.tags as string[] | undefined
+  const published = data.published !== false
   const {html, css, fonts} = await generateRenderedMarp(markdown)
 
-  return {title, description, tags, html, css, fonts}
-})
+  return {title, description, tags, html, css, fonts, published}
+}
 
 export async function generateStaticParams() {
   const researchPath = path.join(process.cwd(), 'research')
@@ -101,7 +105,13 @@ export default async function SlidePage(props: {
     return null
   }
 
-  const {html, css, fonts} = data
+  const isDev = process.env.NODE_ENV !== 'production'
+  if (!data.published && !isDev) {
+    notFound()
+    return null
+  }
+
+  const {html, css, fonts, published} = data
 
   return (
     <div>
@@ -111,6 +121,11 @@ export default async function SlidePage(props: {
         dataFonts={JSON.stringify(fonts)}
         slug={params.slug}
       />
+      {!published && (
+        <div className="pointer-events-none fixed bottom-4 left-4 z-50 select-none rounded-lg border border-amber-400 bg-amber-100/95 px-4 py-2 text-sm font-medium text-amber-900 shadow-lg backdrop-blur-sm dark:border-amber-500 dark:bg-amber-900/90 dark:text-amber-100">
+          ⚠️ 배포되지 않은 포스트입니다 (dev only)
+        </div>
+      )}
     </div>
   )
 }

@@ -1,10 +1,4 @@
-import {getAllSlides, getSlideBySlug} from '@/lib/slidesIndex'
-
-export const dynamic = 'error'
-
-export function generateStaticParams() {
-  return getAllSlides().map(({slug}) => ({slug}))
-}
+import {getSlideBySlug} from '@/lib/slidesIndex'
 
 export async function GET(
   _req: Request,

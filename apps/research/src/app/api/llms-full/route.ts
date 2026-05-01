@@ -1,8 +1,6 @@
 import {SiteConfig} from '@/config'
 import {getAllSlides} from '@/lib/slidesIndex'
 
-export const dynamic = 'error'
-
 export function GET() {
   const slides = getAllSlides().filter((s) => s.published)
 

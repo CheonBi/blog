@@ -2,6 +2,8 @@
 
 import {memo, useEffect, useRef} from 'react'
 
+const YEAR = new Date().getFullYear()
+
 const Hero = memo(function Hero() {
   const titleRef = useRef<HTMLHeadingElement>(null)
 
@@ -52,7 +54,7 @@ const Hero = memo(function Hero() {
       <div className="home-hero-inner">
         <div className="hero-eyebrow">
           <span className="dot" />
-          RESEARCH LAB · SEOUL · {new Date().getFullYear()}
+          RESEARCH LAB · SEOUL · {YEAR}
         </div>
         <h1 ref={titleRef} className="hero-title">
           <span className="ln">SLOW.</span>
