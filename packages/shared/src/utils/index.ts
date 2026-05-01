@@ -6,3 +6,5 @@ export type {
   ContributionDay,
 } from './github'
 export {getCookie, setCookie} from './cookie'
+export {stripTitleEmphasis, parseTitleEmphasis} from './title'
+export type {TitlePart} from './title'
