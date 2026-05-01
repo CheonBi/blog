@@ -51,33 +51,25 @@ interface Props {
 
 export default function TweaksPanel({open, onClose}: Props) {
   const {theme, setTheme} = useTheme()
-  const [accent, setAccent] = useState<string>(() => {
-    if (typeof window === 'undefined') {
-      return 'default'
-    }
-    return getCookie('tw-accent') || 'default'
-  })
-  const [grain, setGrain] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return true
-    }
-    return getCookie('tw-grain') !== 'false'
-  })
-  const [minimal, setMinimal] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return false
-    }
-    return getCookie('tw-minimal') === 'true'
-  })
-  const [tilt, setTilt] = useState<number>(() => {
-    if (typeof window === 'undefined') {
-      return 8
-    }
-    const t = Number(getCookie('tw-tilt') || '8')
-    return Number.isFinite(t) ? t : 8
-  })
+  const [mounted, setMounted] = useState(false)
+  const [accent, setAccent] = useState<string>('default')
+  const [grain, setGrain] = useState<boolean>(true)
+  const [minimal, setMinimal] = useState<boolean>(false)
+  const [tilt, setTilt] = useState<number>(8)
 
   useEffect(() => {
+    setAccent(getCookie('tw-accent') || 'default')
+    setGrain(getCookie('tw-grain') !== 'false')
+    setMinimal(getCookie('tw-minimal') === 'true')
+    const t = Number(getCookie('tw-tilt') || '8')
+    setTilt(Number.isFinite(t) ? t : 8)
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) {
+      return
+    }
     document.body.dataset.accent = accent
     document.body.dataset.grain = String(grain)
     document.body.dataset.minimal = String(minimal)
@@ -86,7 +78,7 @@ export default function TweaksPanel({open, onClose}: Props) {
     setCookie('tw-grain', String(grain))
     setCookie('tw-minimal', String(minimal))
     setCookie('tw-tilt', String(tilt))
-  }, [accent, grain, minimal, tilt])
+  }, [mounted, accent, grain, minimal, tilt])
 
   const handleThemeChange = (next: string, event: React.MouseEvent) => {
     setCookie('tw-theme', next)
@@ -152,7 +144,7 @@ export default function TweaksPanel({open, onClose}: Props) {
               key={key}
               type="button"
               className="tweaks-theme-btn"
-              data-on={theme === key}
+              data-on={mounted && theme === key}
               aria-label={label}
               onClick={(e) => handleThemeChange(key, e)}
             >
