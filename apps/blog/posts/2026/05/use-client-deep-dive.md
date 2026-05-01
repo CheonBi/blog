@@ -25,7 +25,7 @@ export function Counter() {
 }
 ```
 
-`'use client'` 한 줄. 이걸 파일 맨 위에 적는 순간, 이 모듈의 의미가 바뀐다. 단순히 "클라이언트에서 동작하는 코드"라는 표시가 아니다. 정확히는 **이 모듈이 클라이언트 번들 그래프의 진입점(entry point)** 이라는 마커다. **RSC 렌더러는 이 모듈의 본문을 평가하지 않는다.** 대신 모듈 경계에서 멈추고, "여기에 클라이언트 컴포넌트가 있다"는 **참조(reference)** 만 직렬화한다. 단, 같은 컴포넌트가 Next.js의 첫 응답 경로에서는 별도의 SSR 레이어에서 실행되어 초기 HTML 생성에 참여한다. **서버 측 React 렌더러가 두 개라는 뜻이다 — RSC 렌더러는 서버 컴포넌트만, SSR 렌더러는 클라이언트 컴포넌트의 HTML을 담당한다.** 이 구분은 뒤에서 따로 다룬다.
+`'use client'` 한 줄. 이걸 파일 맨 위에 적는 순간, 이 모듈의 의미가 바뀐다. 단순히 "클라이언트에서 동작하는 코드"라는 표시가 아니다. 정확히는 **이 모듈이 클라이언트 번들 그래프의 진입점(entry point)** 이라는 마커다. **RSC 렌더러는 이 모듈의 본문을 평가하지 않는다.** 대신 모듈 경계에서 멈추고, "여기에 클라이언트 컴포넌트가 있다"는 **참조(reference)** 만 직렬화한다. 단, 같은 컴포넌트가 Next.js의 첫 응답 경로에서는 별도의 SSR 레이어에서 실행되어 초기 HTML 생성에 참여한다. **서버 측 렌더링 경로가 하나가 아니라는 뜻이다 — RSC 렌더러는 서버 컴포넌트 트리를 Flight Payload로 만들고, SSR 렌더러는 그 결과를 소비해 초기 HTML을 만든다. 이 과정에서 클라이언트 컴포넌트도 SSR 빌드의 구현으로 렌더링된다.** 이 구분은 뒤에서 따로 다룬다.
 
 [이전 글](/2026/03/react-server-functions-deep-dive)에서는 `'use server'`가 어떻게 함수를 RPC 엔드포인트로 변환하는지 끝까지 따라갔다. 이번 글은 그 반대 방향이다. 서버 컴포넌트 트리 한가운데에 클라이언트 컴포넌트가 등장할 때, 빌드 타임에 어떻게 모듈이 분리되고, 런타임에 어떤 토큰이 Flight 스트림을 흐르고, 클라이언트가 어떻게 chunk를 로드해서 실제 컴포넌트로 살려내는가.
 
@@ -36,6 +36,8 @@ export function Counter() {
 - **클라이언트 모듈 프록시(Client Module Proxy)**: 모듈 단위로 만들어지는 Proxy. 어떤 export에 접근하든 해당 export의 클라이언트 참조를 만들어낸다.
 
 > 이 글의 소스 코드 분석은 **React 19.2**, **Next.js 16.2** 기준이다. 버전에 따라 내부 구현이 달라질 수 있다.
+>
+> 또한 이 글의 코드 인용은 webpack 경로를 따라간다. Next.js 16부터 `next dev` 기본은 Turbopack이지만, 두 번들러의 `'use client'` 처리는 거의 같다 — 핵심 동작 차이는 글 후반부 [Turbopack에서는 무엇이 다른가](#turbopack에서는-무엇이-다른가) 절에서 따로 정리한다.
 
 ## 'use client'는 진입점 마커다
 
@@ -1112,17 +1114,85 @@ RSC payload 크기는 SSR HTML 다음으로 사용자가 첫 화면에서 받는
 
 차이는 방향이다. `'use client'`는 **서버 → 클라이언트로 컴포넌트 코드를 보내는 경계**고, `'use server'`는 **클라이언트 → 서버로 함수 호출을 보내는 경계**다. 둘이 함께 쓰여 RSC의 양방향 통신을 완성한다.
 
+## Turbopack에서는 무엇이 다른가
+
+지금까지 인용한 코드는 **webpack 경로**다. `react-server-dom-webpack`, `next-flight-loader`, `flight-client-entry-plugin`, `__webpack_require__`. 그런데 Next.js 16부터는 `next dev`와 `next build` 모두 Turbopack을 기본 번들러로 사용한다. webpack은 `--webpack` 플래그로 opt-in이다.
+
+다행히 `'use client'`의 핵심 모델은 webpack과 Turbopack에서 거의 같다. 둘 다 RSC 서버 경계에서는 클라이언트 모듈을 직접 실행하지 않고, Client Reference 메타데이터로 바꾼 뒤 Flight Protocol을 통해 클라이언트가 실제 구현을 로드하게 만든다. 이 글의 webpack 측 코드 인용은 그 모델을 뜯어보는 도구일 뿐, **모델 자체는 양쪽에서 같다**.
+
+이 절에서는 두 번들러의 차이만 짧게 정리한다. Turbopack 내부 구현(Rust로 짜인 SWC 트랜스폼) 자체는 다루지 않는다 — 사용자가 다뤄야 하는 추상 수준이 아니기 때문이다.
+
+### 같은 점부터 — 오해를 막기 위해
+
+먼저 무엇이 **같은지** 짚는다. 다음 세 영역은 두 번들러에서 같은 추상화를 공유한다.
+
+| 영역                                     | 비고                                                                                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `registerClientReference` 본체           | `react-server-dom-turbopack/src/ReactFlightTurbopackReferences.js`[^8]가 webpack 버전과 같은 형태로 `$$typeof`/`$$id`/`$$async`를 주입한다 |
+| `createClientModuleProxy` + Proxy 핸들러 | get/getOwnPropertyDescriptor/getPrototypeOf/set 트랩 구조가 같고, `then` 분기 의도(동기 모듈을 thenable로 위장)도 같다                     |
+| Flight Protocol과 `$L<id>` 토큰          | 직렬화/역직렬화는 React 측 코드(`ReactFlightServer.js`, `ReactFlightClient.js`)가 처리. 번들러 영향 없음                                   |
+
+즉 **빌드 결과물에 박힌 stub 객체의 형태와 RSC 스트림의 와이어 포맷은 양쪽이 같다**. RSC 스트림 안의 `I:5:["...",[...],"...",0]` 같은 import chunk 행도, 클라이언트가 만들어내는 React lazy 노드도 같은 모양이다.
+
+다만 "같다"는 말은 **와이어 포맷과 React 레벨의 추상화가 같다**는 뜻이지, 매니페스트 내부의 chunk metadata 표현이나 런타임 로더 구현까지 byte-level로 같다는 뜻은 아니다. webpack은 `__webpack_require__`와 `[chunkId, fileName]` 페어를 사용하고, Turbopack은 `__turbopack_require__`와 Turbopack 런타임의 chunk 로딩 규칙을 사용한다. 다음 절에서 이 차이를 본다.
+
+### 다른 점
+
+본격적인 차이는 **빌드 타임의 변환 주체**와 **런타임 chunk 로딩**에서 나온다.
+
+| 영역                  | webpack                                       | Turbopack                                                                        |
+| --------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
+| 패키지                | `react-server-dom-webpack`                    | `react-server-dom-turbopack`                                                     |
+| 빌드 트랜스폼         | webpack loader (`next-flight-loader`, JS)     | Turbopack ECMAScript 트랜스폼 (Rust/SWC, Next.js 내부)                           |
+| 클라이언트 entry 생성 | `flight-client-entry-plugin` (webpack plugin) | Turbopack의 transition rule + 자동 추출. 별도 plugin 없이 통합                   |
+| 레이어 분리           | `experiments.layers` + `WEBPACK_LAYERS.*`     | Turbopack의 transition rule (RSC ↔ SSR ↔ Client 컨텍스트 정의)                   |
+| 런타임 require        | `__webpack_require__(id)`                     | `__turbopack_require__(id)`                                                      |
+| chunk metadata 표현   | `[chunkId, fileName]` alternating pair        | Turbopack 런타임에 맞춘 별도 표현. webpack의 페어 구조를 그대로 대입하면 안 된다 |
+| 매니페스트 발행       | 컴파일 종료 시 일괄 emit                      | dev 모드에서는 **on-demand** emit (요청 도달 시 해당 entry만 발행)               |
+
+이 중 글 본문에 영향을 주는 항목은 두 가지다.
+
+**1. 런타임 require 함수 이름.** 위에서 다룬 `requireModule`이 Turbopack에서는 `__turbopack_require__(metadata[0])`을 호출한다. 그 외 큰 흐름은 같다 — `preloadModule`이 chunk를 fetch하고 `requireModule`이 동기 require로 export를 추출한다.
+
+**2. chunk 로딩 캐시.** Turbopack 경로도 React client config(`ReactFlightClientConfigBundlerTurbopack.js`)에서 chunk 로딩 상태를 캐싱한다. webpack과 마찬가지로 `chunkCache`를 두고, 같은 chunk를 두 번 로드하지 않게 한다. 다만 chunk 식별자와 로딩 함수가 Turbopack 런타임에 맞춰져 있고, 모듈 resolve도 `__turbopack_require__`를 통해 이뤄진다. webpack의 alternating pair 순회 코드를 Turbopack에 그대로 옮길 수는 없다.
+
+이 두 차이 모두 사용자가 직접 코드로 만나는 부분은 아니다. `'use client'`를 적고 컴포넌트를 import하는 입장에서는 webpack과 Turbopack을 구분할 일이 거의 없다.
+
+### 빌드 트랜스폼 위치는 다르지만 결과물은 같다
+
+webpack에서는 `next-flight-loader`(TypeScript로 짜인 webpack loader)가 모듈 텍스트를 받아서 `'use client'` 디렉티브를 감지하고 export 별로 `registerClientReference(...)` 호출 코드를 generate한다.
+
+Turbopack에서는 같은 일을 Next.js 내부 Rust 트랜스폼이 한다. SWC 기반 AST 변환이고, 결과물은 동일한 형태의 stub 함수 + 메타데이터 등록 코드다. 다만 이 변환은 webpack loader처럼 plugin chain에 끼워 넣는 방식이 아니라, Turbopack의 transition rule을 통해 RSC layer로 들어오는 모듈에 대해 자동으로 적용된다.
+
+Rust 측 구현을 들여다볼 필요는 거의 없다. 빌드된 결과물(JS 출력물)을 grep해보면 webpack 버전과 거의 같은 형태의 `registerClientReference` 호출이 박혀있다. 이 글의 webpack 측 인용 코드는 그 결과물의 구조를 설명하는 것이므로, Turbopack에서도 그대로 적용된다.
+
+### dev 매니페스트의 on-demand 발행
+
+webpack dev 서버는 컴파일이 끝나야 매니페스트가 emit된다. 즉 첫 컴파일이 길어지면 첫 RSC 요청도 기다려야 한다. Turbopack은 dev 모드에서 페이지 단위로 컴파일하고, 매니페스트도 그 entry에 한해서만 발행한다. 동일 페이지를 다시 요청하면 캐싱된 매니페스트가 즉시 응답된다.
+
+매니페스트가 하는 **역할**은 양쪽이 같다 — RSC 서버가 client reference를 실제 클라이언트/SSR 모듈로 연결하기 위한 lookup table이다. `clientModules`, `ssrModuleMapping` 같은 큰 카테고리도 비슷한 모양으로 존재한다. 다만 chunk metadata의 구체적인 표현과 런타임 로딩 방식은 번들러별로 다르다 — 본문 앞에서 본 webpack의 `[chunkId, fileName]` alternating pair를 Turbopack에 그대로 대입하면 안 된다.
+
+### 정리: webpack 인용을 Turbopack으로 읽기
+
+이 글의 내용을 Turbopack 환경에서 읽을 때 머리에 둘 변환 규칙은 셋이다.
+
+1. **패키지 이름**: `react-server-dom-webpack`을 `react-server-dom-turbopack`으로 바꿔 읽는다. reference helper의 형태는 같아서 본문 인용 코드의 의미는 그대로 통한다.
+2. **런타임 require**: `__webpack_require__`를 `__turbopack_require__`로 바꿔 읽는다.
+3. **빌드 plugin/loader**: `next-flight-loader`/`flight-client-entry-plugin`을 "Turbopack의 transition rule + Rust 트랜스폼"으로 바꿔 읽는다. 결과물은 같은 형태의 stub + 메타데이터 등록 코드.
+
+핵심 정리하면 이 글의 최종 방향은 이렇다. **webpack 코드를 기준으로 내부 구조를 설명하되, Turbopack에서도 RSC의 핵심 모델은 동일하다 — RSC 서버는 클라이언트 모듈을 직접 실행하지 않고 메타데이터로만 박아두며, Flight Protocol을 통해 클라이언트가 실제 구현을 로드한다. 다만 chunk metadata 표현, 런타임 require, entry 생성 방식, dev 매니페스트 발행 타이밍은 번들러별로 다르다.**
+
 ## 전체 아키텍처
 
 ```mermaid
 flowchart TD
-  A["'use client' module"] --> B["next-flight-loader"]
-  B --> C["RSC server bundle: client reference stub"]
-  B --> D["Client bundle: original implementation"]
-  B --> E["SSR bundle: original implementation"]
+  A["'use client' module"] --> B["Bundler RSC transform<br/>webpack: next-flight-loader<br/>Turbopack: transition transform"]
+  B --> C["RSC server output: client reference stub"]
+  B --> D["Client output: original implementation"]
+  B --> E["SSR output: original implementation"]
 
   C --> F["serializeClientReference"]
-  F --> G["Import chunk metadata"]
+  F --> G["Import metadata"]
   F --> H["$L token"]
 
   H --> I["React Flight Client"]
@@ -1159,16 +1229,18 @@ flowchart TD
 
 ## 참고
 
-[^1]: Next.js 소스, [`next-flight-loader/index.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/build/webpack/loaders/next-flight-loader/index.ts), [`module-proxy.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/build/webpack/loaders/next-flight-loader/module-proxy.ts)
+[^1]: Next.js v16.2.4 기준 소스, [`next-flight-loader/index.ts`](https://github.com/vercel/next.js/blob/v16.2.4/packages/next/src/build/webpack/loaders/next-flight-loader/index.ts), [`module-proxy.ts`](https://github.com/vercel/next.js/blob/v16.2.4/packages/next/src/build/webpack/loaders/next-flight-loader/module-proxy.ts)
 
-[^2]: Next.js 소스, [`flight-client-entry-plugin.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/build/webpack/plugins/flight-client-entry-plugin.ts)
+[^2]: Next.js v16.2.4 기준 소스, [`flight-client-entry-plugin.ts`](https://github.com/vercel/next.js/blob/v16.2.4/packages/next/src/build/webpack/plugins/flight-client-entry-plugin.ts)
 
-[^3]: React 소스, [`ReactFlightWebpackReferences.js`](https://github.com/facebook/react/blob/main/packages/react-server-dom-webpack/src/ReactFlightWebpackReferences.js)
+[^3]: React v19.2.0 기준 소스, [`ReactFlightWebpackReferences.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server-dom-webpack/src/ReactFlightWebpackReferences.js)
 
-[^4]: Next.js 소스, [`flight-manifest-plugin.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/build/webpack/plugins/flight-manifest-plugin.ts)
+[^4]: Next.js v16.2.4 기준 소스, [`flight-manifest-plugin.ts`](https://github.com/vercel/next.js/blob/v16.2.4/packages/next/src/build/webpack/plugins/flight-manifest-plugin.ts)
 
-[^5]: React 소스, [`ReactFlightServer.js`](https://github.com/facebook/react/blob/main/packages/react-server/src/ReactFlightServer.js)
+[^5]: React v19.2.0 기준 소스, [`ReactFlightServer.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server/src/ReactFlightServer.js)
 
-[^6]: React 소스, [`ReactFlightClient.js`](https://github.com/facebook/react/blob/main/packages/react-client/src/ReactFlightClient.js)
+[^6]: React v19.2.0 기준 소스, [`ReactFlightClient.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-client/src/ReactFlightClient.js)
 
-[^7]: React 소스, [`ReactFlightClientConfigBundlerWebpack.js`](https://github.com/facebook/react/blob/main/packages/react-server-dom-webpack/src/client/ReactFlightClientConfigBundlerWebpack.js)
+[^7]: React v19.2.0 기준 소스, [`ReactFlightClientConfigBundlerWebpack.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server-dom-webpack/src/client/ReactFlightClientConfigBundlerWebpack.js)
+
+[^8]: React v19.2.0 기준 소스, [`ReactFlightTurbopackReferences.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server-dom-turbopack/src/ReactFlightTurbopackReferences.js), [`ReactFlightClientConfigBundlerTurbopack.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server-dom-turbopack/src/client/ReactFlightClientConfigBundlerTurbopack.js)
