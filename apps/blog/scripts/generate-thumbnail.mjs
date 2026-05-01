@@ -39,7 +39,26 @@ function parseFrontmatter(content) {
     const m = raw.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
     return m ? m[1].trim().replace(/^['"]|['"]$/g, '') : null
   }
-  return {raw, fullMatch: match[0], title: get('title'), date: get('date'), description: get('description'), thumbnail: get('thumbnail')}
+  // tags: list 형태 (- tag) 파싱
+  const getTags = () => {
+    const tagBlock = raw.match(/^tags:\n((?:\s+-\s+.+\n?)+)/m)
+    if (!tagBlock) {return []}
+    return tagBlock[1]
+      .split('\n')
+      .map((l) => l.trim().replace(/^-\s+/, ''))
+      .filter(Boolean)
+  }
+  const stripEm = (s) => (s ? s.replace(/<\/?em>/g, '') : s)
+  return {
+    raw,
+    fullMatch: match[0],
+    title: stripEm(get('title')),
+    rawTitle: get('title'),
+    date: get('date'),
+    description: get('description'),
+    thumbnail: get('thumbnail'),
+    tags: getTags(),
+  }
 }
 
 const PALETTES = [
@@ -51,6 +70,14 @@ const PALETTES = [
   {bg: '#140c10', accent: '#f43f5e', name: 'rose with magenta highlights'},
   {bg: '#0c1410', accent: '#84cc16', name: 'lime with fresh green tones'},
   {bg: '#14100c', accent: '#e11d48', name: 'crimson with deep red warmth'},
+  {bg: '#0a1418', accent: '#0ea5e9', name: 'sky blue with steel undertones'},
+  {bg: '#181004', accent: '#eab308', name: 'mustard yellow with sepia warmth'},
+  {bg: '#0e0a18', accent: '#8b5cf6', name: 'lavender with deep violet shadow'},
+  {bg: '#101418', accent: '#94a3b8', name: 'slate gray with cool monochrome'},
+  {bg: '#180a0e', accent: '#ec4899', name: 'hot pink with neon magenta'},
+  {bg: '#04140c', accent: '#22d3ee', name: 'tropical teal with mint glow'},
+  {bg: '#140e04', accent: '#fb923c', name: 'tangerine with copper accents'},
+  {bg: '#0c1018', accent: '#3b82f6', name: 'sapphire blue with cobalt depth'},
 ]
 
 const STYLES = [
@@ -62,6 +89,14 @@ const STYLES = [
   'circuit-board inspired paths and nodes',
   'nebula-like clouds and cosmic dust',
   'isometric 3D blocks and architectural forms',
+  'wireframe mesh networks with glowing nodes',
+  'fluid metallic blobs with iridescent surfaces',
+  'origami-style folded paper planes',
+  'low-poly polygonal landscape',
+  'glitch art with scan-line distortion',
+  'minimal line-art with single-stroke compositions',
+  'neon outline shapes against deep void background',
+  'risograph-textured layered shapes',
 ]
 
 function hashCode(str) {
@@ -72,17 +107,22 @@ function hashCode(str) {
   return Math.abs(hash)
 }
 
-function buildPrompt(title, description, slug) {
+function buildPrompt({title, description, slug, tags}) {
   const hash = hashCode(slug || title)
   const palette = PALETTES[hash % PALETTES.length]
   const style = STYLES[(hash >>> 4) % STYLES.length]
+  const tagLine = tags && tags.length
+    ? `Visual motifs may draw from: ${tags.slice(0, 6).join(', ')}.`
+    : ''
 
   return [
     'Generate a 1200x630 landscape wide thumbnail image.',
     `Dark background (${palette.bg}).`,
     `The image should visually represent the concept of: "${title}".`,
     description ? `Context: "${description}".` : '',
+    tagLine,
     `Use ${style}. ${palette.name} as the color theme with complementary tones.`,
+    'Strive for a composition that is recognizable and specific to this post — avoid generic stock-art arrangements.',
     'Minimal, clean, abstract tech aesthetic.',
     'Absolutely NO text, NO letters, NO words, NO labels, NO numbers anywhere in the image.',
   ]
@@ -146,7 +186,12 @@ function main() {
   mkdirSync(thumbDir, {recursive: true})
 
   const apiKey = loadApiKey()
-  const prompt = customPrompt || buildPrompt(fm.title, fm.description, slug)
+  const prompt = customPrompt || buildPrompt({
+    title: fm.title,
+    description: fm.description,
+    slug,
+    tags: fm.tags,
+  })
 
   console.log(`Post: ${fm.title}`)
   console.log(`Slug: ${slug}`)
