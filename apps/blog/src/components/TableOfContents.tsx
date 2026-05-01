@@ -142,41 +142,45 @@ function FloatingTOC({
 
   return (
     <div ref={panelRef} className="floating-toc">
-      {isOpen && (
-        <div ref={scrollContainerRef} className="floating-toc-panel">
-          <div className="floating-toc-header">
-            <h2>On this page</h2>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              aria-label="Close table of contents"
-              className="floating-toc-close"
+      <div
+        ref={scrollContainerRef}
+        className="floating-toc-panel"
+        data-open={isOpen ? 'true' : 'false'}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+      >
+        <div className="floating-toc-header">
+          <h2>On this page</h2>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close table of contents"
+            className="floating-toc-close"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="floating-toc-list">
-            <TOCList
-              headings={headings}
-              activeId={activeId}
-              onItemClick={() => setIsOpen(false)}
-              itemRefs={itemRefs}
-            />
-          </div>
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
         </div>
-      )}
+        <div className="floating-toc-list">
+          <TOCList
+            headings={headings}
+            activeId={activeId}
+            onItemClick={() => setIsOpen(false)}
+            itemRefs={itemRefs}
+          />
+        </div>
+      </div>
 
       <button
         type="button"

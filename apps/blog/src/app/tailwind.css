@@ -467,11 +467,25 @@ body[data-minimal='true'] .hero-title .accent {
   border: 1px solid var(--border-2);
   border-radius: 14px;
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
-  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
   font-size: 13px;
   color: var(--ink);
-  animation: tweaks-in 240ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-  backdrop-filter: blur(20px);
+  transform: translateY(-14px) scale(0.94);
+  transform-origin: top right;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.tweaks-panel[data-open='true'] {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+.tweaks-handle {
+  display: none;
 }
 
 @media (max-width: 639px) {
@@ -479,47 +493,38 @@ body[data-minimal='true'] .hero-title .accent {
     overflow-y: auto;
     top: auto;
     right: 0;
+    bottom: 0;
     left: 0;
     width: auto;
     max-height: min(80vh, 640px);
-    padding: 18px 20px 24px;
+    padding: 4px 20px 24px;
     padding-bottom: max(24px, env(safe-area-inset-bottom));
     border: 0;
     border-top: 1px solid var(--border-2);
     border-radius: 22px 22px 0 0;
     box-shadow: 0 -24px 60px -20px rgba(0, 0, 0, 0.45);
     background: var(--surface);
-    animation: tweaks-in-sheet 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    transform: translateY(100%);
+    transform-origin: bottom center;
+    transition:
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .tweaks-panel::before {
+  .tweaks-handle {
+    display: block;
+    width: 100%;
+    padding: 10px 0 6px;
+    touch-action: none;
+    cursor: grab;
+  }
+  .tweaks-handle::after {
     content: '';
     display: block;
     width: 44px;
     height: 5px;
-    margin: 0 auto 14px;
+    margin: 0 auto;
     border-radius: 999px;
     background: var(--border-2);
-  }
-}
-
-@keyframes tweaks-in {
-  from {
-    transform: translateY(-8px);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-@keyframes tweaks-in-sheet {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
   }
 }
 
@@ -1748,6 +1753,19 @@ body[data-minimal='true'] .hero-title .accent {
   border-radius: 12px;
   box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.35);
   background: var(--surface);
+  transform: translateY(16px) scale(0.9);
+  transform-origin: bottom right;
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.floating-toc-panel[data-open='true'] {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 .floating-toc-header {
   position: sticky;
@@ -2237,6 +2255,19 @@ code {
 }
 .theme-transition-circle::view-transition-old(root) {
   animation: none;
+}
+
+/* Fallback when View Transitions API is unavailable (e.g. iOS < 18 Safari) */
+.theme-fading,
+.theme-fading *,
+.theme-fading *::before,
+.theme-fading *::after {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease,
+    fill 220ms ease,
+    stroke 220ms ease !important;
 }
 
 @keyframes circle-clip {

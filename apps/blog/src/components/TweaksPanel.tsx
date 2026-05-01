@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
 import {Monitor, Moon, Sun} from '@yceffort/shared/components'
 import {getCookie, setCookie} from '@yceffort/shared/utils'
@@ -82,10 +82,16 @@ export default function TweaksPanel({open, onClose}: Props) {
 
   const handleThemeChange = (next: string, event: React.MouseEvent) => {
     setCookie('tw-theme', next)
-    if (
-      !document.startViewTransition ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    if (!document.startViewTransition || reduced) {
+      if (!reduced) {
+        document.documentElement.classList.add('theme-fading')
+        window.setTimeout(() => {
+          document.documentElement.classList.remove('theme-fading')
+        }, 280)
+      }
       setTheme(next)
       return
     }
@@ -110,6 +116,32 @@ export default function TweaksPanel({open, onClose}: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [dragOffset, setDragOffset] = useState(0)
+  const dragStartY = useRef<number | null>(null)
+
+  const onHandleTouchStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY
+  }
+  const onHandleTouchMove = (e: React.TouchEvent) => {
+    if (dragStartY.current == null) {
+      return
+    }
+    const delta = e.touches[0].clientY - dragStartY.current
+    setDragOffset(Math.max(0, delta))
+  }
+  const onHandleTouchEnd = () => {
+    if (dragOffset > 80) {
+      onClose()
+    }
+    dragStartY.current = null
+    setDragOffset(0)
+  }
+
+  const dragStyle =
+    dragOffset > 0
+      ? {transform: `translateY(${dragOffset}px)`, transition: 'none'}
+      : undefined
+
   return (
     <div
       className="tweaks-panel"
@@ -118,7 +150,16 @@ export default function TweaksPanel({open, onClose}: Props) {
       aria-label="Tweaks"
       aria-hidden={!open}
       inert={!open}
+      style={dragStyle}
     >
+      <div
+        className="tweaks-handle"
+        onTouchStart={onHandleTouchStart}
+        onTouchMove={onHandleTouchMove}
+        onTouchEnd={onHandleTouchEnd}
+        onTouchCancel={onHandleTouchEnd}
+        aria-hidden="true"
+      />
       <h3>
         Tweaks
         <span
