@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
+
 import type {Post} from '@/type'
 
 interface SeriesNavigationProps {
@@ -56,12 +58,12 @@ export default function SeriesNavigation({
               {post.fields.slug === currentSlug ? (
                 <span>
                   <em>{String(index + 1).padStart(2, '0')}</em>
-                  {post.frontMatter.title}
+                  {stripTitleEmphasis(post.frontMatter.title)}
                 </span>
               ) : (
                 <Link href={`/${post.fields.slug}`}>
                   <em>{String(index + 1).padStart(2, '0')}</em>
-                  {post.frontMatter.title}
+                  {stripTitleEmphasis(post.frontMatter.title)}
                 </Link>
               )}
             </li>
@@ -89,7 +91,7 @@ export default function SeriesNavigation({
               >
                 <path d="M15 19l-7-7 7-7" />
               </svg>
-              <span>{prevPost.frontMatter.title}</span>
+              <span>{stripTitleEmphasis(prevPost.frontMatter.title)}</span>
             </Link>
           ) : (
             <span />
@@ -99,7 +101,7 @@ export default function SeriesNavigation({
               href={`/${nextPost.fields.slug}`}
               className="series-nav-link next"
             >
-              <span>{nextPost.frontMatter.title}</span>
+              <span>{stripTitleEmphasis(nextPost.frontMatter.title)}</span>
               <svg
                 width="14"
                 height="14"

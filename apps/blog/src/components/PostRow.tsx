@@ -2,6 +2,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {ViewTransition} from 'react'
 
+import {EmphasizedTitle} from '@yceffort/shared/components'
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
 import {format} from 'date-fns'
 
 import type {Post} from '@/type'
@@ -15,9 +17,10 @@ export default function PostRow({
 }) {
   const {
     fields: {slug},
-    frontMatter: {date, title, description, tags, thumbnail, series},
+    frontMatter: {date, title: rawTitle, description, tags, thumbnail, series},
     readingTime,
   } = post
+  const plainTitle = stripTitleEmphasis(rawTitle)
   const d = new Date(date)
   const isoDate = format(d, 'yyyy-MM-dd')
   const transitionName = `post-${slug.replace(/\//g, '-')}`
@@ -26,7 +29,7 @@ export default function PostRow({
     <article className="post-row">
       <Link
         href={`${pathPrefix}/${slug}`}
-        aria-label={title}
+        aria-label={plainTitle}
         className="post-row-link"
         prefetch={false}
       />
@@ -74,7 +77,9 @@ export default function PostRow({
         </div>
 
         <ViewTransition name={transitionName}>
-          <h3 className="post-row-title">{title}</h3>
+          <h3 className="post-row-title">
+            <EmphasizedTitle title={rawTitle} />
+          </h3>
         </ViewTransition>
 
         {description && <p className="post-row-desc">{description}</p>}

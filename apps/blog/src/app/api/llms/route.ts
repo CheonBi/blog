@@ -1,3 +1,5 @@
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
+
 import {SiteConfig} from '@/config'
 import {getAllPosts} from '@/utils/Post'
 
@@ -23,7 +25,9 @@ export async function GET() {
       ? `: ${post.frontMatter.description}`
       : ''
     const url = `${SiteConfig.url}/${post.fields.slug}.md`
-    lines.push(`- [${post.frontMatter.title}](${url})${desc}`)
+    lines.push(
+      `- [${stripTitleEmphasis(post.frontMatter.title)}](${url})${desc}`,
+    )
   }
 
   const translatedOnly = enPosts.filter((p) => enSlugs.has(p.fields.slug))
@@ -36,7 +40,9 @@ export async function GET() {
         ? `: ${post.frontMatter.description}`
         : ''
       const url = `${SiteConfig.url}/en/${post.fields.slug}.md`
-      lines.push(`- [${post.frontMatter.title}](${url})${desc}`)
+      lines.push(
+        `- [${stripTitleEmphasis(post.frontMatter.title)}](${url})${desc}`,
+      )
     }
   }
 

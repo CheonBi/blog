@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {useRef, ViewTransition} from 'react'
 
+import {EmphasizedTitle} from '@yceffort/shared/components'
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
 import {format} from 'date-fns'
 
 import type {Post} from '@/type'
@@ -19,14 +21,15 @@ export default function PostCard({
 }) {
   const {
     fields: {slug},
-    frontMatter: {date, title, description, tags, thumbnail, series},
+    frontMatter: {date, title: rawTitle, description, tags, thumbnail, series},
     readingTime,
   } = post
+  const plainTitle = stripTitleEmphasis(rawTitle)
   const d = new Date(date)
   const isoDate = format(d, 'yyyy-MM-dd')
   const transitionName = `post-${slug.replace(/\//g, '-')}`
   const ogImageUrl = buildOgImageUrl({
-    title,
+    title: plainTitle,
     description,
     tags,
     path: '/' + slug,
@@ -79,7 +82,7 @@ export default function PostCard({
       >
         <Link
           href={`${pathPrefix}/${slug}`}
-          aria-label={title}
+          aria-label={plainTitle}
           prefetch={false}
         />
         {thumbnail && (
@@ -108,7 +111,9 @@ export default function PostCard({
           </ViewTransition>
 
           <ViewTransition name={transitionName}>
-            <h3>{title}</h3>
+            <h3>
+              <EmphasizedTitle title={rawTitle} />
+            </h3>
           </ViewTransition>
 
           {!thumbnail && description && <p className="desc">{description}</p>}

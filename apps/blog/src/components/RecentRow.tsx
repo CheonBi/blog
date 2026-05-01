@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import {EmphasizedTitle} from '@yceffort/shared/components'
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
 import {format} from 'date-fns'
 
 import type {Post} from '@/type'
@@ -15,21 +17,24 @@ export default function RecentRow({
 }) {
   const {
     fields: {slug},
-    frontMatter: {date, title, description, tags},
+    frontMatter: {date, title: rawTitle, description, tags},
     readingTime,
   } = post
+  const plainTitle = stripTitleEmphasis(rawTitle)
   const isoDate = format(new Date(date), 'yyyy-MM-dd')
 
   return (
     <div className="rec-row">
       <Link
         href={`${pathPrefix}/${slug}`}
-        aria-label={title}
+        aria-label={plainTitle}
         prefetch={false}
       />
       <div className="rn">{String(index + 1).padStart(2, '0')}</div>
       <div>
-        <h4>{title}</h4>
+        <h4>
+          <EmphasizedTitle title={rawTitle} />
+        </h4>
         <div className="rtags">
           {tags.slice(0, 3).map((t) => (
             <span key={t}>#{t}</span>

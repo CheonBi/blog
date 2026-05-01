@@ -1391,7 +1391,10 @@ body[data-minimal='true'] .hero-title .accent {
   letter-spacing: -0.03em;
   color: var(--ink);
 }
-.post-title em {
+.post-title em,
+.post-card h3 em,
+.rec-row h4 em,
+.post-row-title em {
   background: linear-gradient(
     120deg,
     var(--primary) 0%,
@@ -1402,10 +1405,13 @@ body[data-minimal='true'] .hero-title .accent {
   background-clip: text;
   background-size: 200% 100%;
   font-family: inherit;
-  font-style: normal;
-  font-weight: 800;
-  color: transparent;
+  font-style: normal !important;
+  font-weight: inherit;
+  color: transparent !important;
   animation: hero-hue 10s ease-in-out infinite;
+}
+.post-title em {
+  font-weight: 800;
 }
 .post-cover {
   overflow: hidden;

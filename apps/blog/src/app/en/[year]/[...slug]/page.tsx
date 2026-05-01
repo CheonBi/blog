@@ -3,6 +3,7 @@ import {notFound} from 'next/navigation'
 import Script from 'next/script'
 import {ViewTransition} from 'react'
 
+import {parseTitleEmphasis, stripTitleEmphasis} from '@yceffort/shared/utils'
 import {format} from 'date-fns'
 import {MDXRemote} from 'next-mdx-remote-client/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
@@ -37,18 +38,20 @@ export async function generateMetadata(props: {
     return {}
   }
 
+  const plainTitle = stripTitleEmphasis(post.frontMatter.title)
+
   return {
-    title: post.frontMatter.title,
+    title: plainTitle,
     description: post.frontMatter.description,
     openGraph: {
-      title: post.frontMatter.title,
+      title: plainTitle,
       description: post.frontMatter.description,
       url: `${SiteConfig.url}/en/${post.fields.slug}`,
       locale: 'en_US',
       images: [
         {
           url: buildOgImageUrl({
-            title: post.frontMatter.title,
+            title: plainTitle,
             description: post.frontMatter.description,
             tags: post.frontMatter.tags,
             path: '/en/' + post.fields.slug,
@@ -61,7 +64,7 @@ export async function generateMetadata(props: {
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.frontMatter.title,
+      title: plainTitle,
       description: post.frontMatter.description,
     },
     alternates: {
@@ -105,10 +108,11 @@ export default async function EnPostPage(props: {
 
   const updatedAt = format(new Date(date), 'yyyy-MM-dd')
   const transitionName = `post-${postSlug.replace(/\//g, '-')}`
+  const plainTitle = stripTitleEmphasis(title)
 
   const thumbnail = post.frontMatter.thumbnail
   const ogImageUrl = buildOgImageUrl({
-    title,
+    title: plainTitle,
     description,
     tags,
     path: '/en/' + postSlug,
@@ -120,7 +124,7 @@ export default async function EnPostPage(props: {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: title,
+    headline: plainTitle,
     datePublished: new Date(date).toISOString(),
     dateModified: new Date(date).toISOString(),
     description,
@@ -133,9 +137,7 @@ export default async function EnPostPage(props: {
     },
   }
 
-  const titleWords = title.split(' ')
-  const firstWord = titleWords[0] ?? title
-  const restTitle = titleWords.slice(1).join(' ')
+  const titleParts = parseTitleEmphasis(title)
 
   return (
     <>
@@ -203,8 +205,9 @@ export default async function EnPostPage(props: {
           </div>
           <ViewTransition name={transitionName}>
             <h1 className="post-title">
-              <em>{firstWord}</em>
-              {restTitle ? ` ${restTitle}` : ''}
+              {titleParts.map((part, i) =>
+                part.emphasis ? <em key={i}>{part.text}</em> : part.text,
+              )}
             </h1>
           </ViewTransition>
         </section>

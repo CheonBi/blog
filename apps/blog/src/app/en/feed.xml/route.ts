@@ -1,5 +1,7 @@
 import {NextResponse} from 'next/server'
 
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
+
 import {SiteConfig} from '@/config'
 import {getAllPosts} from '@/utils/Post'
 
@@ -24,7 +26,7 @@ export async function GET() {
 
         return `
         <item>
-          <title><![CDATA[${post.frontMatter.title}]]></title>
+          <title><![CDATA[${stripTitleEmphasis(post.frontMatter.title)}]]></title>
           <link>${postUrl}</link>
           <guid>${postUrl}</guid>
           <pubDate>${postDate.toUTCString()}</pubDate>
