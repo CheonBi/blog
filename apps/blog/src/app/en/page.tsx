@@ -1,14 +1,12 @@
+import {cacheLife, cacheTag} from 'next/cache'
+
 import type {Metadata} from 'next'
 
 import Hero from '@/components/HeroE'
 import PostCard from '@/components/PostCard'
 import RecentRow from '@/components/RecentRow'
 import {SiteConfig} from '@/config'
-import {POPULAR_POSTS_COUNT, RECENT_POSTS_COUNT} from '@/constants'
-import {getPopularPostSlugs} from '@/utils/analytics'
-import {getAllPosts, getAllTagsFromPosts} from '@/utils/Post'
-
-export const revalidate = 3600
+import {getAllPosts, getAllTagsFromPosts, getFeaturedPosts} from '@/utils/Post'
 
 export const metadata: Metadata = {
   title: `${SiteConfig.title} — English`,
@@ -20,34 +18,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function EnPage() {
-  const [allPosts, popularSlugs, tags] = await Promise.all([
+async function getEnHomeData() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('home:en')
+
+  const [{popular, recent}, allPosts, tags] = await Promise.all([
+    getFeaturedPosts('en'),
     getAllPosts('en'),
-    getPopularPostSlugs(POPULAR_POSTS_COUNT),
     getAllTagsFromPosts('en'),
   ])
-
-  const popular = popularSlugs
-    .map((slug) => allPosts.find((p) => p.fields.slug === slug))
-    .filter((p): p is NonNullable<typeof p> => p != null)
-
-  if (popular.length < POPULAR_POSTS_COUNT) {
-    const slugSet = new Set(popular.map((p) => p.fields.slug))
-    for (const p of allPosts) {
-      if (popular.length >= POPULAR_POSTS_COUNT) {
-        break
-      }
-      if (!slugSet.has(p.fields.slug)) {
-        popular.push(p)
-        slugSet.add(p.fields.slug)
-      }
-    }
-  }
-
-  const shown = new Set(popular.map((p) => p.fields.slug))
-  const recent = allPosts
-    .filter((p) => !shown.has(p.fields.slug))
-    .slice(0, RECENT_POSTS_COUNT)
 
   const postCount = allPosts.length
   const tagCount = tags.length
@@ -55,6 +35,13 @@ export default async function EnPage() {
     .map((p) => new Date(p.frontMatter.date).getFullYear())
     .reduce((a, b) => Math.min(a, b), new Date().getFullYear())
   const yearsWriting = Math.max(1, new Date().getFullYear() - earliestYear + 1)
+
+  return {popular, recent, postCount, tagCount, yearsWriting}
+}
+
+export default async function EnPage() {
+  const {popular, recent, postCount, tagCount, yearsWriting} =
+    await getEnHomeData()
 
   return (
     <div className="page-view">

@@ -2,11 +2,6 @@ import {ImageResponse} from 'next/og'
 
 import {SiteConfig} from '@/config'
 
-// Remove fs/path imports to use pure fetch approach
-
-// Enable Edge Runtime for better performance
-export const runtime = 'edge'
-
 export async function GET(request: Request) {
   try {
     const {searchParams} = new URL(request.url)

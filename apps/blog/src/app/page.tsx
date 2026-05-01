@@ -1,15 +1,13 @@
+import {cacheLife, cacheTag} from 'next/cache'
+
 import type {Metadata} from 'next'
 
 import Hero from '@/components/HeroE'
 import PostCard from '@/components/PostCard'
 import RecentRow from '@/components/RecentRow'
 import {SiteConfig} from '@/config'
-import {POPULAR_POSTS_COUNT, RECENT_POSTS_COUNT} from '@/constants'
-import {getPopularPostSlugs} from '@/utils/analytics'
 import {buildOgImageUrl} from '@/utils/og'
-import {getAllPosts, getAllTagsFromPosts} from '@/utils/Post'
-
-export const revalidate = 3600
+import {getAllPosts, getAllTagsFromPosts, getFeaturedPosts} from '@/utils/Post'
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
@@ -33,34 +31,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function Page() {
-  const [allPosts, popularSlugs, tags] = await Promise.all([
-    getAllPosts(),
-    getPopularPostSlugs(POPULAR_POSTS_COUNT),
-    getAllTagsFromPosts('ko'),
-  ])
+async function getHomeData() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('home:ko')
 
-  const posts = popularSlugs
-    .map((slug) => allPosts.find((p) => p.fields.slug === slug))
-    .filter((p): p is NonNullable<typeof p> => p != null)
-
-  if (posts.length < POPULAR_POSTS_COUNT) {
-    const slugSet = new Set(posts.map((p) => p.fields.slug))
-    for (const p of allPosts) {
-      if (posts.length >= POPULAR_POSTS_COUNT) {
-        break
-      }
-      if (!slugSet.has(p.fields.slug)) {
-        posts.push(p)
-        slugSet.add(p.fields.slug)
-      }
-    }
-  }
-
-  const shown = new Set(posts.map((p) => p.fields.slug))
-  const recentPosts = allPosts
-    .filter((p) => !shown.has(p.fields.slug))
-    .slice(0, RECENT_POSTS_COUNT)
+  const [{popular: posts, recent: recentPosts}, allPosts, tags] =
+    await Promise.all([
+      getFeaturedPosts('ko'),
+      getAllPosts('ko'),
+      getAllTagsFromPosts('ko'),
+    ])
 
   const postCount = allPosts.length
   const tagCount = tags.length
@@ -68,6 +49,13 @@ export default async function Page() {
     .map((p) => new Date(p.frontMatter.date).getFullYear())
     .reduce((a, b) => Math.min(a, b), new Date().getFullYear())
   const yearsWriting = Math.max(1, new Date().getFullYear() - earliestYear + 1)
+
+  return {posts, recentPosts, postCount, tagCount, yearsWriting}
+}
+
+export default async function Page() {
+  const {posts, recentPosts, postCount, tagCount, yearsWriting} =
+    await getHomeData()
 
   return (
     <div className="page-view">

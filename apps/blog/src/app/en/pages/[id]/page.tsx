@@ -8,8 +8,6 @@ import {SiteConfig} from '@/config'
 import {DEFAULT_NUMBER_OF_POSTS} from '@/constants'
 import {getAllPosts} from '@/utils/Post'
 
-export const dynamic = 'error'
-
 export async function generateMetadata(props: {
   params: Promise<{id: string}>
 }): Promise<Metadata> {

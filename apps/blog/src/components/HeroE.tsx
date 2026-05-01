@@ -2,6 +2,8 @@
 
 import {memo, useEffect, useRef} from 'react'
 
+const YEAR = new Date().getFullYear()
+
 interface HeroProps {
   postCount: number
   tagCount: number
@@ -62,7 +64,7 @@ const Hero = memo(function Hero({
       <div className="home-hero-inner">
         <div className="hero-eyebrow">
           <span className="dot" />
-          LIVE · SEOUL · {new Date().getFullYear()}
+          LIVE · SEOUL · {YEAR}
         </div>
         <h1 ref={titleRef} className="hero-title">
           <span className="ln">GRIND.</span>

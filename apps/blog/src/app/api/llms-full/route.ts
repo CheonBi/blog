@@ -8,8 +8,6 @@ import type {FrontMatter} from '@/type'
 import {SiteConfig} from '@/config'
 import {getAllPostFiles} from '@/utils/postsRaw'
 
-export const dynamic = 'error'
-
 const POST_ROOT = path.join(process.cwd(), 'posts')
 
 export function GET() {

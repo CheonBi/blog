@@ -1,15 +1,4 @@
-import {getAllPosts} from '@/utils/Post'
 import {getPostRawBySlug} from '@/utils/postsRaw'
-
-export const dynamic = 'error'
-
-export async function generateStaticParams() {
-  const posts = await getAllPosts()
-  return posts.map(({fields: {slug}}) => {
-    const [year, ...slugs] = slug.split('/')
-    return {year, slug: slugs}
-  })
-}
 
 export async function GET(
   _req: Request,

@@ -5,8 +5,6 @@ import PageNumber from '@/components/layouts/PageNumber'
 import {DEFAULT_NUMBER_OF_POSTS} from '@/constants'
 import {getAllPosts, getAllTagsFromPosts} from '@/utils/Post'
 
-export const dynamic = 'error'
-
 export async function generateMetadata(props: {
   params: Promise<{tag: string; id: string}>
 }) {

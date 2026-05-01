@@ -6,7 +6,13 @@ import frontMatter from 'front-matter'
 import {sync} from 'glob'
 import readingTime from 'reading-time'
 
+import {getPopularPostSlugs} from './analytics'
+
 import type {FrontMatter, Post, TagWithCount} from '../type'
+
+import {POPULAR_POSTS_COUNT, RECENT_POSTS_COUNT} from '@/constants'
+
+
 
 const DIR_REPLACE_STRING = '/posts'
 
@@ -116,4 +122,43 @@ export const getSeriesPosts = cache(async function getSeriesPosts(
       (a, b) =>
         (a.frontMatter.seriesOrder ?? 0) - (b.frontMatter.seriesOrder ?? 0),
     )
+})
+
+export const getFeaturedPosts = cache(async function getFeaturedPosts(
+  locale: Locale = 'ko',
+): Promise<{popular: Post[]; recent: Post[]}> {
+  const allPosts = await getAllPosts(locale)
+  const popularSlugs =
+    locale === 'ko' ? await getPopularPostSlugs(POPULAR_POSTS_COUNT) : []
+
+  const popular = popularSlugs
+    .map((slug) => allPosts.find((p) => p.fields.slug === slug))
+    .filter((p): p is Post => p != null)
+
+  if (popular.length < POPULAR_POSTS_COUNT) {
+    const slugSet = new Set(popular.map((p) => p.fields.slug))
+    for (const p of allPosts) {
+      if (popular.length >= POPULAR_POSTS_COUNT) {
+        break
+      }
+      if (!slugSet.has(p.fields.slug)) {
+        popular.push(p)
+        slugSet.add(p.fields.slug)
+      }
+    }
+  }
+
+  const shown = new Set(popular.map((p) => p.fields.slug))
+  const recent = allPosts
+    .filter((p) => !shown.has(p.fields.slug))
+    .slice(0, RECENT_POSTS_COUNT)
+
+  return {popular, recent}
+})
+
+export const getFeaturedSlugs = cache(async function getFeaturedSlugs(
+  locale: Locale = 'ko',
+): Promise<string[]> {
+  const {popular, recent} = await getFeaturedPosts(locale)
+  return [...popular, ...recent].map((p) => p.fields.slug)
 })

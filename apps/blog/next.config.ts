@@ -2,6 +2,7 @@ import type {NextConfig} from 'next'
 
 const config: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
   images: {
     formats: ['image/avif', 'image/webp'],
   },

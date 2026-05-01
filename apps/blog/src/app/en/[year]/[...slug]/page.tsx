@@ -1,3 +1,4 @@
+import {cacheLife, cacheTag} from 'next/cache'
 import Link from 'next/link'
 import {notFound} from 'next/navigation'
 import Script from 'next/script'
@@ -23,9 +24,7 @@ import {SiteConfig} from '@/config'
 import imageMetadataPlugin from '@/utils/imageMetadata'
 import {extractCodeFilename, parseCodeSnippet} from '@/utils/Markdown'
 import {buildOgImageUrl} from '@/utils/og'
-import {findPostByYearAndSlug, getAllPosts} from '@/utils/Post'
-
-export const dynamic = 'error'
+import {findPostByYearAndSlug, getFeaturedSlugs} from '@/utils/Post'
 
 export async function generateMetadata(props: {
   params: Promise<{year: string; slug: string[]}>
@@ -80,10 +79,10 @@ export async function generateMetadata(props: {
 }
 
 export async function generateStaticParams() {
-  const allPosts = await getAllPosts('en')
-  return allPosts.map(({fields: {slug}}) => {
-    const [year, ...slugs] = slug.split('/')
-    return {year, slug: slugs}
+  const slugs = await getFeaturedSlugs('en')
+  return slugs.map((slug) => {
+    const [year, ...rest] = slug.split('/')
+    return {year, slug: rest}
   })
 }
 
@@ -92,10 +91,23 @@ export default async function EnPostPage(props: {
 }) {
   const params = await props.params
   const {year, slug} = params
-  const post = await findPostByYearAndSlug(year, slug, 'en')
 
+  const post = await findPostByYearAndSlug(year, slug, 'en')
   if (!post) {
     return notFound()
+  }
+
+  return <EnPostBody year={year} slug={slug} />
+}
+
+async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
+  'use cache'
+  cacheLife('max')
+  cacheTag(`post:en/${year}/${slug.join('/')}`)
+
+  const post = await findPostByYearAndSlug(year, slug, 'en')
+  if (!post) {
+    return null
   }
 
   const {

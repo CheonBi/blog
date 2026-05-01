@@ -3,8 +3,6 @@ import {stripTitleEmphasis} from '@yceffort/shared/utils'
 import {SiteConfig} from '@/config'
 import {getAllPosts} from '@/utils/Post'
 
-export const dynamic = 'error'
-
 export async function GET() {
   const [koPosts, enPosts] = await Promise.all([
     getAllPosts('ko'),
