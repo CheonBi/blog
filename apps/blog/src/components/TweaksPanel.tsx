@@ -118,12 +118,15 @@ export default function TweaksPanel({open, onClose}: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (!open) {
-    return null
-  }
-
   return (
-    <div className="tweaks-panel" role="dialog" aria-label="Tweaks">
+    <div
+      className="tweaks-panel"
+      data-open={open ? 'true' : 'false'}
+      role="dialog"
+      aria-label="Tweaks"
+      aria-hidden={!open}
+      inert={!open}
+    >
       <h3>
         Tweaks
         <span
