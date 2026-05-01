@@ -1213,20 +1213,20 @@ graph TD
 
 [^2]: [Fallacies of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), Wikipedia
 
-[^3]: React 소스, [`ReactFlightWebpackReferences.js`](https://github.com/facebook/react/blob/main/packages/react-server-dom-webpack/src/ReactFlightWebpackReferences.js)
+[^3]: React v19.2.0 기준 소스, [`ReactFlightWebpackReferences.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server-dom-webpack/src/ReactFlightWebpackReferences.js)
 
-[^4]: React 소스, [`ReactFlightReplyClient.js`](https://github.com/facebook/react/blob/main/packages/react-client/src/ReactFlightReplyClient.js)
+[^4]: React v19.2.0 기준 소스, [`ReactFlightReplyClient.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-client/src/ReactFlightReplyClient.js)
 
-[^5]: Next.js 소스, [`csrf-protection.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/app-render/csrf-protection.ts)
+[^5]: Next.js v16.1.7 기준 소스, [`csrf-protection.ts`](https://github.com/vercel/next.js/blob/v16.1.7/packages/next/src/server/app-render/csrf-protection.ts)
 
-[^6]: Next.js 소스, [`action-handler.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/app-render/action-handler.ts)
+[^6]: Next.js v16.1.7 기준 소스, [`action-handler.ts`](https://github.com/vercel/next.js/blob/v16.1.7/packages/next/src/server/app-render/action-handler.ts)
 
-[^7]: Next.js 소스, [`encryption-utils.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/app-render/encryption-utils.ts), [`encryption.ts`](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/app-render/encryption.ts)
+[^7]: Next.js v16.1.7 기준 소스, [`encryption-utils.ts`](https://github.com/vercel/next.js/blob/v16.1.7/packages/next/src/server/app-render/encryption-utils.ts), [`encryption.ts`](https://github.com/vercel/next.js/blob/v16.1.7/packages/next/src/server/app-render/encryption.ts)
 
 [^8]: Next.js 블로그, [How to Think About Security in Next.js](https://nextjs.org/blog/security-nextjs-server-components-actions)
 
 [^9]: React 공식 문서, ["use server"](https://react.dev/reference/rsc/use-server)
 
-[^10]: React 소스, [`ReactFlightServer.js`](https://github.com/facebook/react/blob/main/packages/react-server/src/ReactFlightServer.js)
+[^10]: React v19.2.0 기준 소스, [`ReactFlightServer.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-server/src/ReactFlightServer.js)
 
-[^11]: React 소스, [`ReactFlightClient.js`](https://github.com/facebook/react/blob/main/packages/react-client/src/ReactFlightClient.js)
+[^11]: React v19.2.0 기준 소스, [`ReactFlightClient.js`](https://github.com/facebook/react/blob/v19.2.0/packages/react-client/src/ReactFlightClient.js)
