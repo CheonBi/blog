@@ -1,5 +1,5 @@
 ---
-title: 'React 서버 함수 딥다이브: "use server"의 끝까지'
+title: 'React 서버 함수 딥다이브: <em>"use server"</em>의 끝까지'
 tags:
   - react
   - nextjs

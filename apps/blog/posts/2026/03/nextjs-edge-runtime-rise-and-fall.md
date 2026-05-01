@@ -1,5 +1,5 @@
 ---
-title: 'Next.js Edge Runtime의 흥망성쇠'
+title: 'Next.js <em>Edge Runtime</em>의 흥망성쇠'
 tags:
   - nextjs
   - edge-computing

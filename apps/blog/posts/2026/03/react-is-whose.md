@@ -1,5 +1,5 @@
 ---
-title: 'React는 누구의 것인가'
+title: '<em>React</em>는 누구의 것인가'
 tags:
   - react
   - governance

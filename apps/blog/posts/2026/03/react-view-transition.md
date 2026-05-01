@@ -1,5 +1,5 @@
 ---
-title: 'React의 <ViewTransition>: 브라우저 네이티브 애니메이션을 React답게'
+title: 'React의 <em><ViewTransition></em>: 브라우저 네이티브 애니메이션을 React답게'
 tags:
   - react
   - css

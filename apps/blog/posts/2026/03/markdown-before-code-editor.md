@@ -1,5 +1,5 @@
 ---
-title: '코드 에디터 대신 마크다운부터 여는 개발'
+title: '코드 에디터 대신 <em>마크다운</em>부터 여는 개발'
 tags:
   - ai
   - development

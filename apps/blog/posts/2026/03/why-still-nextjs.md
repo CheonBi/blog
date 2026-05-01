@@ -1,5 +1,5 @@
 ---
-title: '왜 여전히 Next.js를 쓰는가'
+title: '왜 여전히 <em>Next.js</em>를 쓰는가'
 tags:
   - nextjs
   - react
