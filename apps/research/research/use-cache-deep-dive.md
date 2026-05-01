@@ -161,7 +161,7 @@ const getProducts = $$reactCache__('default', '<sha1-id>', 0, $$cache0$$)
 ## 클로저는 bound args로 추출
 
 ```tsx
-// 원본
+// 원본 — userId가 클로저로 잡힘
 async function Component({userId}) {
   const getData = async (filter: string) => {
     'use cache'
@@ -172,19 +172,15 @@ async function Component({userId}) {
 ```
 
 ```tsx
-// 변환 후 (개념)
+// 변환 후 — userId가 명시적 인자로 추출됨
 async function $$cache0$$([userId], filter) {
-  return fetch(`/api/users/${userId}?filter=${filter}`)
+  /* 본문 */
 }
-
-async function Component({userId}) {
-  const getData = $$reactCache__('default', '<id>', 1, $$cache0$$, userId)
-  //                                              └─ bound count
-  return getData('active')
-}
+const getData = $$reactCache__('default', '<id>', 1, $$cache0$$, userId)
+//                                                 └─ bound count
 ```
 
-`userId`는 클로저였지만, 이제 명시적 인자다 → 자동으로 캐시 키에 들어감.
+→ `userId`가 자동으로 캐시 키에 들어감.
 
 ---
 

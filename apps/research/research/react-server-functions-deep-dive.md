@@ -177,22 +177,19 @@ export const createPost = createServerReference(
 
 ## 호출 흐름
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant N as Network
-    participant S as Server
-
-    C->>C: createPost(formData) 호출
-    C->>C: encodeReply(args) — Flight 직렬화
-    C->>N: POST / + Next-Action 헤더
-    N->>S: HTTP 요청
-    S->>S: action ID로 함수 lookup
-    S->>S: decodeReply — 인자 복원
-    S->>S: 함수 실행
-    S->>N: Flight 직렬화된 응답
-    N->>C: HTTP 응답
-    C->>C: decodeReply → 결과 사용
+```text
+Client                                    Server
+──────                                    ──────
+encodeReply(args)
+        │
+        ├──── POST / + Next-Action header ────►
+        │                                     actionId로 함수 lookup
+        │                                              │
+        │                                     decodeReply + 함수 실행
+        │                                              │
+        ◄──────── Flight 직렬화 응답 ──────────────────┘
+        │
+decodeReply → 결과
 ```
 
 ---
@@ -375,13 +372,11 @@ const validated = schema.parse({id, title})
 
 ```tsx
 'use client'
-
 import {useActionState} from 'react'
 import {createPost} from './actions'
 
 export function CreatePostForm() {
   const [state, formAction, isPending] = useActionState(createPost, null)
-
   return (
     <form action={formAction}>
       <input name="title" />
@@ -392,9 +387,7 @@ export function CreatePostForm() {
 }
 ```
 
-- `state`: 마지막 실행 결과
-- `formAction`: form에 넘기면 자동 처리
-- `isPending`: 진행 중 표시
+- `state`: 마지막 실행 결과 / `formAction`: form에 넘기면 자동 / `isPending`: 진행 중
 
 ---
 
@@ -517,20 +510,31 @@ return {success: false, error: 'Cannot delete'}
 
 ## 전체 아키텍처
 
-```mermaid
-flowchart TD
-  A["async fn() { 'use server' }"] --> B[Build: registerServerReference]
-  B --> C[Client bundle: createServerReference]
-  B --> D[Server: actions manifest]
+```text
+[Build]
+  'use server' fn  ──►  registerServerReference  ──►  $$id, $$bound
 
-  C --> E[fn(args) 호출]
-  E --> F[encodeReply args]
-  F --> G[POST + Next-Action header]
-  G --> H[Server: actionId lookup]
-  H --> I[decodeReply args]
-  I --> J[fn 실행]
-  J --> K[encodeReply result]
-  K --> L[클라이언트 결과 받음]
+[Client]
+  createServerReference(id, callServer)
+            │
+            ▼
+       fn(args) 호출
+            │
+            ▼
+       encodeReply(args)            ← Flight 직렬화
+            │
+            ▼
+   POST / + Next-Action header
+            │
+            ▼
+[Server]
+   actionId로 함수 lookup (manifest)
+            │
+            ▼
+   decodeReply → fn 실행
+            │
+            ▼
+   encodeReply(result) → 응답
 ```
 
 ---
