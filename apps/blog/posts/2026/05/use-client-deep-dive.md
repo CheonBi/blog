@@ -65,9 +65,11 @@ export default function Page() {
     </ClientShell>
   )
 }
+```
 
+```tsx
 // ClientShell.tsx
-;('use client')
+'use client'
 
 export function ClientShell({children}: {children: React.ReactNode}) {
   return <div className="shell">{children}</div>
