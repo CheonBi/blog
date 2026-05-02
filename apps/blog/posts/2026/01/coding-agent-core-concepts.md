@@ -1,5 +1,5 @@
 ---
-title: '<em>코딩</em> 에이전트 핵심 개념 완전 가이드'
+title: '<em>코딩 에이전트</em> 핵심 개념 완전 가이드'
 tags:
   - ai
   - devops

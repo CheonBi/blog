@@ -1,5 +1,5 @@
 ---
-title: 'Why Cloudflare Rebuilt Next.js'
+title: 'Why <em>Cloudflare</em> Rebuilt Next.js'
 tags:
   - nextjs
   - cloudflare

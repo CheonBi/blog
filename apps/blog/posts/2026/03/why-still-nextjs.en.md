@@ -1,5 +1,5 @@
 ---
-title: 'Why We Still Use Next.js'
+title: 'Why We Still Use <em>Next.js</em>'
 tags:
   - nextjs
   - react

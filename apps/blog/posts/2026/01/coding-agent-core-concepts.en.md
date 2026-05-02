@@ -1,5 +1,5 @@
 ---
-title: 'Complete Guide to Core Coding Agent Concepts'
+title: '<em>Complete Guide</em> to Core Coding Agent Concepts'
 tags:
   - ai
   - devops
@@ -136,11 +136,11 @@ Commands solve this by executing common workflows with a single command. They ca
 
 ### Difference from Rules
 
-| Aspect        | Rules                           | Commands                    |
-| ------------- | ------------------------------- | --------------------------- |
-| Application   | Always included in conversations | Only when explicitly called |
-| Purpose       | Provide context                 | Execute workflows           |
-| Context Impact| Always consumes tokens          | Consumes tokens only when called |
+| Aspect         | Rules                            | Commands                         |
+| -------------- | -------------------------------- | -------------------------------- |
+| Application    | Always included in conversations | Only when explicitly called      |
+| Purpose        | Provide context                  | Execute workflows                |
+| Context Impact | Always consumes tokens           | Consumes tokens only when called |
 
 ### Implementation in Claude Code
 
@@ -252,10 +252,10 @@ MCP provides a standardized way to expose third-party tools to agents. It also s
 
 ### Basic vs Third-party Tools
 
-| Category                       | Examples                                    |
-| ------------------------------ | ------------------------------------------- |
-| **Basic Tools (First-party)**  | File read/write, shell commands, code search |
-| **MCP Tools (Third-party)**    | Slack, GitHub, Jira, Notion, PostgreSQL, Sentry, etc. |
+| Category                      | Examples                                              |
+| ----------------------------- | ----------------------------------------------------- |
+| **Basic Tools (First-party)** | File read/write, shell commands, code search          |
+| **MCP Tools (Third-party)**   | Slack, GitHub, Jira, Notion, PostgreSQL, Sentry, etc. |
 
 ### Architecture
 
@@ -315,11 +315,11 @@ claude mcp list
 
 ### Scope Options
 
-| Scope            | Description                                    |
-| ---------------- | ---------------------------------------------- |
-| `local` (default)| Current project, personal use only             |
-| `project`        | All project members (stored in .mcp.json)     |
-| `user`           | Personal use across all projects               |
+| Scope             | Description                               |
+| ----------------- | ----------------------------------------- |
+| `local` (default) | Current project, personal use only        |
+| `project`         | All project members (stored in .mcp.json) |
+| `user`            | Personal use across all projects          |
 
 ### MCP Limitations and Solutions
 
@@ -333,14 +333,14 @@ claude mcp list
 
 ### Major MCP Servers
 
-| Server                                      | Purpose                           |
-| ------------------------------------------- | --------------------------------- |
+| Server                                      | Purpose                                  |
+| ------------------------------------------- | ---------------------------------------- |
 | **@modelcontextprotocol/server-github**     | GitHub PR, issues, repository management |
-| **@modelcontextprotocol/server-slack**      | Slack message read/write          |
-| **@modelcontextprotocol/server-postgres**   | PostgreSQL queries                |
-| **@modelcontextprotocol/server-filesystem** | Local file system access         |
-| **Puppeteer MCP**                           | Browser automation, screenshots   |
-| **Sentry MCP**                              | Error monitoring                  |
+| **@modelcontextprotocol/server-slack**      | Slack message read/write                 |
+| **@modelcontextprotocol/server-postgres**   | PostgreSQL queries                       |
+| **@modelcontextprotocol/server-filesystem** | Local file system access                 |
+| **Puppeteer MCP**                           | Browser automation, screenshots          |
+| **Sentry MCP**                              | Error monitoring                         |
 
 Hundreds of MCP servers are available on GitHub.
 
@@ -404,10 +404,10 @@ flowchart LR
 
 **Built-in Sub-agents:**
 
-| Name            | Description                                              |
-| --------------- | -------------------------------------------------------- |
-| **Explore**     | Read-only codebase exploration                           |
-| **Plan**        | Research in planning mode                                |
+| Name               | Description                                                     |
+| ------------------ | --------------------------------------------------------------- |
+| **Explore**        | Read-only codebase exploration                                  |
+| **Plan**           | Research in planning mode                                       |
 | **Task** (generic) | General-purpose sub-agent available without explicit definition |
 
 **Custom Sub-agent Definition (.claude/agents/security-reviewer.md):**
@@ -434,7 +434,6 @@ For all discovered vulnerabilities, provide:
 - Location (filename, line number)
 - Description
 - Recommended fix
-
 ```
 
 ### Sub-agent Invocation Methods
@@ -478,13 +477,13 @@ Modes are **an extension of Sub-agents that include instructions + system prompt
 
 ### Difference from Sub-agents
 
-| Aspect          | Sub-agent     | Mode                         |
-| --------------- | ------------- | ---------------------------- |
-| System Prompt   | Own prompt    | Can modify main prompt       |
-| UI              | No changes    | UI customization possible    |
-| Tools           | Can restrict  | Restrict + add new tools     |
-| Context         | Separate      | Shared with main             |
-| Reminders       | None          | Include mode maintenance reminders |
+| Aspect        | Sub-agent    | Mode                               |
+| ------------- | ------------ | ---------------------------------- |
+| System Prompt | Own prompt   | Can modify main prompt             |
+| UI            | No changes   | UI customization possible          |
+| Tools         | Can restrict | Restrict + add new tools           |
+| Context       | Separate     | Shared with main                   |
+| Reminders     | None         | Include mode maintenance reminders |
 
 ### What Modes Can Do
 
@@ -541,17 +540,17 @@ Hooks enforce these "must-do" tasks. The agent cannot forget or ignore them.
 
 ### Hook Types
 
-| Event               | Timing                    | Use Cases                                    |
-| ------------------- | ------------------------- | -------------------------------------------- |
-| `SessionStart`      | Session start/resume      | Load dev context, environment setup         |
+| Event               | Timing                    | Use Cases                                               |
+| ------------------- | ------------------------- | ------------------------------------------------------- |
+| `SessionStart`      | Session start/resume      | Load dev context, environment setup                     |
 | `UserPromptSubmit`  | Right after user input    | Input validation, context injection, security filtering |
-| `PreToolUse`        | Before tool execution     | Command validation, blocking dangerous commands |
-| `PostToolUse`       | After tool execution      | Formatting, linting, result logging         |
-| `PermissionRequest` | When permission requested | Auto approve/deny decisions                  |
-| `Stop`              | Agent response complete   | Auto-commit, completion notifications        |
-| `SubagentStop`      | Sub-agent completion      | Result processing, trigger next steps       |
-| `PreCompact`        | Before compaction         | Transcript backup                            |
-| `Notification`      | When notification occurs  | Custom notification handling                 |
+| `PreToolUse`        | Before tool execution     | Command validation, blocking dangerous commands         |
+| `PostToolUse`       | After tool execution      | Formatting, linting, result logging                     |
+| `PermissionRequest` | When permission requested | Auto approve/deny decisions                             |
+| `Stop`              | Agent response complete   | Auto-commit, completion notifications                   |
+| `SubagentStop`      | Sub-agent completion      | Result processing, trigger next steps                   |
+| `PreCompact`        | Before compaction         | Transcript backup                                       |
+| `Notification`      | When notification occurs  | Custom notification handling                            |
 
 ### Implementation in Claude Code
 
@@ -694,13 +693,13 @@ Skills solve all these issues:
 
 ### Rules vs Commands vs Skills
 
-| Characteristic     | Rules           | Commands           | Skills                      |
-| ------------------ | --------------- | ------------------ | --------------------------- |
-| Load timing        | Always          | Explicit invocation | Automatically when needed   |
-| Context impact     | Always consumes | Consumes on call   | Consumes only when used     |
-| Discovery method   | N/A             | `/` input          | Agent automatic decision    |
-| Includable elements| Text            | Text + metadata    | Text + scripts + assets     |
-| Sharing scope      | Project         | Project/user       | Entire ecosystem            |
+| Characteristic      | Rules           | Commands            | Skills                    |
+| ------------------- | --------------- | ------------------- | ------------------------- |
+| Load timing         | Always          | Explicit invocation | Automatically when needed |
+| Context impact      | Always consumes | Consumes on call    | Consumes only when used   |
+| Discovery method    | N/A             | `/` input           | Agent automatic decision  |
+| Includable elements | Text            | Text + metadata     | Text + scripts + assets   |
+| Sharing scope       | Project         | Project/user        | Entire ecosystem          |
 
 ### Skill Structure
 
@@ -800,12 +799,12 @@ Setting up MCP servers or skills directly requires tedious processes like modify
 
 ### Plugin Types
 
-| Type | Description | Examples |
-| --- | --- | --- |
-| **Skill + MCP combination** | Package skills and MCP together | firecrawl, supabase |
-| **LSP plugins** | Language server integration | typescript-lsp, pyright-lsp |
-| **Hooks + Tools** | Hook and tool bundles | hookify |
-| **Search tools** | Enhanced search functionality | mgrep |
+| Type                        | Description                     | Examples                    |
+| --------------------------- | ------------------------------- | --------------------------- |
+| **Skill + MCP combination** | Package skills and MCP together | firecrawl, supabase         |
+| **LSP plugins**             | Language server integration     | typescript-lsp, pyright-lsp |
+| **Hooks + Tools**           | Hook and tool bundles           | hookify                     |
+| **Search tools**            | Enhanced search functionality   | mgrep                       |
 
 ### Key Plugins
 
@@ -919,25 +918,25 @@ This way, these Hooks only apply when executing the `/project:deploy` command.
 
 ### Skills vs MCP: When to Use What?
 
-| Situation                              | Choice                                 |
-| -------------------------------------- | -------------------------------------- |
-| OAuth authentication needed (Slack, GitHub, etc.) | **MCP**                                |
-| Simple script + instruction combination | **Skills**                             |
-| External API calls (no authentication) | **Skills** (use curl in scripts)      |
-| Share with team/community              | **Skills** (open standard)            |
-| Real-time data streaming               | **MCP**                                |
+| Situation                                         | Choice                           |
+| ------------------------------------------------- | -------------------------------- |
+| OAuth authentication needed (Slack, GitHub, etc.) | **MCP**                          |
+| Simple script + instruction combination           | **Skills**                       |
+| External API calls (no authentication)            | **Skills** (use curl in scripts) |
+| Share with team/community                         | **Skills** (open standard)       |
+| Real-time data streaming                          | **MCP**                          |
 
 Skills are sufficient for most cases. Use MCP only when OAuth is needed or real-time bidirectional communication is required.
 
 ### Sub-agents vs Modes: When to Use What?
 
-| Situation                                              | Choice                       |
-| ------------------------------------------------------ | ---------------------------- |
-| Want to separate context                               | **Sub-agents**               |
-| Want to maintain main context while limiting tools only | **Modes**                    |
-| Execute multiple tasks in parallel                     | **Sub-agents**               |
-| UI/reminder customization                              | **Modes**                    |
-| Read-only exploration tasks                            | **Sub-agents** (Explore)     |
+| Situation                                               | Choice                   |
+| ------------------------------------------------------- | ------------------------ |
+| Want to separate context                                | **Sub-agents**           |
+| Want to maintain main context while limiting tools only | **Modes**                |
+| Execute multiple tasks in parallel                      | **Sub-agents**           |
+| UI/reminder customization                               | **Modes**                |
+| Read-only exploration tasks                             | **Sub-agents** (Explore) |
 
 ---
 
@@ -1029,15 +1028,15 @@ Coding agents consume tokens. Understanding how each concept impacts token usage
 
 ### Token Consumption by Concept
 
-| Concept        | Token Consumption Point     | Impact Level                |
-| -------------- | --------------------------- | --------------------------- |
-| **Rules**      | Every conversation start    | 🔴 High (always included)   |
-| **Commands**   | When called                 | 🟡 Medium                   |
-| **MCP**        | When loading tool definitions | 🔴 High (all connected tools) |
+| Concept        | Token Consumption Point          | Impact Level                    |
+| -------------- | -------------------------------- | ------------------------------- |
+| **Rules**      | Every conversation start         | 🔴 High (always included)       |
+| **Commands**   | When called                      | 🟡 Medium                       |
+| **MCP**        | When loading tool definitions    | 🔴 High (all connected tools)   |
 | **Sub-agents** | When executed (separate context) | 🟢 Low (minimal impact on main) |
-| **Modes**      | When switching modes        | 🟡 Medium                   |
-| **Hooks**      | When executed               | 🟢 Low (returns result only) |
-| **Skills**     | Only when needed            | 🟢 Low                      |
+| **Modes**      | When switching modes             | 🟡 Medium                       |
+| **Hooks**      | When executed                    | 🟢 Low (returns result only)    |
+| **Skills**     | Only when needed                 | 🟢 Low                          |
 
 ### Cost Optimization Tips
 
@@ -1139,13 +1138,13 @@ Runs directly in terminal, not as an IDE plugin. Works in SSH environments and s
 
 ### Key Differences with Cursor
 
-| Aspect        | Claude Code         | Cursor                        |
-| ------------- | ------------------- | ----------------------------- |
-| Environment   | Terminal            | IDE (VS Code fork)            |
-| Models        | Claude only         | Claude, GPT, others           |
-| File editing  | Direct modification | Diff view within IDE          |
-| Pricing       | API usage based     | Monthly subscription ($20/mo) |
-| Strengths     | Automation, Hooks   | IDE integration, real-time autocomplete |
+| Aspect       | Claude Code         | Cursor                                  |
+| ------------ | ------------------- | --------------------------------------- |
+| Environment  | Terminal            | IDE (VS Code fork)                      |
+| Models       | Claude only         | Claude, GPT, others                     |
+| File editing | Direct modification | Diff view within IDE                    |
+| Pricing      | API usage based     | Monthly subscription ($20/mo)           |
+| Strengths    | Automation, Hooks   | IDE integration, real-time autocomplete |
 
 ### When to Use Claude Code?
 
@@ -1170,15 +1169,15 @@ A collection of practical tips for real-world use.
 
 ### Keyboard Shortcuts
 
-| Shortcut | Function |
-| --- | --- |
-| `Ctrl+U` | Delete entire input line (faster than repeated backspace) |
-| `!` | Quick bash command prefix |
-| `@` | File search |
-| `/` | Start slash command |
-| `Shift+Enter` | Multi-line input |
-| `Tab` | Toggle thinking display |
-| `Esc Esc` | Stop Claude / restore code |
+| Shortcut      | Function                                                  |
+| ------------- | --------------------------------------------------------- |
+| `Ctrl+U`      | Delete entire input line (faster than repeated backspace) |
+| `!`           | Quick bash command prefix                                 |
+| `@`           | File search                                               |
+| `/`           | Start slash command                                       |
+| `Shift+Enter` | Multi-line input                                          |
+| `Tab`         | Toggle thinking display                                   |
+| `Esc Esc`     | Stop Claude / restore code                                |
 
 ### Parallel Workflows
 
@@ -1211,14 +1210,14 @@ tmux attach -t dev        # Reconnect to session
 
 ### Useful Commands
 
-| Command | Function |
-| --- | --- |
-| `/rewind` | Revert to previous state |
-| `/statusline` | Customize status bar with branch, context %, todos, etc. |
-| `/checkpoints` | File-level undo points |
-| `/compact` | Manually compress context |
-| `/mcp` | Check MCP server status |
-| `/plugins` | Plugin list and management |
+| Command        | Function                                                 |
+| -------------- | -------------------------------------------------------- |
+| `/rewind`      | Revert to previous state                                 |
+| `/statusline`  | Customize status bar with branch, context %, todos, etc. |
+| `/checkpoints` | File-level undo points                                   |
+| `/compact`     | Manually compress context                                |
+| `/mcp`         | Check MCP server status                                  |
+| `/plugins`     | Plugin list and management                               |
 
 ### Editor Integration
 
@@ -1317,9 +1316,11 @@ your-project/
 Coding agents consist of **static context**, **dynamic context**, and **deterministic execution (Hooks)**.
 
 **📌 Static Context (always included)**
+
 - **Rules / CLAUDE.md**: Basic rules always included in every conversation
 
 **⚡ Dynamic Context (loaded/called only when needed)**
+
 - **Skills**: Specialized knowledge/workflows loaded only for specific tasks
 - **Commands**: Explicitly called command collections
 - **MCP Servers**: External service integration (Slack, GitHub, DB, etc.)
@@ -1328,19 +1329,20 @@ Coding agents consist of **static context**, **dynamic context**, and **determin
 - **Modes**: Work-optimized behavior modes (instructions + UI + system prompts)
 
 **🔧 Hooks (deterministic execution)**
+
 - **Hooks**: Automation triggers before/after tool execution, session start/end, etc.
 
 ### When to Use What?
 
-| Situation                                              | Use This              |
-| ------------------------------------------------------ | --------------------- |
-| Want to inform about project structure, coding rules  | **Rules** (CLAUDE.md) |
-| Want to create shortcuts for repetitive workflows     | **Commands**          |
+| Situation                                                   | Use This              |
+| ----------------------------------------------------------- | --------------------- |
+| Want to inform about project structure, coding rules        | **Rules** (CLAUDE.md) |
+| Want to create shortcuts for repetitive workflows           | **Commands**          |
 | Want to connect to external services like Slack, GitHub, DB | **MCP Servers**       |
-| Want to easily install MCP or skills                  | **Plugins**           |
-| Want specialized processing in separate context       | **Sub-agents**        |
-| Always want to run formatting after file modification | **Hooks**             |
-| Want to package complex domain knowledge + scripts    | **Skills**            |
+| Want to easily install MCP or skills                        | **Plugins**           |
+| Want specialized processing in separate context             | **Sub-agents**        |
+| Always want to run formatting after file modification       | **Hooks**             |
+| Want to package complex domain knowledge + scripts          | **Skills**            |
 
 ### Tips
 

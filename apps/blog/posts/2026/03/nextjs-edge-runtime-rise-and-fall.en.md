@@ -1,5 +1,5 @@
 ---
-title: 'The Rise and Fall of Next.js Edge Runtime'
+title: 'The Rise and Fall of Next.js <em>Edge Runtime</em>'
 tags:
   - nextjs
   - edge-computing

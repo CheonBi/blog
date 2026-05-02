@@ -1,5 +1,5 @@
 ---
-title: 'Is Next.js Fast Enough?'
+title: 'Is <em>Next.js</em> Fast Enough?'
 tags:
   - nextjs
   - web-performance

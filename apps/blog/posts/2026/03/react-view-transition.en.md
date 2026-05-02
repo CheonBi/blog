@@ -1,5 +1,5 @@
 ---
-title: "React's <ViewTransition>: Browser-Native Animation, Done the React Way"
+title: "React's <em><ViewTransition></em>: Browser-Native Animation, Done the React Way"
 tags:
   - react
   - css

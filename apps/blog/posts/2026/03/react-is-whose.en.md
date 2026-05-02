@@ -1,5 +1,5 @@
 ---
-title: 'Whose React Is It?'
+title: 'Whose <em>React</em> Is It?'
 tags:
   - react
   - governance
