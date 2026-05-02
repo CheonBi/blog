@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 
+import {QRCodeSVG} from 'qrcode.react'
 import {Virtual} from 'swiper/modules'
 import {Swiper, SwiperSlide} from 'swiper/react'
 
@@ -41,6 +42,10 @@ const SHORTCUT_GROUPS: {
       {keys: ['P'], desc: '발표자 모드'},
       {keys: ['F11'], desc: '전체화면'},
     ],
+  },
+  {
+    title: '공유',
+    items: [{keys: ['Q'], desc: '현재 슬라이드 QR 코드'}],
   },
   {
     title: '기타',
@@ -114,6 +119,7 @@ export function MarpSlides({
   })
   const [goToSlideInput, setGoToSlideInput] = useState('')
   const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [qrUrl, setQrUrl] = useState<string | null>(null)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
@@ -182,6 +188,16 @@ export function MarpSlides({
         return
       }
 
+      // QR 코드 토글 (Q 키)
+      if (e.key === 'q' || e.key === 'Q') {
+        setQrUrl((prev) =>
+          prev
+            ? null
+            : `${window.location.origin}${window.location.pathname}#${activeIndexRef.current + 1}`,
+        )
+        return
+      }
+
       // 오버뷰 토글 (G 키)
       if (e.key === 'g' || e.key === 'G') {
         if (multiple) {
@@ -200,8 +216,12 @@ export function MarpSlides({
         return
       }
 
-      // ESC로 도움말/오버뷰 닫기
+      // ESC로 도움말/QR/오버뷰 닫기
       if (e.key === 'Escape') {
+        if (qrUrl) {
+          setQrUrl(null)
+          return
+        }
         if (isHelpOpen) {
           setIsHelpOpen(false)
           return
@@ -235,7 +255,7 @@ export function MarpSlides({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [multiple, html.length, isOverviewOpen, isHelpOpen, slug])
+  }, [multiple, html.length, isOverviewOpen, isHelpOpen, qrUrl, slug])
 
   // 휠 네비게이션
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -445,6 +465,28 @@ export function MarpSlides({
     closeContextMenu()
   }, [closeContextMenu])
 
+  const handleOpenQr = useCallback(() => {
+    setQrUrl(
+      `${window.location.origin}${window.location.pathname}#${activeIndex + 1}`,
+    )
+    closeContextMenu()
+  }, [activeIndex, closeContextMenu])
+
+  const handleQrOverlayClick = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget) {
+        setQrUrl(null)
+      }
+    },
+    [],
+  )
+
+  const handleCopyQrUrl = useCallback(() => {
+    if (qrUrl) {
+      navigator.clipboard.writeText(qrUrl)
+    }
+  }, [qrUrl])
+
   const handleHelpOverlayClick = useCallback(
     (e: ReactMouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) {
@@ -580,6 +622,40 @@ export function MarpSlides({
             ))}
           </div>
           <div className={styles.overviewHint}>ESC 또는 G 키로 닫기</div>
+        </div>
+      )}
+
+      {/* QR 코드 모달 */}
+      {qrUrl && (
+        <div
+          className={styles.qrOverlay}
+          onClick={handleQrOverlayClick}
+          role="dialog"
+          aria-label="QR 코드"
+          aria-modal="true"
+        >
+          <div className={styles.qrDialog}>
+            <div className={styles.qrCode}>
+              <QRCodeSVG
+                value={qrUrl}
+                size={240}
+                level="M"
+                marginSize={2}
+                bgColor="#ffffff"
+                fgColor="#000000"
+              />
+            </div>
+            <button
+              className={styles.qrUrl}
+              onClick={handleCopyQrUrl}
+              title="클릭하여 복사"
+            >
+              {qrUrl}
+            </button>
+            <div className={styles.qrHint}>
+              클릭하여 URL 복사 · ESC 또는 Q로 닫기
+            </div>
+          </div>
         </div>
       )}
 
@@ -725,6 +801,11 @@ export function MarpSlides({
           <button className={styles.contextMenuItem} onClick={handleCopyLink}>
             <span className={styles.contextMenuIcon}>🔗</span>
             현재 슬라이드 링크 복사
+          </button>
+          <button className={styles.contextMenuItem} onClick={handleOpenQr}>
+            <span className={styles.contextMenuIcon}>▦</span>
+            QR 코드 표시
+            <span className={styles.contextMenuShortcut}>Q</span>
           </button>
           <button className={styles.contextMenuItem} onClick={handleOpenHelp}>
             <span className={styles.contextMenuIcon}>?</span>
