@@ -120,6 +120,7 @@ export function MarpSlides({
   const [goToSlideInput, setGoToSlideInput] = useState('')
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
@@ -487,6 +488,27 @@ export function MarpSlides({
     }
   }, [qrUrl])
 
+  const handlePrint = useCallback(() => {
+    setIsPrinting(true)
+    closeContextMenu()
+  }, [closeContextMenu])
+
+  useEffect(() => {
+    if (!isPrinting) {
+      return
+    }
+    const handleAfterPrint = () => setIsPrinting(false)
+    window.addEventListener('afterprint', handleAfterPrint)
+    // 인쇄 전용 슬라이드들이 마운트되도록 한 프레임 대기 후 인쇄
+    const timer = window.setTimeout(() => {
+      window.print()
+    }, 250)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('afterprint', handleAfterPrint)
+    }
+  }, [isPrinting])
+
   const handleHelpOverlayClick = useCallback(
     (e: ReactMouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) {
@@ -509,7 +531,7 @@ export function MarpSlides({
   return (
     <div
       ref={containerRef}
-      className={`${styles.marpSlides} ${multiple ? styles.multiple : ''}`}
+      className={`${styles.marpSlides} ${multiple ? styles.multiple : ''} ${isPrinting ? styles.printing : ''}`}
       onContextMenu={handleContextMenu}
       onWheel={handleWheel}
     >
@@ -622,6 +644,17 @@ export function MarpSlides({
             ))}
           </div>
           <div className={styles.overviewHint}>ESC 또는 G 키로 닫기</div>
+        </div>
+      )}
+
+      {/* 인쇄(PDF) 전용 컨테이너 - 모든 슬라이드를 페이지 단위로 렌더링 */}
+      {isPrinting && (
+        <div className={styles.printContainer} aria-hidden="true">
+          {html.map((_, i) => (
+            <div key={i} className={styles.printSlide}>
+              <Marp border={false} rendered={marpRenderData} page={i + 1} />
+            </div>
+          ))}
         </div>
       )}
 
@@ -806,6 +839,10 @@ export function MarpSlides({
             <span className={styles.contextMenuIcon}>▦</span>
             QR 코드 표시
             <span className={styles.contextMenuShortcut}>Q</span>
+          </button>
+          <button className={styles.contextMenuItem} onClick={handlePrint}>
+            <span className={styles.contextMenuIcon}>📄</span>
+            PDF로 다운로드
           </button>
           <button className={styles.contextMenuItem} onClick={handleOpenHelp}>
             <span className={styles.contextMenuIcon}>?</span>
