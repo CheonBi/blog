@@ -2059,6 +2059,78 @@ body[data-minimal='true'] .hero-title .accent {
 .tabs button[data-active='true']::after {
   transform: scaleX(1);
 }
+
+/* ========= ABOUT FX A : WebGL text ========= */
+.page-title-fx {
+  position: relative;
+  width: 100%;
+  height: clamp(140px, 22vw, 240px);
+  margin: 4px 0 8px;
+}
+.page-title-fx canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.hero-fx-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+.hero-fx-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  opacity: 0.65;
+  pointer-events: none;
+}
+.hero-fx-hint-touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .hero-fx-hint-desktop {
+    display: none;
+  }
+  .hero-fx-hint-touch {
+    display: block;
+  }
+}
+
+/* ========= ABOUT FX B : Portrait dissolve ========= */
+.hero-fx-b {
+  width: 320px;
+  height: 320px;
+}
+.hero-fx-b canvas {
+  display: block;
+  border-radius: 50%;
+  cursor: crosshair;
+}
+.sr-only {
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fx-canvas canvas,
+  .hero-fx-b canvas {
+    display: none;
+  }
+}
+
 .remark-code-title {
   @apply px-5 py-3 font-mono text-sm font-bold rounded-t;
   @apply bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200;

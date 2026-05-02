@@ -1,10 +1,17 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import {useSearchParams} from 'next/navigation'
 import {Suspense} from 'react'
 
-import ProfileImage from '@/components/ProfileImage'
 import {SiteConfig} from '@/config'
+
+const HeroFxA = dynamic(() => import('@/components/about-fx/HeroFxA'), {
+  ssr: false,
+})
+const HeroFxB = dynamic(() => import('@/components/about-fx/HeroFxB'), {
+  ssr: false,
+})
 
 function AboutContent() {
   return (
@@ -411,10 +418,10 @@ function AboutPageContent() {
             <span className="dot" />
             FRONTEND ENGINEER · SEOUL
           </div>
-          <h1 className="page-title">
-            {SiteConfig.author.name}
-            <span className="accent">.</span>
-          </h1>
+          <div className="page-title-fx">
+            <HeroFxA />
+            <span className="sr-only">{SiteConfig.author.name}.</span>
+          </div>
           <p className="page-sub">
             확장 가능한 시스템, 공유 라이브러리, 개발자 도구처럼 팀의 생산성을
             높이는 일에 관심이 많습니다. 화려함보다 본질을 중요하게 생각합니다.
@@ -467,7 +474,7 @@ function AboutPageContent() {
           </div>
         </div>
         <div className="flex justify-center md:justify-end">
-          <ProfileImage size={192} />
+          <HeroFxB />
         </div>
       </section>
 
