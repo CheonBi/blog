@@ -63,6 +63,7 @@ const SHORTCUT_GROUPS: {
       {keys: ['P'], desc: '발표자 모드'},
       {keys: ['F11'], desc: '전체화면'},
       {keys: ['L'], desc: '레이저 포인터'},
+      {keys: ['D'], desc: '드로잉 모드'},
     ],
   },
   {
@@ -152,6 +153,14 @@ export function MarpSlides({
   const [searchQuery, setSearchQuery] = useState('')
   const [isLaserMode, setIsLaserMode] = useState(false)
   const laserRef = useRef<HTMLDivElement | null>(null)
+  const [isDrawingMode, setIsDrawingMode] = useState(false)
+  const [drawTool, setDrawTool] = useState<'pen' | 'highlighter' | 'eraser'>(
+    'pen',
+  )
+  const [drawColor, setDrawColor] = useState('#ef4444')
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const drawingRef = useRef(false)
+  const lastPointRef = useRef<{x: number; y: number} | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -283,6 +292,12 @@ export function MarpSlides({
         return
       }
 
+      // 드로잉 모드 토글 (D 키)
+      if (e.key === 'd' || e.key === 'D') {
+        setIsDrawingMode((prev) => !prev)
+        return
+      }
+
       // QR 코드 토글 (Q 키)
       if (e.key === 'q' || e.key === 'Q') {
         setQrUrl((prev) =>
@@ -371,6 +386,42 @@ export function MarpSlides({
       searchInputRef.current?.focus()
     }
   }, [isSearchOpen])
+
+  // 드로잉 캔버스 크기 동기화 + 슬라이드 변경 시 초기화
+  useEffect(() => {
+    if (!isDrawingMode) {
+      return
+    }
+    const canvas = canvasRef.current
+    if (!canvas) {
+      return
+    }
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect()
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = rect.width * dpr
+      canvas.height = rect.height * dpr
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+      }
+    }
+    resize()
+    window.addEventListener('resize', resize)
+    return () => window.removeEventListener('resize', resize)
+  }, [isDrawingMode])
+
+  // 슬라이드 이동 시 드로잉 클리어
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) {
+      return
+    }
+    const ctx = canvas.getContext('2d')
+    ctx?.clearRect(0, 0, canvas.width, canvas.height)
+  }, [activeIndex])
 
   // 레이저 포인터 마우스 추적 (부드러운 lerp)
   useEffect(() => {
@@ -685,6 +736,81 @@ export function MarpSlides({
     setSearchQuery('')
   }, [])
 
+  // 드로잉 핸들러
+  const handleDrawStart = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current
+      if (!canvas) {
+        return
+      }
+      canvas.setPointerCapture(e.pointerId)
+      drawingRef.current = true
+      const rect = canvas.getBoundingClientRect()
+      lastPointRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      }
+    },
+    [],
+  )
+
+  const handleDrawMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!drawingRef.current) {
+        return
+      }
+      const canvas = canvasRef.current
+      const last = lastPointRef.current
+      if (!canvas || !last) {
+        return
+      }
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        return
+      }
+      const rect = canvas.getBoundingClientRect()
+      const point = {x: e.clientX - rect.left, y: e.clientY - rect.top}
+
+      ctx.save()
+      if (drawTool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out'
+        ctx.lineWidth = 24
+      } else if (drawTool === 'highlighter') {
+        ctx.globalCompositeOperation = 'source-over'
+        ctx.strokeStyle = drawColor
+        ctx.globalAlpha = 0.35
+        ctx.lineWidth = 18
+      } else {
+        ctx.globalCompositeOperation = 'source-over'
+        ctx.strokeStyle = drawColor
+        ctx.globalAlpha = 1
+        ctx.lineWidth = 2.5
+      }
+      ctx.beginPath()
+      ctx.moveTo(last.x, last.y)
+      ctx.lineTo(point.x, point.y)
+      ctx.stroke()
+      ctx.restore()
+
+      lastPointRef.current = point
+    },
+    [drawTool, drawColor],
+  )
+
+  const handleDrawEnd = useCallback(() => {
+    drawingRef.current = false
+    lastPointRef.current = null
+  }, [])
+
+  const handleClearCanvas = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) {
+      return
+    }
+    const ctx = canvas.getContext('2d')
+    ctx?.clearRect(0, 0, canvas.width, canvas.height)
+  }, [])
+
   // Marp 렌더링 데이터 (memoized)
   const marpRenderData = useMemo(() => ({html, css, fonts}), [html, css, fonts])
 
@@ -830,6 +956,78 @@ export function MarpSlides({
       {/* 레이저 포인터 */}
       {isLaserMode && (
         <div ref={laserRef} className={styles.laserDot} aria-hidden="true" />
+      )}
+
+      {/* 드로잉 캔버스 + 툴바 */}
+      {isDrawingMode && (
+        <>
+          <canvas
+            ref={canvasRef}
+            className={styles.drawingCanvas}
+            onPointerDown={handleDrawStart}
+            onPointerMove={handleDrawMove}
+            onPointerUp={handleDrawEnd}
+            onPointerCancel={handleDrawEnd}
+          />
+          <div
+            className={styles.drawToolbar}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.drawToolGroup}>
+              {(['pen', 'highlighter', 'eraser'] as const).map((t) => (
+                <button
+                  key={t}
+                  className={styles.drawToolBtn}
+                  data-on={drawTool === t}
+                  onClick={() => setDrawTool(t)}
+                  aria-label={t}
+                  title={t}
+                >
+                  {t === 'pen' ? '✎' : t === 'highlighter' ? '◐' : '⌫'}
+                </button>
+              ))}
+            </div>
+            <div className={styles.drawToolGroup}>
+              {[
+                '#ef4444',
+                '#3b82f6',
+                '#facc15',
+                '#22c55e',
+                '#000000',
+                '#ffffff',
+              ].map((c) => (
+                <button
+                  key={c}
+                  className={styles.drawColorBtn}
+                  data-on={drawColor === c}
+                  style={{background: c}}
+                  onClick={() => {
+                    setDrawColor(c)
+                    if (drawTool === 'eraser') {
+                      setDrawTool('pen')
+                    }
+                  }}
+                  aria-label={`color ${c}`}
+                  title={c}
+                />
+              ))}
+            </div>
+            <button
+              className={styles.drawClearBtn}
+              onClick={handleClearCanvas}
+              title="전체 지우기"
+            >
+              clear
+            </button>
+            <button
+              className={styles.drawCloseBtn}
+              onClick={() => setIsDrawingMode(false)}
+              title="드로잉 종료"
+            >
+              ×
+            </button>
+          </div>
+        </>
       )}
 
       {/* 인쇄(PDF) 전용 컨테이너 - 모든 슬라이드를 페이지 단위로 렌더링 */}
@@ -1091,6 +1289,17 @@ export function MarpSlides({
             <span className={styles.contextMenuIcon}>•</span>
             레이저 포인터 {isLaserMode ? '끄기' : '켜기'}
             <span className={styles.contextMenuShortcut}>L</span>
+          </button>
+          <button
+            className={styles.contextMenuItem}
+            onClick={() => {
+              setIsDrawingMode((prev) => !prev)
+              closeContextMenu()
+            }}
+          >
+            <span className={styles.contextMenuIcon}>✎</span>
+            드로잉 모드 {isDrawingMode ? '끄기' : '켜기'}
+            <span className={styles.contextMenuShortcut}>D</span>
           </button>
           <button className={styles.contextMenuItem} onClick={handleOpenHelp}>
             <span className={styles.contextMenuIcon}>?</span>
