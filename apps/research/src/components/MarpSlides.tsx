@@ -65,6 +65,10 @@ const SHORTCUT_GROUPS: {
     ],
   },
   {
+    title: '검색',
+    items: [{keys: ['/'], desc: '슬라이드 검색'}],
+  },
+  {
     title: '공유',
     items: [{keys: ['Q'], desc: '현재 슬라이드 QR 코드'}],
   },
@@ -143,6 +147,9 @@ export function MarpSlides({
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [isPrinting, setIsPrinting] = useState(false)
   const [transition, setTransition] = useState<TransitionType>('slide')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
@@ -159,6 +166,42 @@ export function MarpSlides({
 
   // memoized values
   const multiple = useMemo(() => html.length > 1, [html.length])
+
+  // 슬라이드별 본문 텍스트 (검색용)
+  const slideTexts = useMemo(() => {
+    if (typeof DOMParser === 'undefined') {
+      return [] as string[]
+    }
+    const parser = new DOMParser()
+    return html.map((h) => {
+      const doc = parser.parseFromString(h, 'text/html')
+      return (doc.body.textContent || '').replace(/\s+/g, ' ').trim()
+    })
+  }, [html])
+
+  // 검색 결과
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) {
+      return [] as {index: number; snippet: string}[]
+    }
+    return slideTexts
+      .map((text, index) => {
+        const lower = text.toLowerCase()
+        const pos = lower.indexOf(q)
+        if (pos === -1) {
+          return null
+        }
+        const start = Math.max(0, pos - 30)
+        const end = Math.min(text.length, pos + q.length + 60)
+        const snippet =
+          (start > 0 ? '…' : '') +
+          text.slice(start, end) +
+          (end < text.length ? '…' : '')
+        return {index, snippet}
+      })
+      .filter((v): v is {index: number; snippet: string} => v !== null)
+  }, [searchQuery, slideTexts])
 
   // 클라이언트에서만 실행되는 초기화 - hash에서 초기 슬라이드 동기화
   useEffect(() => {
@@ -224,6 +267,13 @@ export function MarpSlides({
         return
       }
 
+      // 검색 열기 (/ 또는 Cmd/Ctrl+F)
+      if (e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'f')) {
+        e.preventDefault()
+        setIsSearchOpen(true)
+        return
+      }
+
       // QR 코드 토글 (Q 키)
       if (e.key === 'q' || e.key === 'Q') {
         setQrUrl((prev) =>
@@ -252,8 +302,13 @@ export function MarpSlides({
         return
       }
 
-      // ESC로 도움말/QR/오버뷰 닫기
+      // ESC로 도움말/QR/검색/오버뷰 닫기
       if (e.key === 'Escape') {
+        if (isSearchOpen) {
+          setIsSearchOpen(false)
+          setSearchQuery('')
+          return
+        }
         if (qrUrl) {
           setQrUrl(null)
           return
@@ -291,7 +346,22 @@ export function MarpSlides({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [multiple, html.length, isOverviewOpen, isHelpOpen, qrUrl, slug])
+  }, [
+    multiple,
+    html.length,
+    isOverviewOpen,
+    isHelpOpen,
+    qrUrl,
+    isSearchOpen,
+    slug,
+  ])
+
+  // 검색 모달 열릴 때 input에 포커스
+  useEffect(() => {
+    if (isSearchOpen) {
+      searchInputRef.current?.focus()
+    }
+  }, [isSearchOpen])
 
   // 휠 네비게이션
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -553,6 +623,22 @@ export function MarpSlides({
     [],
   )
 
+  const handleSearchOverlayClick = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget) {
+        setIsSearchOpen(false)
+        setSearchQuery('')
+      }
+    },
+    [],
+  )
+
+  const handleSearchSelect = useCallback((index: number) => {
+    swiperRef.current?.slideTo(index)
+    setIsSearchOpen(false)
+    setSearchQuery('')
+  }, [])
+
   // Marp 렌더링 데이터 (memoized)
   const marpRenderData = useMemo(() => ({html, css, fonts}), [html, css, fonts])
 
@@ -703,6 +789,58 @@ export function MarpSlides({
               <Marp border={false} rendered={marpRenderData} page={i + 1} />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 슬라이드 검색 모달 */}
+      {isSearchOpen && (
+        <div
+          className={styles.searchOverlay}
+          onClick={handleSearchOverlayClick}
+          role="dialog"
+          aria-label="슬라이드 검색"
+          aria-modal="true"
+        >
+          <div className={styles.searchDialog}>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchResults.length > 0) {
+                  handleSearchSelect(searchResults[0].index)
+                }
+              }}
+              placeholder="슬라이드 내용 검색…"
+              aria-label="검색어"
+            />
+            <div className={styles.searchResults}>
+              {searchQuery.trim() && searchResults.length === 0 && (
+                <div className={styles.searchEmpty}>결과 없음</div>
+              )}
+              {searchResults.map((r) => (
+                <button
+                  key={r.index}
+                  className={styles.searchResult}
+                  onClick={() => handleSearchSelect(r.index)}
+                >
+                  <span className={styles.searchResultIndex}>
+                    {r.index + 1}
+                  </span>
+                  <span className={styles.searchResultSnippet}>
+                    {r.snippet}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className={styles.searchHint}>
+              {searchResults.length > 0
+                ? `${searchResults.length}건 일치 · Enter로 첫 결과 이동 · ESC로 닫기`
+                : '/ 또는 Cmd/Ctrl+F로 열기 · ESC로 닫기'}
+            </div>
+          </div>
         </div>
       )}
 
