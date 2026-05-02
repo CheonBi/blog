@@ -138,7 +138,14 @@ export function SlideListWithFilter({slides}: Props) {
       if (b[1] !== a[1]) {
         return b[1] - a[1]
       }
-      return a[0].localeCompare(b[0])
+      // localeCompare는 서버/클라이언트 ICU 구현 차이로 hydration mismatch 발생
+      if (a[0] < b[0]) {
+        return -1
+      }
+      if (a[0] > b[0]) {
+        return 1
+      }
+      return 0
     })
   }, [slides])
 
