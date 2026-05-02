@@ -541,6 +541,37 @@
   text-align: center;
 }
 
+// 레이저 포인터
+.marpSlides.laserMode {
+  cursor: none;
+
+  * {
+    cursor: none !important;
+  }
+}
+
+.laserDot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 80, 80, 1) 0%,
+    rgba(255, 0, 0, 0.85) 60%,
+    rgba(255, 0, 0, 0) 100%
+  );
+  box-shadow:
+    0 0 8px 2px rgba(255, 0, 0, 0.6),
+    0 0 24px 6px rgba(255, 60, 60, 0.45),
+    0 0 56px 14px rgba(255, 80, 80, 0.18);
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+}
+
 // 슬라이드 검색
 .searchOverlay {
   position: fixed;

@@ -62,6 +62,7 @@ const SHORTCUT_GROUPS: {
       {keys: ['G'], desc: '슬라이드 오버뷰'},
       {keys: ['P'], desc: '발표자 모드'},
       {keys: ['F11'], desc: '전체화면'},
+      {keys: ['L'], desc: '레이저 포인터'},
     ],
   },
   {
@@ -149,6 +150,8 @@ export function MarpSlides({
   const [transition, setTransition] = useState<TransitionType>('slide')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isLaserMode, setIsLaserMode] = useState(false)
+  const laserRef = useRef<HTMLDivElement | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -274,6 +277,12 @@ export function MarpSlides({
         return
       }
 
+      // 레이저 포인터 토글 (L 키)
+      if (e.key === 'l' || e.key === 'L') {
+        setIsLaserMode((prev) => !prev)
+        return
+      }
+
       // QR 코드 토글 (Q 키)
       if (e.key === 'q' || e.key === 'Q') {
         setQrUrl((prev) =>
@@ -362,6 +371,43 @@ export function MarpSlides({
       searchInputRef.current?.focus()
     }
   }, [isSearchOpen])
+
+  // 레이저 포인터 마우스 추적 (부드러운 lerp)
+  useEffect(() => {
+    if (!isLaserMode) {
+      return
+    }
+    let targetX = window.innerWidth / 2
+    let targetY = window.innerHeight / 2
+    let currentX = targetX
+    let currentY = targetY
+    let raf = 0
+
+    const tick = () => {
+      currentX += (targetX - currentX) * 0.25
+      currentY += (targetY - currentY) * 0.25
+      const el = laserRef.current
+      if (el) {
+        el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`
+      }
+      raf = window.requestAnimationFrame(tick)
+    }
+
+    const handleMove = (e: MouseEvent) => {
+      targetX = e.clientX
+      targetY = e.clientY
+    }
+
+    window.addEventListener('mousemove', handleMove, {passive: true})
+    raf = window.requestAnimationFrame(tick)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      if (raf) {
+        window.cancelAnimationFrame(raf)
+      }
+    }
+  }, [isLaserMode])
 
   // 휠 네비게이션
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -652,7 +698,7 @@ export function MarpSlides({
   return (
     <div
       ref={containerRef}
-      className={`${styles.marpSlides} ${multiple ? styles.multiple : ''} ${isPrinting ? styles.printing : ''}`}
+      className={`${styles.marpSlides} ${multiple ? styles.multiple : ''} ${isPrinting ? styles.printing : ''} ${isLaserMode ? styles.laserMode : ''}`}
       onContextMenu={handleContextMenu}
       onWheel={handleWheel}
     >
@@ -779,6 +825,11 @@ export function MarpSlides({
           </div>
           <div className={styles.overviewHint}>ESC 또는 G 키로 닫기</div>
         </div>
+      )}
+
+      {/* 레이저 포인터 */}
+      {isLaserMode && (
+        <div ref={laserRef} className={styles.laserDot} aria-hidden="true" />
       )}
 
       {/* 인쇄(PDF) 전용 컨테이너 - 모든 슬라이드를 페이지 단위로 렌더링 */}
@@ -1029,6 +1080,17 @@ export function MarpSlides({
           <button className={styles.contextMenuItem} onClick={handlePrint}>
             <span className={styles.contextMenuIcon}>📄</span>
             PDF로 다운로드
+          </button>
+          <button
+            className={styles.contextMenuItem}
+            onClick={() => {
+              setIsLaserMode((prev) => !prev)
+              closeContextMenu()
+            }}
+          >
+            <span className={styles.contextMenuIcon}>•</span>
+            레이저 포인터 {isLaserMode ? '끄기' : '켜기'}
+            <span className={styles.contextMenuShortcut}>L</span>
           </button>
           <button className={styles.contextMenuItem} onClick={handleOpenHelp}>
             <span className={styles.contextMenuIcon}>?</span>
