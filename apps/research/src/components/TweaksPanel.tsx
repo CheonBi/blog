@@ -44,6 +44,15 @@ const THEMES = [
   {key: 'system', label: 'System', Icon: Monitor},
 ] as const
 
+const TRANSITIONS = [
+  {key: 'slide', label: 'slide'},
+  {key: 'fade', label: 'fade'},
+  {key: 'zoom', label: 'zoom'},
+  {key: 'none', label: 'none'},
+] as const
+
+type TransitionKey = (typeof TRANSITIONS)[number]['key']
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -69,15 +78,29 @@ export default function TweaksPanel({open, onClose}: Props) {
     }
     return getCookie('tw-minimal') === 'true'
   })
+  const [transition, setTransition] = useState<TransitionKey>(() => {
+    if (typeof window === 'undefined') {
+      return 'slide'
+    }
+    const stored = getCookie('tw-transition') as TransitionKey | undefined
+    return stored && TRANSITIONS.some((t) => t.key === stored)
+      ? stored
+      : 'slide'
+  })
 
   useEffect(() => {
     document.body.dataset.accent = accent
     document.body.dataset.grain = String(grain)
     document.body.dataset.minimal = String(minimal)
+    document.body.dataset.transition = transition
     setCookie('tw-accent', accent)
     setCookie('tw-grain', String(grain))
     setCookie('tw-minimal', String(minimal))
-  }, [accent, grain, minimal])
+    setCookie('tw-transition', transition)
+    window.dispatchEvent(
+      new CustomEvent('research:transition', {detail: transition}),
+    )
+  }, [accent, grain, minimal, transition])
 
   const handleThemeChange = (next: string, event: React.MouseEvent) => {
     setCookie('tw-theme', next)
@@ -93,10 +116,10 @@ export default function TweaksPanel({open, onClose}: Props) {
     document.documentElement.style.setProperty('--theme-toggle-x', `${x}px`)
     document.documentElement.style.setProperty('--theme-toggle-y', `${y}px`)
     document.documentElement.classList.add('theme-transition-circle')
-    const transition = document.startViewTransition(() => {
+    const viewTransition = document.startViewTransition(() => {
       setTheme(next)
     })
-    transition.finished.then(() => {
+    viewTransition.finished.then(() => {
       document.documentElement.classList.remove('theme-transition-circle')
     })
   }
@@ -205,6 +228,24 @@ export default function TweaksPanel({open, onClose}: Props) {
             }
           }}
         />
+      </div>
+
+      <div className="tweaks-row">
+        <div className="tweaks-label">slide transition</div>
+        <div className="tweaks-theme">
+          {TRANSITIONS.map(({key, label}) => (
+            <button
+              key={key}
+              type="button"
+              className="tweaks-theme-btn"
+              data-on={transition === key}
+              aria-label={label}
+              onClick={() => setTransition(key)}
+            >
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

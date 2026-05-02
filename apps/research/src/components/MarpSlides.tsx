@@ -3,10 +3,12 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 
 import {QRCodeSVG} from 'qrcode.react'
-import {Virtual} from 'swiper/modules'
+import {EffectCreative, EffectFade, Virtual} from 'swiper/modules'
 import {Swiper, SwiperSlide} from 'swiper/react'
 
 import 'swiper/css'
+import 'swiper/css/effect-creative'
+import 'swiper/css/effect-fade'
 
 import {Marp} from './Marp'
 import styles from './MarpSlides.module.scss'
@@ -20,6 +22,25 @@ interface ContextMenuState {
   visible: boolean
   x: number
   y: number
+}
+
+type TransitionType = 'slide' | 'fade' | 'zoom' | 'none'
+
+function readTransition(): TransitionType {
+  if (typeof document === 'undefined') {
+    return 'slide'
+  }
+  const value = document.body.dataset.transition as TransitionType | undefined
+  if (value && ['slide', 'fade', 'zoom', 'none'].includes(value)) {
+    return value
+  }
+  const match = document.cookie.match(/(?:^|; )tw-transition=([^;]+)/)
+  const decoded = match
+    ? (decodeURIComponent(match[1]) as TransitionType)
+    : null
+  return decoded && ['slide', 'fade', 'zoom', 'none'].includes(decoded)
+    ? decoded
+    : 'slide'
 }
 
 const SHORTCUT_GROUPS: {
@@ -121,6 +142,7 @@ export function MarpSlides({
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [isPrinting, setIsPrinting] = useState(false)
+  const [transition, setTransition] = useState<TransitionType>('slide')
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
@@ -145,7 +167,20 @@ export function MarpSlides({
       setActiveIndex(initialIndex)
       swiperRef.current?.slideTo(initialIndex, 0)
     }
+    setTransition(readTransition())
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // TweaksPanel에서 슬라이드 전환 효과 변경 시 동기화
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<TransitionType>).detail
+      if (detail) {
+        setTransition(detail)
+      }
+    }
+    window.addEventListener('research:transition', handler)
+    return () => window.removeEventListener('research:transition', handler)
   }, [])
 
   // 슬라이드 변경 핸들러 (memoized)
@@ -536,11 +571,24 @@ export function MarpSlides({
       onWheel={handleWheel}
     >
       <Swiper
-        modules={[Virtual]}
+        key={transition}
+        modules={[Virtual, EffectFade, EffectCreative]}
         virtual={{enabled: multiple, addSlidesBefore: 1, addSlidesAfter: 1}}
         enabled={multiple}
         allowTouchMove={multiple}
-        speed={300}
+        speed={transition === 'none' ? 0 : 350}
+        effect={
+          transition === 'fade'
+            ? 'fade'
+            : transition === 'zoom'
+              ? 'creative'
+              : 'slide'
+        }
+        fadeEffect={{crossFade: true}}
+        creativeEffect={{
+          prev: {opacity: 0, scale: 0.7, translate: [0, 0, -200]},
+          next: {opacity: 0, scale: 1.3, translate: [0, 0, 200]},
+        }}
         onActiveIndexChange={handleActiveIndexChange}
         onSwiper={handleSwiper}
         // 접근성 개선
