@@ -21,6 +21,36 @@ interface ContextMenuState {
   y: number
 }
 
+const SHORTCUT_GROUPS: {
+  title: string
+  items: {keys: string[]; desc: string}[]
+}[] = [
+  {
+    title: '네비게이션',
+    items: [
+      {keys: ['←'], desc: '이전 슬라이드'},
+      {keys: ['→'], desc: '다음 슬라이드'},
+      {keys: ['Home'], desc: '첫 슬라이드'},
+      {keys: ['End'], desc: '마지막 슬라이드'},
+    ],
+  },
+  {
+    title: '뷰 모드',
+    items: [
+      {keys: ['G'], desc: '슬라이드 오버뷰'},
+      {keys: ['P'], desc: '발표자 모드'},
+      {keys: ['F11'], desc: '전체화면'},
+    ],
+  },
+  {
+    title: '기타',
+    items: [
+      {keys: ['?'], desc: '단축키 도움말'},
+      {keys: ['Esc'], desc: '오버레이 닫기'},
+    ],
+  },
+]
+
 interface MarpSlidesProps {
   dataHtml: string
   dataCss: string
@@ -83,6 +113,7 @@ export function MarpSlides({
     y: 0,
   })
   const [goToSlideInput, setGoToSlideInput] = useState('')
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
@@ -134,6 +165,23 @@ export function MarpSlides({
   // 키보드 네비게이션
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 요소에 포커스가 있으면 단축키 무시
+      const target = e.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+
+      // 도움말 토글 (? 키)
+      if (e.key === '?') {
+        setIsHelpOpen((prev) => !prev)
+        return
+      }
+
       // 오버뷰 토글 (G 키)
       if (e.key === 'g' || e.key === 'G') {
         if (multiple) {
@@ -152,10 +200,16 @@ export function MarpSlides({
         return
       }
 
-      // ESC로 오버뷰 닫기
-      if (e.key === 'Escape' && isOverviewOpen) {
-        setIsOverviewOpen(false)
-        return
+      // ESC로 도움말/오버뷰 닫기
+      if (e.key === 'Escape') {
+        if (isHelpOpen) {
+          setIsHelpOpen(false)
+          return
+        }
+        if (isOverviewOpen) {
+          setIsOverviewOpen(false)
+          return
+        }
       }
 
       // 오버뷰가 열려있으면 슬라이드 네비게이션 비활성화
@@ -181,7 +235,7 @@ export function MarpSlides({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [multiple, html.length, isOverviewOpen, slug])
+  }, [multiple, html.length, isOverviewOpen, isHelpOpen, slug])
 
   // 휠 네비게이션
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -386,6 +440,20 @@ export function MarpSlides({
     closeContextMenu()
   }, [slug, closeContextMenu])
 
+  const handleOpenHelp = useCallback(() => {
+    setIsHelpOpen(true)
+    closeContextMenu()
+  }, [closeContextMenu])
+
+  const handleHelpOverlayClick = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget) {
+        setIsHelpOpen(false)
+      }
+    },
+    [],
+  )
+
   // Marp 렌더링 데이터 (memoized)
   const marpRenderData = useMemo(() => ({html, css, fonts}), [html, css, fonts])
 
@@ -515,6 +583,50 @@ export function MarpSlides({
         </div>
       )}
 
+      {/* 단축키 도움말 모달 */}
+      {isHelpOpen && (
+        <div
+          className={styles.helpOverlay}
+          onClick={handleHelpOverlayClick}
+          role="dialog"
+          aria-label="키보드 단축키 도움말"
+          aria-modal="true"
+        >
+          <div className={styles.helpDialog}>
+            <div className={styles.helpHeader}>
+              <h2>키보드 단축키</h2>
+              <button
+                className={styles.helpClose}
+                onClick={() => setIsHelpOpen(false)}
+                aria-label="닫기"
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.helpContent}>
+              {SHORTCUT_GROUPS.map((group) => (
+                <section key={group.title} className={styles.helpGroup}>
+                  <h3>{group.title}</h3>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li key={item.desc}>
+                        <span className={styles.helpDesc}>{item.desc}</span>
+                        <span className={styles.helpKeys}>
+                          {item.keys.map((k, i) => (
+                            <kbd key={i}>{k}</kbd>
+                          ))}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            <div className={styles.helpHint}>ESC 또는 ? 로 닫기</div>
+          </div>
+        </div>
+      )}
+
       {/* 컨텍스트 메뉴 */}
       {contextMenu.visible && (
         <div
@@ -613,6 +725,11 @@ export function MarpSlides({
           <button className={styles.contextMenuItem} onClick={handleCopyLink}>
             <span className={styles.contextMenuIcon}>🔗</span>
             현재 슬라이드 링크 복사
+          </button>
+          <button className={styles.contextMenuItem} onClick={handleOpenHelp}>
+            <span className={styles.contextMenuIcon}>?</span>
+            단축키 도움말
+            <span className={styles.contextMenuShortcut}>?</span>
           </button>
           <div className={styles.contextMenuDivider} />
           <button className={styles.contextMenuItem} onClick={handleGoHome}>
