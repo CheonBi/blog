@@ -12,8 +12,6 @@ import type {FrontMatter, Post, TagWithCount} from '../type'
 
 import {POPULAR_POSTS_COUNT, RECENT_POSTS_COUNT} from '@/constants'
 
-
-
 const DIR_REPLACE_STRING = '/posts'
 
 const POST_PATH = `${process.cwd()}${DIR_REPLACE_STRING}`
@@ -44,7 +42,8 @@ export const getAllPosts = cache(async function getAllPosts(
         .replace('.mdx', '')
         .replace('.md', '')
 
-      if (published) {
+      const isDev = process.env.NODE_ENV !== 'production'
+      if (published || isDev) {
         const tags: string[] = (fmTags || []).map((tag: string) => tag.trim())
         const stats = readingTime(body, {wordsPerMinute: 250})
 

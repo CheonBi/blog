@@ -120,7 +120,7 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
   }
 
   const {
-    frontMatter: {title, tags, date, description, series},
+    frontMatter: {title, tags, date, description, series, published},
     body,
     path,
     fields: {slug: postSlug},
@@ -191,6 +191,11 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
         </Link>
 
         <section className="post-masthead">
+          {!published && (
+            <div className="mb-3 inline-block rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold uppercase text-white shadow">
+              Draft
+            </div>
+          )}
           <div className="post-eyebrow">
             ◆ {series ? `SERIES · ${series}` : 'ESSAY'}
           </div>

@@ -17,7 +17,15 @@ export default function PostRow({
 }) {
   const {
     fields: {slug},
-    frontMatter: {date, title: rawTitle, description, tags, thumbnail, series},
+    frontMatter: {
+      date,
+      title: rawTitle,
+      description,
+      tags,
+      thumbnail,
+      series,
+      published,
+    },
     readingTime,
   } = post
   const plainTitle = stripTitleEmphasis(rawTitle)
@@ -26,13 +34,18 @@ export default function PostRow({
   const transitionName = `post-${slug.replace(/\//g, '-')}`
 
   return (
-    <article className="post-row">
+    <article className="post-row relative">
       <Link
         href={`${pathPrefix}/${slug}`}
         aria-label={plainTitle}
         className="post-row-link"
         prefetch={false}
       />
+      {!published && (
+        <span className="absolute right-2 top-2 z-10 rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold uppercase text-white shadow">
+          Draft
+        </span>
+      )}
       {thumbnail ? (
         <ViewTransition name={`${transitionName}-thumbnail`}>
           <div className="post-row-thumb">
