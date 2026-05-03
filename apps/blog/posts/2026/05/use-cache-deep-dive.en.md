@@ -5,7 +5,7 @@ tags:
   - nextjs
   - frontend
 published: true
-date: 2026-05-15 12:00:00
+date: 2026-05-01 19:47:36
 description: "Build-time transformations, cache key serialization, ResumeDataCache, cacheHandler, and Cache Components - everything created by a single 'use cache' line"
 thumbnail: /thumbnails/2026/05/use-cache-deep-dive.png
 series: Directive Deep Dive
