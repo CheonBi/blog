@@ -29,6 +29,26 @@ const config: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/index',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/ko',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/ko/:path*',
+        destination: '/:path*',
+        permanent: true,
+      },
+      {
+        source: '/generate-screenshot',
+        destination: '/2020/12/generate-serverless-thumbnail',
+        permanent: true,
+      },
+      {
         source: '/',
         has: [{type: 'query', key: 'page', value: '(?<no>\\d+)'}],
         destination: '/pages/:no',
@@ -61,7 +81,7 @@ const config: NextConfig = {
       },
       {
         source: '/category/:tag/page/:no',
-        destination: '/tags/:tag/page/:no',
+        destination: '/tags/:tag/pages/:no',
         permanent: true,
       },
       {

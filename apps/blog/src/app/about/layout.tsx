@@ -24,6 +24,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  alternates: {
+    canonical: `${SiteConfig.url}/about`,
+  },
 }
 
 export default function Layout({children}: {children: ReactNode}) {

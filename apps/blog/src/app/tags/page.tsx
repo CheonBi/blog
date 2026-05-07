@@ -2,11 +2,15 @@ import Link from 'next/link'
 
 import type {Metadata} from 'next'
 
+import {SiteConfig} from '@/config'
 import {getAllTagsFromPosts} from '@/utils/Post'
 
 export const metadata: Metadata = {
   title: 'Tags',
   description: 'All tags',
+  alternates: {
+    canonical: `${SiteConfig.url}/tags`,
+  },
 }
 
 const TAG_PALETTE: [string, string][] = [

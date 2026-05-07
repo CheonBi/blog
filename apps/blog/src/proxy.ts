@@ -7,9 +7,17 @@ import type {NextRequest} from 'next/server'
 export function proxy(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || ''
   const {isBot, botName, botCategory} = detectBot(userAgent)
+  const pathname = request.nextUrl.pathname
+
+  if (pathname.includes('%23')) {
+    const url = request.nextUrl.clone()
+    url.pathname = pathname.split('%23')[0]
+    url.search = ''
+    return NextResponse.redirect(url, {status: 308})
+  }
 
   // Locale redirect on root path
-  if (request.nextUrl.pathname === '/') {
+  if (pathname === '/') {
     const localeCookie = request.cookies.get('locale')?.value
 
     if (localeCookie === 'en') {
@@ -44,10 +52,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (isBot) {
-    const path = request.nextUrl.pathname
     // eslint-disable-next-line no-console
     console.log(
-      `[Bot Visit] ${botCategory}/${botName} - ${path} - ${userAgent.slice(0, 100)}`,
+      `[Bot Visit] ${botCategory}/${botName} - ${pathname} - ${userAgent.slice(0, 100)}`,
     )
   }
 

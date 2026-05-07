@@ -1,4 +1,4 @@
-import {notFound} from 'next/navigation'
+import {permanentRedirect} from 'next/navigation'
 
 import ListLayout from '@/components/layouts/ListLayout'
 import PageNumber from '@/components/layouts/PageNumber'
@@ -14,6 +14,12 @@ export async function generateMetadata(props: {
 
   return {
     title: `${tag}: Page ${id}`,
+    alternates: {
+      canonical: `https://yceffort.kr/tags/${encodeURIComponent(tag)}/pages/${id}`,
+    },
+    openGraph: {
+      url: `https://yceffort.kr/tags/${encodeURIComponent(tag)}/pages/${id}`,
+    },
   }
 }
 
@@ -43,26 +49,31 @@ export default async function Page(props: {
   const params = await props.params
   const allPosts = await getAllPosts()
   const {tag = 'javascript', id = '1'} = params
-  const pageNo = parseInt(id)
+  const pageNo = Number(id)
 
   const postsWithTag = allPosts.filter((post) =>
     post.frontMatter.tags.find((t) => t === tag),
   )
+  const lastPage = Math.ceil(postsWithTag.length / DEFAULT_NUMBER_OF_POSTS)
+  const tagPath = `/tags/${encodeURIComponent(tag)}`
 
-  if (
-    isNaN(pageNo) ||
-    pageNo > Math.ceil(postsWithTag.length / DEFAULT_NUMBER_OF_POSTS) ||
-    pageNo < 1
-  ) {
-    return notFound()
+  if (postsWithTag.length === 0) {
+    permanentRedirect('/tags')
+  }
+
+  if (!Number.isInteger(pageNo) || pageNo < 1) {
+    permanentRedirect(`${tagPath}/pages/1`)
+  }
+
+  if (pageNo > lastPage) {
+    permanentRedirect(`${tagPath}/pages/${lastPage}`)
   }
   const startIndex = (pageNo - 1) * DEFAULT_NUMBER_OF_POSTS
   const endIndex = startIndex + DEFAULT_NUMBER_OF_POSTS
 
   const posts = postsWithTag.slice(startIndex, endIndex)
 
-  const hasNextPage =
-    Math.ceil(postsWithTag.length / DEFAULT_NUMBER_OF_POSTS) > pageNo
+  const hasNextPage = lastPage > pageNo
 
   const title = `${tag[0].toUpperCase() + tag.split(' ').join('-').slice(1)} ${pageNo}`
 

@@ -1,5 +1,4 @@
 User-agent: *
-disallow: /LCP/*
-disallow: /generate-screenshot
-allow: /
-sitemap: https://yceffort.kr/sitemap.xml
+Allow: /
+
+Sitemap: https://yceffort.kr/sitemap.xml

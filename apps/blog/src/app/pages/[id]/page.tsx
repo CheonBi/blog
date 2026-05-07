@@ -1,4 +1,4 @@
-import {notFound} from 'next/navigation'
+import {permanentRedirect} from 'next/navigation'
 
 import type {Metadata} from 'next'
 
@@ -37,6 +37,9 @@ export async function generateMetadata(props: {
         },
       ],
     },
+    alternates: {
+      canonical: `${SiteConfig.url}/pages/${id}`,
+    },
   }
 }
 
@@ -50,22 +53,22 @@ export async function generateStaticParams() {
 export default async function Page(props: {params: Promise<{id: string}>}) {
   const params = await props.params
   const allPosts = await getAllPosts()
-  const pageNo = parseInt(params.id)
+  const pageNo = Number(params.id)
+  const lastPage = Math.ceil(allPosts.length / DEFAULT_NUMBER_OF_POSTS)
 
-  if (
-    isNaN(pageNo) ||
-    pageNo > Math.ceil(allPosts.length / DEFAULT_NUMBER_OF_POSTS) ||
-    pageNo < 1
-  ) {
-    return notFound()
+  if (!Number.isInteger(pageNo) || pageNo < 1) {
+    permanentRedirect('/pages/1')
+  }
+
+  if (pageNo > lastPage) {
+    permanentRedirect(`/pages/${lastPage}`)
   }
 
   const startIndex = (pageNo - 1) * DEFAULT_NUMBER_OF_POSTS
   const endIndex = startIndex + DEFAULT_NUMBER_OF_POSTS
   const posts = allPosts.slice(startIndex, endIndex)
 
-  const hasNextPage =
-    Math.ceil(allPosts.length / DEFAULT_NUMBER_OF_POSTS) > pageNo
+  const hasNextPage = lastPage > pageNo
 
   return (
     <>
