@@ -1,6 +1,6 @@
 import {visit} from 'unist-util-visit'
 
-import type {Element, Root, Text} from 'hast'
+import type {Element, Root} from 'hast'
 
 type TokenType =
   | 'tag'
@@ -82,42 +82,6 @@ export function extractCodeFilename() {
         codeElement.properties.className = [`language-${lang}`]
         codeElement.properties['data-filename'] = filename
       }
-    })
-  }
-}
-
-export function addCodeTitle() {
-  return (tree: Root) => {
-    visit(tree, 'element', (node: Element, index, parent) => {
-      if (node.tagName !== 'pre') {
-        return
-      }
-      if (!parent || typeof index !== 'number') {
-        return
-      }
-
-      const codeElement = node.children.find(
-        (child): child is Element =>
-          child.type === 'element' && child.tagName === 'code',
-      )
-
-      if (!codeElement) {
-        return
-      }
-
-      const filename = codeElement.properties?.['data-filename']
-      if (!filename) {
-        return
-      }
-
-      const titleNode: Element = {
-        type: 'element',
-        tagName: 'div',
-        properties: {className: ['remark-code-title']},
-        children: [{type: 'text', value: filename as string} as Text],
-      }
-
-      parent.children.splice(index, 0, titleNode)
     })
   }
 }
