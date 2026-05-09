@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://yceffort.kr/sitemap.xml
+Sitemap: https://yceffort.kr/feed.xml
