@@ -31,11 +31,15 @@ export const metadata: Metadata = {
   },
 }
 
-async function getHomeData() {
+async function getCachedHomeData() {
   'use cache'
   cacheLife('hours')
   cacheTag('home:ko')
 
+  return getHomeData()
+}
+
+async function getHomeData() {
   const [{popular: posts, recent: recentPosts}, allPosts, tags] =
     await Promise.all([
       getFeaturedPosts('ko'),
@@ -54,8 +58,12 @@ async function getHomeData() {
 }
 
 export default async function Page() {
-  const {posts, recentPosts, postCount, tagCount, yearsWriting} =
-    await getHomeData()
+  const homeData =
+    process.env.NODE_ENV === 'production'
+      ? await getCachedHomeData()
+      : await getHomeData()
+
+  const {posts, recentPosts, postCount, tagCount, yearsWriting} = homeData
 
   return (
     <div className="page-view">

@@ -18,11 +18,15 @@ export const metadata: Metadata = {
   },
 }
 
-async function getEnHomeData() {
+async function getCachedEnHomeData() {
   'use cache'
   cacheLife('hours')
   cacheTag('home:en')
 
+  return getEnHomeData()
+}
+
+async function getEnHomeData() {
   const [{popular, recent}, allPosts, tags] = await Promise.all([
     getFeaturedPosts('en'),
     getAllPosts('en'),
@@ -40,8 +44,12 @@ async function getEnHomeData() {
 }
 
 export default async function EnPage() {
-  const {popular, recent, postCount, tagCount, yearsWriting} =
-    await getEnHomeData()
+  const homeData =
+    process.env.NODE_ENV === 'production'
+      ? await getCachedEnHomeData()
+      : await getEnHomeData()
+
+  const {popular, recent, postCount, tagCount, yearsWriting} = homeData
 
   return (
     <div className="page-view">

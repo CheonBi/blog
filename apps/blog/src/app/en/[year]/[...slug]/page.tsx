@@ -97,14 +97,22 @@ export default async function EnPostPage(props: {
     return notFound()
   }
 
-  return <EnPostBody year={year} slug={slug} />
+  if (process.env.NODE_ENV !== 'production') {
+    return <EnPostBody year={year} slug={slug} />
+  }
+
+  return <CachedEnPostBody year={year} slug={slug} />
 }
 
-async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
+async function CachedEnPostBody({year, slug}: {year: string; slug: string[]}) {
   'use cache'
   cacheLife('max')
   cacheTag(`post:en/${year}/${slug.join('/')}`)
 
+  return <EnPostBody year={year} slug={slug} />
+}
+
+async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
   const post = await findPostByYearAndSlug(year, slug, 'en')
   if (!post) {
     return null

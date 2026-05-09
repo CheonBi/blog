@@ -106,14 +106,22 @@ export default async function Page(props: {
     return notFound()
   }
 
-  return <PostBody year={year} slug={slug} />
+  if (process.env.NODE_ENV !== 'production') {
+    return <PostBody year={year} slug={slug} />
+  }
+
+  return <CachedPostBody year={year} slug={slug} />
 }
 
-async function PostBody({year, slug}: {year: string; slug: string[]}) {
+async function CachedPostBody({year, slug}: {year: string; slug: string[]}) {
   'use cache'
   cacheLife('max')
   cacheTag(`post:ko/${year}/${slug.join('/')}`)
 
+  return <PostBody year={year} slug={slug} />
+}
+
+async function PostBody({year, slug}: {year: string; slug: string[]}) {
   const post = await findPostByYearAndSlug(year, slug)
   if (!post) {
     return null

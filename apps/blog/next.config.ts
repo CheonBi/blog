@@ -1,4 +1,55 @@
+import {existsSync, watch} from 'node:fs'
+import {utimes} from 'node:fs/promises'
+import {dirname, resolve} from 'node:path'
+import {fileURLToPath} from 'node:url'
+
 import type {NextConfig} from 'next'
+
+const blogRoot = dirname(fileURLToPath(import.meta.url))
+const postsDir = resolve(blogRoot, 'posts')
+const postsModule = resolve(blogRoot, 'src/utils/Post.ts')
+
+const globalWithPostWatcher = globalThis as typeof globalThis & {
+  __blogPostWatcher?: ReturnType<typeof watch>
+}
+
+let postRefreshTimer: ReturnType<typeof setTimeout> | undefined
+
+function isPostFile(filename: Buffer | string | null): boolean {
+  return /\.mdx?$/.test(filename?.toString() ?? '')
+}
+
+function refreshPostModule() {
+  clearTimeout(postRefreshTimer)
+  postRefreshTimer = setTimeout(async () => {
+    try {
+      const now = new Date()
+      await utimes(postsModule, now, now)
+    } catch {
+      // Keep Next dev running even if the filesystem notification fails.
+    }
+  }, 80)
+}
+
+function watchPostsInDevelopment() {
+  if (globalWithPostWatcher.__blogPostWatcher || !existsSync(postsDir)) {
+    return
+  }
+
+  globalWithPostWatcher.__blogPostWatcher = watch(
+    postsDir,
+    {recursive: true},
+    (_event, filename) => {
+      if (isPostFile(filename)) {
+        refreshPostModule()
+      }
+    },
+  )
+}
+
+if (process.env.NODE_ENV === 'development') {
+  watchPostsInDevelopment()
+}
 
 const config: NextConfig = {
   reactStrictMode: true,
