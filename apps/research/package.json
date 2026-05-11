@@ -14,7 +14,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@marp-team/marp-core": "^4.2.0",
+    "@marp-team/marp-core": "^4.3.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.16",
@@ -27,12 +27,12 @@
     "mermaid": "^11.12.2",
     "next": "^16.2.4",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.10",
     "postcss-import-url": "^7.2.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sass": "^1.97.3",
+    "sass": "^1.98.0",
     "swiper": "^12.1.2",
     "tailwindcss": "^4.1.17"
   },
