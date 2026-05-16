@@ -1,5 +1,5 @@
 ---
-title: 'Bun rewrite가 폭로한 것: OSS는 외부 AI만 막을 수 있었다'
+title: '<em>Bun rewrite</em>가 폭로한 것: OSS는 외부 AI만 막을 수 있었다'
 tags:
   - bun
   - rust
