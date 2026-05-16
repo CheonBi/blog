@@ -15,7 +15,7 @@ description: '@tanstack/* 공급망 공격 사건 분석. pull_request_target, G
 
 ## 서론
 
-지난 [12월 React/Next.js의 React2Shell 사태](https://yceffort.kr/2025/12/nextjs-react-security-vulnerability)가 "프레임워크가 번들링한 내부 의존성에서 발생한 RCE"였다면, 이번 사건은 한 단계 더 나아간 이야기다. 코드 자체에는 아무런 문제가 없었다. 문제는 **그 코드를 빌드하고 npm에 발행하는 워크플로우**에 있었다.
+지난 12월 React/Next.js의 React2Shell 사태[^3]가 "프레임워크가 번들링한 내부 의존성에서 발생한 RCE"였다면, 이번 사건은 한 단계 더 나아간 이야기다. 코드 자체에는 아무런 문제가 없었다. 문제는 **그 코드를 빌드하고 npm에 발행하는 워크플로우**에 있었다.
 
 2026년 5월 11일, `@tanstack/*` 네임스페이스의 42개 패키지가 한꺼번에 탈취되어 악성 코드가 박힌 채로 npm 레지스트리에 발행됐다. `@tanstack/history`, `@tanstack/react-router`, `@tanstack/react-start` 같은 핵심 패키지들이 전부 포함됐다. 다행히 외부 보안 연구자가 발행 후 약 26분 만에 탐지해서 issue를 열었고, TanStack 팀이 빠르게 deprecated 처리하면서 피해 규모는 제한적이었다.
 
@@ -31,7 +31,7 @@ description: '@tanstack/* 공급망 공격 사건 분석. pull_request_target, G
 
 ## 사건 타임라인
 
-먼저 사건이 어떻게 흘러갔는지 시간 순으로 정리해보자. [TanStack 팀의 postmortem](https://tanstack.com/blog/npm-supply-chain-compromise-postmortem)과 [GitHub issue #7383](https://github.com/TanStack/router/issues/7383)에 정리된 내용을 기반으로 한다.
+먼저 사건이 어떻게 흘러갔는지 시간 순으로 정리해보자. TanStack 팀의 postmortem[^1]과 GitHub issue #7383[^2]에 정리된 내용을 기반으로 한다.
 
 ### 1단계: 사전 정찰과 페이로드 준비 (5월 10일)
 
@@ -126,7 +126,7 @@ on:
 
 이런 작업들은 모두 **base 레포에 대한 쓰기 권한**이 필요하다. 코멘트를 달거나 라벨을 붙이려면 GitHub API에 쓰기 권한이 있어야 하니까. 일반 `pull_request` 트리거로는 이게 불가능하다.
 
-GitHub은 이 문제를 해결하기 위해 `pull_request_target`을 도입했다. 이 트리거의 핵심 디자인은 이렇다.
+GitHub은 이 문제를 해결하기 위해 `pull_request_target`을 도입했다[^7]. 이 트리거의 핵심 디자인은 이렇다.
 
 > **"PR의 코드는 실행하지 말고, target 브랜치(즉, 신뢰할 수 있는 base 브랜치)의 코드만 실행하라."**
 
@@ -164,7 +164,7 @@ jobs:
 
 ## "Pwn Request" 공격 패턴
 
-"Pwn Request"는 보안 업계에서 이 패턴을 부르는 별명이다. 2021년부터 알려진 공격 패턴인데, 5년이 지난 지금도 메이저 오픈소스 프로젝트들에서 계속 발견되고 있다.
+"Pwn Request"는 보안 업계에서 이 패턴을 부르는 별명이다. 2021년부터 알려진 공격 패턴인데, 5년이 지난 지금도 메이저 오픈소스 프로젝트들에서 계속 발견되고 있다[^6].
 
 ### 공격 시나리오
 
@@ -324,7 +324,7 @@ trusted publisher는 OIDC를 사용한다. 흐름은 다음과 같다.
 
 토큰을 추출한 다음, 공격자는 **워크플로우의 publish step을 거치지 않고** 직접 `registry.npmjs.org`에 POST 요청을 보냈다. 이렇게 하면 자기가 원하는 임의의 페이로드를 자기가 원하는 버전 번호로 발행할 수 있다.
 
-이 기법은 새로운 게 아니다. 2025년 3월 `tj-actions/changed-files` 공격에서 사용된 것과 **거의 동일한 Python 스크립트**가 재사용됐다. TanStack postmortem에서 이 점을 명시했다.
+이 기법은 새로운 게 아니다. 2025년 3월 `tj-actions/changed-files` 공격[^5]에서 사용된 것과 **거의 동일한 Python 스크립트**가 재사용됐다. TanStack postmortem에서 이 점을 명시했다[^1].
 
 ### trusted publisher의 의의
 
@@ -407,7 +407,7 @@ CI 환경뿐만 아니라 **개발자 로컬 환경**도 노리고 있었다는 
 2. 피해자가 관리하는 모든 npm 패키지 목록을 얻음
 3. 각 패키지에 동일한 페이로드를 주입한 새 버전을 발행
 
-즉, 한 명의 메인테이너가 감염되면 그 사람이 관리하는 **모든 패키지**가 동시에 오염된다. Socket 보안 팀은 이 worm이 200개 이상의 다른 패키지로 전파된 것을 추적했다.
+즉, 한 명의 메인테이너가 감염되면 그 사람이 관리하는 **모든 패키지**가 동시에 오염된다. Socket 보안 팀은 이 worm이 200개 이상의 다른 패키지로 전파된 것을 추적했다[^4].
 
 ### 지속성 (Persistence)
 
@@ -430,7 +430,7 @@ CI 환경뿐만 아니라 **개발자 로컬 환경**도 노리고 있었다는 
 
 ### 페이로드 흔적 확인 명령
 
-GitHub issue #7383 댓글에 정리된 체크 명령들을 옮긴다. 5월 11일경에 영향받은 패키지를 설치한 적이 있다면 다음을 확인해보자.
+GitHub issue #7383 댓글에 정리된 체크 명령들을 옮긴다[^2]. 5월 11일경에 영향받은 패키지를 설치한 적이 있다면 다음을 확인해보자.
 
 ```bash
 find ~ -path '*/.claude/setup.mjs' -o -path '*/.vscode/setup.mjs'
@@ -615,7 +615,7 @@ TanStack 워크플로우의 또 다른 약점은 third-party 액션을 floating 
 
 `@v6.0.2`나 `@v4` 같은 태그는 commit SHA가 아니다. 그 액션의 메인테이너가 같은 태그를 다른 SHA로 옮길 수 있다. 즉, **액션 메인테이너가 해킹되면 우리도 해킹된다.**
 
-2025년 3월의 `tj-actions/changed-files` 사건이 정확히 이 시나리오였다. 해당 액션의 메인테이너 토큰이 탈취되어 태그가 악성 SHA로 옮겨졌고, 그걸 사용하던 수많은 레포가 한꺼번에 감염됐다.
+2025년 3월의 `tj-actions/changed-files` 사건이 정확히 이 시나리오였다[^5]. 해당 액션의 메인테이너 토큰이 탈취되어 태그가 악성 SHA로 옮겨졌고, 그걸 사용하던 수많은 레포가 한꺼번에 감염됐다.
 
 권장 패턴은 SHA pinning이다.
 
@@ -788,7 +788,7 @@ jobs:
 
 그래도 라이브러리 메인테이너 입장에서 "GitHub이 고쳐줄 때까지 기다린다"는 선택지는 없다. 지금 당장 자기 워크플로우를 점검하고 SHA pinning, 캐시 분리, environment protection을 적용하는 수밖에 없다. 사용자 입장에서는 의존성 cooldown과 lifecycle script 차단(pnpm v10+ 사용 또는 `--ignore-scripts`)을 적용하자.
 
-[지난 React/Next.js 사건](https://yceffort.kr/2025/12/nextjs-react-security-vulnerability)이 "내 앱에 어떤 코드가 들어있는지 모른다"는 문제였다면, 이번 사건은 "내 앱에 들어가는 코드가 어떻게 빌드되었는지 모른다"는 더 깊은 문제다. 둘 다 현대 프론트엔드 생태계의 복잡성이 만들어낸 사각지대다.
+지난 React/Next.js 사건[^3]이 "내 앱에 어떤 코드가 들어있는지 모른다"는 문제였다면, 이번 사건은 "내 앱에 들어가는 코드가 어떻게 빌드되었는지 모른다"는 더 깊은 문제다. 둘 다 현대 프론트엔드 생태계의 복잡성이 만들어낸 사각지대다.
 
 운이 좋게도 이번 공격자는 테스트를 망가뜨리는 실수를 했고, 외부 연구자가 빨리 찾아냈다. 만약 더 조용한 공격자였다면, 만약 더 인기 있는 패키지였다면, 만약 메인테이너가 휴가 중이었다면, 피해는 훨씬 컸을 것이다. 다음번엔 그런 운이 따라줄 거라고 기대해서는 안 된다.
 
@@ -824,13 +824,22 @@ CI/CD 파이프라인 자체가 공격 표면이 된 시대다. 코드만 안전
 
 ## 참고
 
-- [TanStack: NPM Supply Chain Compromise Postmortem](https://tanstack.com/blog/npm-supply-chain-compromise-postmortem)
-- [GitHub Issue: TanStack/router#7383](https://github.com/TanStack/router/issues/7383)
-- [React 취약점인데 왜 Next.js를 업그레이드해야 하지?](https://yceffort.kr/2025/12/nextjs-react-security-vulnerability) — 지난번 사건 정리
-- [Socket: Mini Shai-Hulud Supply Chain Attack Tracker](https://socket.dev/supply-chain-attacks/mini-shai-hulud)
+[^1]: [TanStack: NPM Supply Chain Compromise Postmortem](https://tanstack.com/blog/npm-supply-chain-compromise-postmortem) — 사건 타임라인, 캐시 포이즈닝과 OIDC 메모리 추출 분석, 대응 조치 전반.
+
+[^2]: [GitHub Issue: TanStack/router#7383](https://github.com/TanStack/router/issues/7383) — 사건 발견 이슈. carlini의 페이로드 정밀 분석, 감염 확인 명령, 데드맨 스위치 디코딩이 댓글에 정리됨.
+
+[^3]: [React 취약점인데 왜 Next.js를 업그레이드해야 하지?](https://yceffort.kr/2025/12/nextjs-react-security-vulnerability) — 2025년 12월 React2Shell (CVE-2025-55182) 분석. 프레임워크 번들링이 만든 사각지대를 다룬다.
+
+[^4]: [Socket: Mini Shai-Hulud Supply Chain Attack Tracker](https://socket.dev/supply-chain-attacks/mini-shai-hulud) — TanStack worm 전파 추적. 200개 이상 패키지 PURL 목록.
+
+[^5]: [Wiz: GitHub Action tj-actions/changed-files supply chain attack (CVE-2025-30066)](https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066) — 2025년 3월 사건. 동일한 OIDC 메모리 추출 Python 스크립트를 사용했다.
+
+[^6]: [GitHub Actions is the Weakest Link (Nesbitt)](https://nesbitt.io/2026/04/28/github-actions-is-the-weakest-link.html) — Pwn Request 패턴과 GitHub Actions 디자인 함정 정리. 이번 사건의 배경 독서로 적합.
+
+[^7]: [GitHub Docs: pull_request_target](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request_target) — pull_request_target 트리거 공식 문서. base 브랜치 컨텍스트 실행과 권한 모델 명시.
+
+### 도구
+
 - [zizmor — GitHub Actions 정적 분석 도구](https://zizmor.sh/)
 - [StepSecurity](https://app.stepsecurity.io/securerepo)
-- [GitHub Actions is the Weakest Link (Nesbitt)](https://nesbitt.io/2026/04/28/github-actions-is-the-weakest-link.html)
-- [tj-actions/changed-files 2025년 3월 공격 분석](https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066)
-- [GitHub Docs: pull_request_target](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request_target)
 - [pnpm minimumReleaseAge 설정](https://pnpm.io/ko/settings#minimumreleaseage)
