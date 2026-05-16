@@ -3,3 +3,8 @@ Allow: /
 
 Sitemap: https://yceffort.kr/sitemap.xml
 Sitemap: https://yceffort.kr/feed.xml
+
+# LLM-friendly resources
+# https://yceffort.kr/llms.txt
+# https://yceffort.kr/llms-full.txt
+# https://yceffort.kr/en/llms-full.txt
