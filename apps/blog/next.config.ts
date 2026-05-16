@@ -67,6 +67,7 @@ const config: NextConfig = {
     return [
       {source: '/llms.txt', destination: '/api/llms'},
       {source: '/llms-full.txt', destination: '/api/llms-full'},
+      {source: '/en/llms-full.txt', destination: '/api/llms-full/en'},
       {
         source: '/en/:year(\\d{4})/:slug*.md',
         destination: '/api/posts-raw/en/:year/:slug*',
