@@ -153,6 +153,7 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
 
   const postYear = new Date(date).getFullYear()
 
+  const postUrl = `${SiteConfig.url}/${postSlug}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -161,10 +162,22 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
     dateModified: new Date(date).toISOString(),
     description,
     image: `${SiteConfig.url}${ogImageUrl}`,
-    url: `${SiteConfig.url}/${postSlug}`,
+    url: postUrl,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': postUrl,
+    },
+    inLanguage: 'ko-KR',
+    keywords: tags,
     author: {
       '@type': 'Person',
       name: SiteConfig.author.name,
+      url: SiteConfig.url,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: SiteConfig.author.name,
+      url: SiteConfig.url,
     },
   }
 
