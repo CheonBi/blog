@@ -6,7 +6,7 @@ tags:
   - npm
   - supply-chain
   - ci-cd
-published: false
+published: true
 date: 2026-05-16 12:00:00
 description: '@tanstack/* 공급망 공격 사건 분석. pull_request_target, GitHub Actions 캐시, OIDC trusted publisher의 위험과 방어책'
 ---
