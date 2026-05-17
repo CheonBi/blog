@@ -96,7 +96,7 @@ The fundamental problem is elsewhere. **A 99.8% test pass does not verify unsafe
 
 #### A confirmed case: issue #30719
 
-This is not just abstract worry. Within days of the PR being merged, a UB pattern across the codebase was reported[^14].
+This is not just abstract worry. Within days of the PR being merged, a UB case where the safe API encapsulation breaks was reported[^14].
 
 **UB (Undefined Behavior)** is a code state where the language specification does not guarantee the result. Use-after-free, aliasing violations, reading uninitialized memory — those are the typical cases. When UB occurs, the program may behave normally, crash, or silently corrupt data. Because the compiler optimizes under the assumption that UB does not occur, the behavior of unrelated code becomes unpredictable. The core value of Rust is "in safe Rust, UB is blocked at compile time," which is exactly why **UB arising from a normal safe API call is the most serious class of bug in Rust code.**
 
@@ -129,7 +129,7 @@ permission at alloc309[0x0], but no exposed tags have suitable
 permission in the borrow stack for this location
 ```
 
-A signal that the issue is not limited to PathString but is **a pattern lying across the codebase.** The reporter's comment: "This is a mistake even someone with 20 hours of Rust would not make. I found this much in minutes, and I have no idea how much we don't know about."
+It is hard to call this a one-off mistake confined to PathString, and **a strong signal that similar lifetime erasure patterns may exist elsewhere.** The reporter's comment: "This is a mistake even someone with 20 hours of Rust would not make. I found this much in minutes, and I have no idea how much we don't know about."
 
 Around the same time, Jarred Sumner mentioned **hiring experienced Rust engineers** on X. At minimum, a signal that they additionally needed specialized staff to run a Rust codebase of this scale long-term. That alone is not enough to flatly conclude the team had no Rust expertise inside at the merge point.
 
@@ -151,15 +151,17 @@ To recap, the direct motivation of the rewrite was Bun's chronic memory leaks. S
 
 But the memory bugs Rust's safety model catches automatically are actually a narrow class. We need to spell out what is in scope and what is not.
 
-#### What Rust catches automatically
+#### What safe Rust reduces automatically
 
-borrow checker and RAII guarantee the following at compile time + runtime.
+**Inside safe Rust only**, the borrow checker and RAII model significantly reduce the following at compile time + runtime.
 
 - **use-after-free**: accessing after losing ownership is a compile error
 - **double-free**: `Drop` is called exactly once
 - **error path forget-to-free**: even if a function exits early via the `?` operator or panic, RAII cleans up automatically
 
 These three classes account for a large share of memory bugs commonly seen in systems programming. The most painful area in C/C++ manual memory management. Almost the entire justification for choosing Rust comes from here.
+
+There is one critical caveat. **The moment `unsafe`, FFI, raw pointers, external allocators, or the JS boundary enter the picture, these guarantees no longer apply.** Sumner himself acknowledged this explicitly in The Register interview, saying Rust "won't catch all of these"[^2]. Automatic detection is a promise only inside safe Rust.
 
 #### What Rust does not catch automatically
 
@@ -172,19 +174,19 @@ But Rust's safety model does not define "memory leak" as a safety violation. The
 
 In table form:
 
-| Memory bug class               | Rust compiler auto-detection | Core suspect for Bun leaks |
-| ------------------------------ | ---------------------------- | -------------------------- |
-| use-after-free                 | Auto (borrow checker)        | Low probability            |
-| double-free                    | Auto (`Drop` runs once)      | Low probability            |
-| error path forget-to-free      | Auto (RAII)                  | Some probability           |
-| logical leak (held references) | Not detected                 | High probability           |
-| cycles                         | Not detected (need Weak)     | Possible                   |
-| FFI boundary leak (JSC, libuv) | Cannot detect (unsafe area)  | **Very high probability**  |
-| JS boundary re-entrancy        | No static tracking           | High probability           |
+| Memory bug class               | safe Rust auto-detection           | Core suspect for Bun leaks |
+| ------------------------------ | ---------------------------------- | -------------------------- |
+| use-after-free                 | safe scope only (borrow checker)   | Low probability            |
+| double-free                    | safe scope only (`Drop` runs once) | Low probability            |
+| error path forget-to-free      | safe scope only (RAII)             | Some probability           |
+| logical leak (held references) | Not detected                       | High probability           |
+| cycles                         | Not detected (need Weak)           | Possible                   |
+| FFI boundary leak (JSC, libuv) | Cannot detect (unsafe area)        | **Very high probability**  |
+| JS boundary re-entrancy        | No static tracking                 | High probability           |
 
 #### Where did Bun's leaks come from
 
-Bun embeds a C++ engine called JavaScriptCore, and uses its own event loop (uws) instead of libuv. JavaScript objects and Rust/Zig data are mutually referenced. **In this architecture, the most leak-prone areas are exactly the FFI boundary and JS boundary re-entrancy.** The area Rust does not catch automatically.
+Bun embeds JavaScriptCore and relies heavily on uSockets/uWebSockets at the HTTP/socket layer. libuv is also partially included depending on the platform. JavaScript objects and Rust/Zig data are mutually referenced. **In this structure, the ownership boundaries between the JS engine, the native network layer, and runtime objects are inevitably complex, and the most leak-prone areas are exactly the FFI boundary and JS boundary re-entrancy.** The area Rust does not catch automatically.
 
 The pattern of memory climbing to 23GB under Claude Code rarely comes from single-allocation bugs like use-after-free. It comes from holding references too long, from missed cleanup in a callback chain, or from a botched ownership transfer at the FFI boundary. The lower rows of the table above.
 
@@ -280,7 +282,7 @@ Anthropic's "Mythos" model announcement shows the same asymmetry. Mythos was ann
 
 Three consequences follow.
 
-**1. The company vs individual gap explodes.** One of OSS's virtues was that a big-company engineer and a nighttime individual contributor could stand on the same stage. Like Linus Torvalds starting Linux as a student in Finland. For an individual without company tokens to keep up with the productivity of an acquired maintainer is, in practice, impossible.
+**1. The productivity gap between companies and individuals is likely to widen.** One of OSS's virtues was that a big-company engineer and a nighttime individual contributor could stand on the same stage. Like Linus Torvalds starting Linux as a student in Finland. OSS combined with an AI company's internal infrastructure can move much faster than OSS run by individual maintainers. From the outside, we cannot verify exact token limits or model access conditions, so we cannot quantify the magnitude of the gap. But the direction is clear.
 
 **2. The myth of "talent shines anywhere" weakens.** An environment is forming where having ability without resources means not even getting the chance to be evaluated. Getting into a good company, starting one's own company, or being able to fundraise becomes more decisive than before. The area pure technical skill cannot close keeps growing.
 
@@ -313,11 +315,9 @@ But there is a trap. There is no clean way to verify that certification from out
 
 The analysis up to here rests on three premises. If even one of the three breaks, the picture changes. I'll note the weak points of my argument.
 
-### 1. AI hits a plateau
+### 1. AI capability gains slow down
 
-Everything so far assumes AI continues to improve at the current pace. But there are signs of a plateau. GPT-5 was widely reviewed as not gaining capability as much as expected, and Anthropic's Mythos announcement came armed with a 250-page report and emotional employee narratives. **If the capability gain were truly overwhelming, that kind of marketing would be unnecessary.** Results speak. The very fact that Mythos came out armed like that is a signal that we have reached a point where the market is no longer impressed enough by the model alone.
-
-If a plateau is realized, the picture of "AI handles everything" gets delayed. The seat of the senior engineer holds longer. Token access gaps widen less.
+Everything so far assumes AI continues to improve at the current pace. If model capability gains slow down — the probability is not zero — large-scale AI-driven rewrites also become normalized more slowly. The seat of the senior engineer holds longer. Token access gaps widen less. That is the simple version of the plateau scenario. Whether or not model capability gains actually plateau is a much larger topic that belongs to a different conversation than this post, so I will not go deeper here.
 
 ### 2. Token cost does not fall
 
