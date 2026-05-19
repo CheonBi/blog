@@ -51,9 +51,9 @@ AI code generation is on the same continuum. But two things separate it decisive
 
 Speed difference is a matter of degree, but resource asymmetry is a different problem in kind. Once a compiler is installed, it works the same for everyone. AI keeps charging token costs proportional to usage. The Bun rewrite is the first large-scale case showing how this cost structure plays into OSS governance.
 
-## The surface debates people are loud about
+## The initial critiques
 
-I'll lay out the surface debates first. To show they are sideshows, you need to know what is being discussed and how.
+I'll lay out the three strands of critique first. Knowing where each is valid and where each hits its limit is what makes clear the evidence the central thesis sits on.
 
 ### The 13,000 unsafe blocks
 
@@ -86,7 +86,7 @@ Memory corruption, data races, and bad ownership transfers inside unsafe break t
 
 #### Coming back to Bun's numbers
 
-By community-tracked counts, the Rust version has more than 13,000 unsafe blocks, and the frequently compared [uv](https://github.com/astral-sh/uv) has 73 in 350,000 lines. About a 100x gap. Worth noting: the 13,000 figure itself is not stated in any Anthropic or Bun official announcement, but came out of external community analysis of PRs by Theo and others.
+By community-tracked counts, the Rust version has more than 13,000 unsafe blocks, and the frequently compared [uv](https://github.com/astral-sh/uv) has 73 in 350,000 lines. About a 100x gap. uv's own creator, Charlie Marsh, has remarked of this kind of mechanical rewrite that you are "trading 200 known issues for unknown unknowns"[^17]. Coming from the person directly responsible for those 73 unsafe blocks, the remark carries different weight. Worth noting: the 13,000 figure itself is not stated in any Anthropic or Bun official announcement, but came out of external community analysis of PRs by Theo and others.
 
 The comparison is, in fairness, unfair. uv has no embedded JavaScript engine. Bun embeds a C++ engine called JavaScriptCore. unsafe showing up broadly at the FFI boundary is structurally unavoidable. And looking through the Rust safe/unsafe lens, Zig does not statically enforce ownership and aliasing invariants in the type system the way Rust does. So when porting Zig to Rust, the core question is how much of the invariants previously managed by human discipline gets moved inside the safe Rust type system, and how much remains in unsafe.
 
@@ -94,54 +94,11 @@ But the real critique is not the absolute count. Without separating how many of 
 
 The fundamental problem is elsewhere. **A 99.8% test pass does not verify unsafe invariants.** Tests prove behavioral compatibility, not memory safety. The motivation for the rewrite was memory safety, and "99.8% passing" does not answer that motivation.
 
-#### A confirmed case: issue #30719
-
-This is not just abstract worry. Within days of the PR being merged, a UB case where the safe API encapsulation breaks was reported[^14].
-
-**UB (Undefined Behavior)** is a code state where the language specification does not guarantee the result. Use-after-free, aliasing violations, reading uninitialized memory — those are the typical cases. When UB occurs, the program may behave normally, crash, or silently corrupt data. Because the compiler optimizes under the assumption that UB does not occur, the behavior of unrelated code becomes unpredictable. The core value of Rust is "in safe Rust, UB is blocked at compile time," which is exactly why **UB arising from a normal safe API call is the most serious class of bug in Rust code.**
-
-Issue #30719 starts from an ordinary safe API called `PathString::init`. Looking only at the signature there is nothing alarming. It takes a `&[u8]` reference and returns `Self`. But the internal implementation erases the lifetime inside an unsafe block. **Meaning it does not track the input reference's lifetime and forces it to `'static`.** The result is a `PathString` instance that still holds a pointer to the original data even after the original is dropped. A state where use-after-free and invalid aliasing become possible.
-
-miri, Rust's UB detection tool, caught this pattern immediately. The following code alone triggers UB detection.
-
-```rust
-let test = Box::new(*b"Hello World");
-let init = PathString::init(&*test);
-drop(test);
-
-println!("{:?}", init.slice());  // UB: dangling reference
-```
-
-What makes this decisive is that **UB occurs through normal use of a safe API.** The caller never wrote the `unsafe` keyword. The unsafe block lives inside `PathString`, and from the caller's perspective they only wrote regular safe code. Direct evidence that unsafe encapsulation failed.
-
-The Bun team's official response is PR #30728. It does two things.
-
-1. Mark `PathString::init` and `dir_iterator::next()` as `unsafe fn`. That is, change the call itself to require an unsafe context.
-2. **Add SAFETY comments to each of roughly 70 in-tree call sites after the fact.** It also documents the outlives contract.
-
-The second is decisive. **It is an admission that at the time of the initial merge, those 70 SAFETY guarantees were not explicitly written before going into main.** It is also an admission that the "SAFETY comments mandatory for AI" rule in PORTING.md was not in force at the actual merge point.
-
-The reporter did not stop there. Within minutes of finding the first UB, they discovered another one.
-
-```
-error: Undefined Behavior: trying to retag from <wildcard> for Unique
-permission at alloc309[0x0], but no exposed tags have suitable
-permission in the borrow stack for this location
-```
-
-It is hard to call this a one-off mistake confined to PathString, and **a strong signal that similar lifetime erasure patterns may exist elsewhere.** The reporter's comment: "This is a mistake even someone with 20 hours of Rust would not make. I found this much in minutes, and I have no idea how much we don't know about."
-
-Around the same time, Jarred Sumner mentioned **hiring experienced Rust engineers** on X. At minimum, a signal that they additionally needed specialized staff to run a Rust codebase of this scale long-term. That alone is not enough to flatly conclude the team had no Rust expertise inside at the merge point.
-
-Defenders push back with "it is a canary version, not an official release, bugs are natural." There is some truth to that. But two things weaken the rebuttal. First, **the decision itself to merge a 960,000-line PR into the main branch is outside the usual standard of "it's fine because it's canary."** Second, the UB found is not an ad-hoc edge case but a systemic pattern in a basic API like `PathString::init`.
-
-There is now enough reason to suspect that the SAFETY claims of the 13,000 unsafe blocks are not actually verified guarantees but closer to self-reported assertions added after the fact. **#30719 shows that this worry is not abstract criticism but a problem reproducible in real code.**
-
 ### The transliteration critique
 
 The second critique is more structural. PORTING.md is a 576-line migration guide. It explicitly bans tokio/rayon/hyper/futures and prohibits async fn[^6]. Effectively, it rewrites Zig architecture into Rust while avoiding most of the core abstractions of the Rust ecosystem. In a Register interview, Sumner himself said in essence that the architecture and data structures were carried over almost as-is[^2].
 
-This critique is accurate. A careful Rust rewrite can improve safety. A mechanical "Rust-shaped" rewrite preserves the same bugs, adds new aliasing mistakes, and buries them under the confidence of "it was moved to Rust, so it is safe." Theo puts this in two points[^7]. First, AI-agent-based fixes prioritize the error paths that are encountered frequently. Second, those paths happen to coincide with the paths Claude Code uses. The result may converge into asymmetric stabilization: the Claude Code paths become solid while the rest stays brittle.
+This critique is accurate. A careful Rust rewrite can improve safety. A mechanical "Rust-shaped" rewrite preserves the same bugs, adds new aliasing mistakes, and buries them under the confidence of "it was moved to Rust, so it is safe." Theo sums this up in one line: "They aren't really writing Rust. They are writing C++ with Rust syntax."[^7] He then makes two points. First, AI-agent-based fixes prioritize the error paths that are encountered frequently. Second, those paths happen to coincide with the paths Claude Code uses. The result may converge into asymmetric stabilization: the Claude Code paths become solid while the rest stays brittle.
 
 ### The FFI boundary: was the real motivation of the rewrite resolved
 
@@ -196,11 +153,11 @@ The pattern of memory climbing to 23GB under Claude Code rarely comes from singl
 
 Bun saying in its announcement that "some memory leaks were resolved" is probably not a lie. A class like error path forget-to-free was likely actually caught. But **whether the real motivating leaks of the rewrite were caught is a different question, and the answer only comes after two or three months in production.**
 
-### Why this is still a sideshow
+### The limit of these critiques: time answers
 
-Even if all three critiques are valid, time will eventually answer them. The side critiques as well. That the 99.8% pass is only on Linux x64 glibc — macOS/Windows need separate validation. What tests verify is observable state outcomes, not the absence of data races. There are no concrete performance benchmark numbers in the announcement. How unsafe invariants break in production, whether FFI leaks are actually resolved, whether asymmetric stabilization happens — those reveal themselves between two-to-three months and one year in data. By that point the debate is settled.
+Even if all three critiques are valid, time will eventually answer them. The peripheral critiques as well. That the 99.8% pass is only on Linux x64 glibc — macOS/Windows need separate validation. What tests verify is observable state outcomes, not the absence of data races. There are no concrete performance benchmark numbers in the announcement. How unsafe invariants break in production, whether FFI leaks are actually resolved, whether asymmetric stabilization happens — those reveal themselves between two-to-three months and one year in data. By that point this debate is settled.
 
-The real problem is not that resolvable debate. There are two separate issues that won't be settled and carry larger implications.
+What this post is after is not that resolvable debate. There are two separate issues that won't be settled and carry larger implications.
 
 ## The definition of maintainer has changed
 
@@ -234,6 +191,49 @@ The OSS defense that has been working well so far was only built around the outs
 The real reason OSS's AI rejection worked is not moral conviction. Systems code is hard to write, most maintainers are conservative seniors, and reviewer capacity is limited, so an overwhelming flood of external AI PRs paralyzes operations. All of these were time-lag defenses that only worked while AI capability was insufficient or operating cost was high.
 
 What happens when that time-lag disappears? Bun showed the answer. It just collapses.
+
+### Direct evidence of the absent review: issue #30719
+
+That this is not abstract worry showed up within days of the merge. A UB case where the safe API encapsulation breaks: issue #30719[^14].
+
+**UB (Undefined Behavior)** is a code state where the language specification does not guarantee the result. Use-after-free, aliasing violations, reading uninitialized memory — those are the typical cases. When UB occurs, the program may behave normally, crash, or silently corrupt data. Because the compiler optimizes under the assumption that UB does not occur, the behavior of unrelated code becomes unpredictable. The core value of Rust is "in safe Rust, UB is blocked at compile time," which is exactly why **UB arising from a normal safe API call is the most serious class of bug in Rust code.**
+
+Issue #30719 starts from an ordinary safe API called `PathString::init`. Looking only at the signature there is nothing alarming. It takes a `&[u8]` reference and returns `Self`. But the internal implementation erases the lifetime inside an unsafe block. **Meaning it does not track the input reference's lifetime and forces it to `'static`.** The result is a `PathString` instance that still holds a pointer to the original data even after the original is dropped. A state where use-after-free and invalid aliasing become possible.
+
+miri, Rust's UB detection tool, caught this pattern immediately. The following code alone triggers UB detection.
+
+```rust
+let test = Box::new(*b"Hello World");
+let init = PathString::init(&*test);
+drop(test);
+
+println!("{:?}", init.slice());  // UB: dangling reference
+```
+
+What makes this decisive is that **UB occurs through normal use of a safe API.** The caller never wrote the `unsafe` keyword. The unsafe block lives inside `PathString`, and from the caller's perspective they only wrote regular safe code. Direct evidence that unsafe encapsulation failed.
+
+The Bun team's official response is PR #30728. It does two things.
+
+1. Mark `PathString::init` and `dir_iterator::next()` as `unsafe fn`. That is, change the call itself to require an unsafe context.
+2. **Add SAFETY comments to each of roughly 70 in-tree call sites after the fact.** It also documents the outlives contract.
+
+The second is the key. **It is an admission that at the time of the initial merge, those 70 SAFETY guarantees were not explicitly written before going into main.** It is also an admission that the "SAFETY comments mandatory for AI" rule in PORTING.md was not in force at the actual merge point. **It is the most direct code-level evidence of the thesis: human review was not there.**
+
+The reporter did not stop there. Within minutes of finding the first UB, they discovered another one.
+
+```
+error: Undefined Behavior: trying to retag from <wildcard> for Unique
+permission at alloc309[0x0], but no exposed tags have suitable
+permission in the borrow stack for this location
+```
+
+It is hard to call this a one-off mistake confined to PathString, and **a strong signal that similar lifetime erasure patterns may exist elsewhere.** The reporter's comment: "This is a mistake even someone with 20 hours of Rust would not make. I found this much in minutes, and I have no idea how much we don't know about."
+
+Around the same time, Jarred Sumner mentioned **hiring experienced Rust engineers** on X. At minimum, a signal that they additionally needed specialized staff to run a Rust codebase of this scale long-term. That alone is not enough to flatly conclude the team had no Rust expertise inside at the merge point.
+
+Defenders push back with "it is a canary version, not an official release, bugs are natural." There is some truth to that. But two things weaken the rebuttal. First, **the decision itself to merge a 960,000-line PR into the main branch is outside the usual standard of "it's fine because it's canary."** Second, the UB found is not an ad-hoc edge case but a systemic pattern in a basic API like `PathString::init`.
+
+There is now enough reason to suspect that the SAFETY claims of the 13,000 unsafe blocks are not actually verified guarantees but closer to self-reported assertions added after the fact.
 
 ### Sumner's vision, and GitHub's contradiction
 
@@ -384,3 +384,5 @@ What made the compiler trustworthy was not the compiler itself but the verificat
 [^15]: [PR #21270 "Refactor Zig imports and file structure part 1" - oven-sh/bun](https://github.com/oven-sh/bun/pull/21270) — July 2025 commit `07cd45d`. The `bun_collections` directory was introduced five months before the acquisition announcement. `bun.ptr` smart pointers (`Owned`, `Shared`, `AtomicShared`, `RefCount`) were pre-built on the Zig side at the same time, and on the Rust side `src/ptr/lib.rs` explicitly references the mapping with a "Per PORTING.md §Pointers" comment.
 
 [^16]: [Hacker News: discussion on Bun Rust rewrite](https://news.ycombinator.com/item?id=48132488) — 700+ upvotes, 500+ comments community discussion.
+
+[^17]: Charlie Marsh (founder of Astral, creator of Ruff/uv) on the risk of large-scale transliteration rewrites: "trading 200 known issues for unknown unknowns." The phrasing spread to the English-speaking community via ashunar0's Japanese write-up. The original source is believed to be a tweet or podcast interview; the permanent link still needs verification.
