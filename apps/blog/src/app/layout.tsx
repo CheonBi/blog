@@ -34,6 +34,7 @@ import {GoogleAnalyticsWebVitalsTracker} from '@/components/GoogleAnalyticsWebVi
 import LayoutWrapper from '@/components/LayoutWrapper'
 import NavigationDirection from '@/components/NavigationDirection'
 import {Providers} from '@/components/Provider'
+import {ServiceWorkerRegistration} from '@/components/ServiceWorkerRegistration'
 import {SiteConfig} from '@/config'
 import {buildOgImageUrl} from '@/utils/og'
 // import {getAllPosts, getAllTagsFromPosts} from '@/utils/Post'
@@ -139,6 +140,8 @@ export default async function Layout({children}: {children: ReactNode}) {
             href="/favicon/apple-touch-icon.png"
           />
           <link rel="manifest" href="/favicon/site.webmanifest" />
+          <meta name="theme-color" content="#ffffff" />
+          <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body className="antialiased">
           <NavigationDirection />
@@ -174,6 +177,7 @@ export default async function Layout({children}: {children: ReactNode}) {
               <VercelSpeedInsights />
               <GoogleAnalyticsWebVitalsTracker />
               <BotTracker />
+              <ServiceWorkerRegistration />
             </>
           )}
         </body>

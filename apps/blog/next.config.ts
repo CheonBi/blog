@@ -63,6 +63,17 @@ const config: NextConfig = {
   outputFileTracingIncludes: {
     '/*': ['./posts/**/*'],
   },
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          {key: 'Service-Worker-Allowed', value: '/'},
+          {key: 'Cache-Control', value: 'no-cache'},
+        ],
+      },
+    ]
+  },
   async rewrites() {
     return [
       {source: '/llms.txt', destination: '/api/llms'},
