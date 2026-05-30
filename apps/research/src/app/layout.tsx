@@ -4,12 +4,12 @@ import {Fraunces, Inter, JetBrains_Mono} from 'next/font/google'
 import Script from 'next/script'
 
 import {Analytics} from '@vercel/analytics/react'
+import {Providers} from '@yceffort/shared/components'
 
 import type {Metadata} from 'next'
 import type {ReactNode} from 'react'
 
 import AmbientEffects from '@/components/AmbientEffects'
-import {Providers} from '@/components/Provider'
 import {SiteConfig} from '@/config'
 
 const inter = Inter({
