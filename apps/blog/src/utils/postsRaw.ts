@@ -3,9 +3,9 @@ import path from 'path'
 
 import {sync} from 'glob'
 
-import type {Locale} from './Post'
+import {POST_ROOT, isLocaleFile} from './postPaths'
 
-const POST_ROOT = path.join(process.cwd(), 'posts')
+import type {Locale} from './postPaths'
 
 export function getPostRawBySlug(
   year: string,
@@ -25,9 +25,5 @@ export function getPostRawBySlug(
 }
 
 export function getAllPostFiles(locale: Locale = 'ko'): string[] {
-  const all = sync(`${POST_ROOT}/**/*.md*`)
-  return all.filter((f) => {
-    const isEn = /\.en\.mdx?$/.test(f)
-    return locale === 'en' ? isEn : !isEn
-  })
+  return sync(`${POST_ROOT}/**/*.md*`).filter((f) => isLocaleFile(f, locale))
 }

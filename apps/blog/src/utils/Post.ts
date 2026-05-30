@@ -7,40 +7,31 @@ import {sync} from 'glob'
 import readingTime from 'reading-time'
 
 import {getPopularPostSlugs} from './analytics'
+import {POST_ROOT, isLocaleFile, pathToSlug} from './postPaths'
 
+import type {Locale} from './postPaths'
 import type {FrontMatter, Post, TagWithCount} from '../type'
 
 import {POPULAR_POSTS_COUNT, RECENT_POSTS_COUNT} from '@/constants'
 
-const DIR_REPLACE_STRING = '/posts'
-
-const POST_PATH = `${process.cwd()}${DIR_REPLACE_STRING}`
 const THUMB_DIR = `${process.cwd()}/public/thumbnails`
 
-export type Locale = 'ko' | 'en'
+export type {Locale}
 
 export const getAllPosts = cache(async function getAllPosts(
   locale: Locale = 'ko',
 ): Promise<Post[]> {
-  const files = sync(`${POST_PATH}/**/*.md*`).reverse()
+  const files = sync(`${POST_ROOT}/**/*.md*`).reverse()
 
   const posts = files
-    .filter((f) => {
-      const isEnFile = /\.en\.mdx?$/.test(f)
-      return locale === 'en' ? isEnFile : !isEnFile
-    })
+    .filter((f) => isLocaleFile(f, locale))
     .reduce<Post[]>((prev, path) => {
       const file = fs.readFileSync(path, {encoding: 'utf8'})
       const {attributes, body} = frontMatter<FrontMatter>(file)
       const fm: FrontMatter = attributes
       const {tags: fmTags, published, date} = fm
 
-      const slug = path
-        .slice(path.indexOf(DIR_REPLACE_STRING) + DIR_REPLACE_STRING.length + 1)
-        .replace('.en.mdx', '')
-        .replace('.en.md', '')
-        .replace('.mdx', '')
-        .replace('.md', '')
+      const slug = pathToSlug(path)
 
       const isDev = process.env.NODE_ENV !== 'production'
       if (published || isDev) {
