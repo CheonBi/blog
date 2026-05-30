@@ -60,20 +60,34 @@ const MdxComponents = {
       return null
     }
 
-    const isAnchorLink = href.startsWith('#')
-
-    if (isAnchorLink) {
+    if (href.startsWith('#')) {
       return <a href={href} {...rest} />
+    }
+
+    const isExternal =
+      /^https?:\/\//.test(href) && !href.includes('yceffort.kr')
+
+    if (isExternal) {
+      const {className, ...anchorRest} = rest
+      return (
+        <a
+          {...anchorRest}
+          href={href}
+          className={className ? `${className} external-link` : 'external-link'}
+          target="_blank"
+          rel="noopener noreferrer"
+        />
+      )
     }
 
     return (
       <Link
         href={href}
-        className={props.className}
-        target={props.target}
-        rel={props.rel}
+        className={rest.className}
+        target={rest.target}
+        rel={rest.rel}
       >
-        {props.children}
+        {rest.children}
       </Link>
     )
   },

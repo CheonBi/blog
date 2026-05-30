@@ -24,8 +24,8 @@ export function buildLlmsFullResponse(locale: Locale): Response {
   const entries = files
     .map((file) => {
       const raw = fs.readFileSync(file, 'utf-8')
-      const {attributes} = frontMatter<FrontMatter>(raw)
-      return {slug: pathToSlug(file), raw, attributes}
+      const {attributes, body} = frontMatter<FrontMatter>(raw)
+      return {slug: pathToSlug(file), body, attributes}
     })
     .filter(({attributes}) => attributes.published)
     .sort(
@@ -34,12 +34,23 @@ export function buildLlmsFullResponse(locale: Locale): Response {
         new Date(a.attributes.date).getTime(),
     )
 
-  for (const {slug, raw} of entries) {
+  for (const {slug, body, attributes} of entries) {
     parts.push('---')
     parts.push('')
     parts.push(`Source: ${urlPrefix}/${slug}.md`)
+    parts.push(`Title: ${attributes.title}`)
+    if (attributes.description) {
+      parts.push(`Description: ${attributes.description}`)
+    }
+    parts.push(`Date: ${new Date(attributes.date).toISOString().slice(0, 10)}`)
+    if (attributes.tags?.length) {
+      parts.push(`Tags: ${attributes.tags.join(', ')}`)
+    }
+    if (attributes.series) {
+      parts.push(`Series: ${attributes.series}`)
+    }
     parts.push('')
-    parts.push(raw.trim())
+    parts.push(body.trim())
     parts.push('')
   }
 
