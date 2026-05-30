@@ -1,4 +1,6 @@
 import {cacheLife, cacheTag} from 'next/cache'
+import {connection} from 'next/server'
+import {Suspense} from 'react'
 
 import type {Metadata} from 'next'
 
@@ -43,7 +45,18 @@ async function getEnHomeData() {
   return {popular, recent, postCount, tagCount, yearsWriting}
 }
 
-export default async function EnPage() {
+export default function EnPage() {
+  return (
+    <Suspense>
+      <EnHomeContent />
+    </Suspense>
+  )
+}
+
+async function EnHomeContent() {
+  if (process.env.NODE_ENV !== 'production') {
+    await connection()
+  }
   const homeData =
     process.env.NODE_ENV === 'production'
       ? await getCachedEnHomeData()

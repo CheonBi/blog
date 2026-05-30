@@ -1,4 +1,6 @@
 import {cacheLife, cacheTag} from 'next/cache'
+import {connection} from 'next/server'
+import {Suspense} from 'react'
 
 import type {Metadata} from 'next'
 
@@ -57,7 +59,18 @@ async function getHomeData() {
   return {posts, recentPosts, postCount, tagCount, yearsWriting}
 }
 
-export default async function Page() {
+export default function Page() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
+  )
+}
+
+async function HomeContent() {
+  if (process.env.NODE_ENV !== 'production') {
+    await connection()
+  }
   const homeData =
     process.env.NODE_ENV === 'production'
       ? await getCachedHomeData()
