@@ -2,7 +2,6 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 
-import {QRCodeSVG} from 'qrcode.react'
 import {EffectCreative, EffectFade, Virtual} from 'swiper/modules'
 import {Swiper, SwiperSlide} from 'swiper/react'
 
@@ -11,77 +10,19 @@ import 'swiper/css/effect-creative'
 import 'swiper/css/effect-fade'
 
 import {Marp} from './Marp'
+import {MarpHelpModal} from './MarpHelpModal'
+import {MarpQrModal} from './MarpQrModal'
+import {MarpSearchModal} from './MarpSearchModal'
+import {readTransition} from './MarpSlides.constants'
 import styles from './MarpSlides.module.scss'
 
+import type {ContextMenuState, TransitionType} from './MarpSlides.constants'
 import type {MouseEvent as ReactMouseEvent} from 'react'
 import type {Swiper as SwiperClass} from 'swiper'
 
 import {useBroadcastChannel} from '@/hooks/useBroadcastChannel'
-
-interface ContextMenuState {
-  visible: boolean
-  x: number
-  y: number
-}
-
-type TransitionType = 'slide' | 'fade' | 'zoom' | 'none'
-
-function readTransition(): TransitionType {
-  if (typeof document === 'undefined') {
-    return 'slide'
-  }
-  const value = document.body.dataset.transition as TransitionType | undefined
-  if (value && ['slide', 'fade', 'zoom', 'none'].includes(value)) {
-    return value
-  }
-  const match = document.cookie.match(/(?:^|; )tw-transition=([^;]+)/)
-  const decoded = match
-    ? (decodeURIComponent(match[1]) as TransitionType)
-    : null
-  return decoded && ['slide', 'fade', 'zoom', 'none'].includes(decoded)
-    ? decoded
-    : 'slide'
-}
-
-const SHORTCUT_GROUPS: {
-  title: string
-  items: {keys: string[]; desc: string}[]
-}[] = [
-  {
-    title: '네비게이션',
-    items: [
-      {keys: ['←'], desc: '이전 슬라이드'},
-      {keys: ['→'], desc: '다음 슬라이드'},
-      {keys: ['Home'], desc: '첫 슬라이드'},
-      {keys: ['End'], desc: '마지막 슬라이드'},
-    ],
-  },
-  {
-    title: '뷰 모드',
-    items: [
-      {keys: ['G'], desc: '슬라이드 오버뷰'},
-      {keys: ['P'], desc: '발표자 모드'},
-      {keys: ['F11'], desc: '전체화면'},
-      {keys: ['L'], desc: '레이저 포인터'},
-      {keys: ['D'], desc: '드로잉 모드'},
-    ],
-  },
-  {
-    title: '검색',
-    items: [{keys: ['/'], desc: '슬라이드 검색'}],
-  },
-  {
-    title: '공유',
-    items: [{keys: ['Q'], desc: '현재 슬라이드 QR 코드'}],
-  },
-  {
-    title: '기타',
-    items: [
-      {keys: ['?'], desc: '단축키 도움말'},
-      {keys: ['Esc'], desc: '오버레이 닫기'},
-    ],
-  },
-]
+import {useDrawing} from '@/hooks/useDrawing'
+import {useLaserPointer} from '@/hooks/useLaserPointer'
 
 interface MarpSlidesProps {
   dataHtml: string
@@ -152,20 +93,25 @@ export function MarpSlides({
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLaserMode, setIsLaserMode] = useState(false)
-  const laserRef = useRef<HTMLDivElement | null>(null)
   const [isDrawingMode, setIsDrawingMode] = useState(false)
-  const [drawTool, setDrawTool] = useState<'pen' | 'highlighter' | 'eraser'>(
-    'pen',
-  )
-  const [drawColor, setDrawColor] = useState('#ef4444')
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const drawingRef = useRef(false)
-  const lastPointRef = useRef<{x: number; y: number} | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const swiperRef = useRef<SwiperClass | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(activeIndex)
   activeIndexRef.current = activeIndex
+
+  const laserRef = useLaserPointer(isLaserMode)
+  const {
+    canvasRef,
+    drawTool,
+    setDrawTool,
+    drawColor,
+    setDrawColor,
+    handleDrawStart,
+    handleDrawMove,
+    handleDrawEnd,
+    handleClearCanvas,
+  } = useDrawing(isDrawingMode, activeIndex)
 
   const {sendSlideChange} = useBroadcastChannel(`marp-slides-${slug}`, {
     onSlideChange: (index) => {
@@ -386,79 +332,6 @@ export function MarpSlides({
       searchInputRef.current?.focus()
     }
   }, [isSearchOpen])
-
-  // 드로잉 캔버스 크기 동기화 + 슬라이드 변경 시 초기화
-  useEffect(() => {
-    if (!isDrawingMode) {
-      return
-    }
-    const canvas = canvasRef.current
-    if (!canvas) {
-      return
-    }
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect()
-      const dpr = window.devicePixelRatio || 1
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        ctx.lineCap = 'round'
-        ctx.lineJoin = 'round'
-      }
-    }
-    resize()
-    window.addEventListener('resize', resize)
-    return () => window.removeEventListener('resize', resize)
-  }, [isDrawingMode])
-
-  // 슬라이드 이동 시 드로잉 클리어
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) {
-      return
-    }
-    const ctx = canvas.getContext('2d')
-    ctx?.clearRect(0, 0, canvas.width, canvas.height)
-  }, [activeIndex])
-
-  // 레이저 포인터 마우스 추적 (부드러운 lerp)
-  useEffect(() => {
-    if (!isLaserMode) {
-      return
-    }
-    let targetX = window.innerWidth / 2
-    let targetY = window.innerHeight / 2
-    let currentX = targetX
-    let currentY = targetY
-    let raf = 0
-
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.25
-      currentY += (targetY - currentY) * 0.25
-      const el = laserRef.current
-      if (el) {
-        el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`
-      }
-      raf = window.requestAnimationFrame(tick)
-    }
-
-    const handleMove = (e: MouseEvent) => {
-      targetX = e.clientX
-      targetY = e.clientY
-    }
-
-    window.addEventListener('mousemove', handleMove, {passive: true})
-    raf = window.requestAnimationFrame(tick)
-
-    return () => {
-      window.removeEventListener('mousemove', handleMove)
-      if (raf) {
-        window.cancelAnimationFrame(raf)
-      }
-    }
-  }, [isLaserMode])
 
   // 휠 네비게이션
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -736,81 +609,6 @@ export function MarpSlides({
     setSearchQuery('')
   }, [])
 
-  // 드로잉 핸들러
-  const handleDrawStart = useCallback(
-    (e: React.PointerEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current
-      if (!canvas) {
-        return
-      }
-      canvas.setPointerCapture(e.pointerId)
-      drawingRef.current = true
-      const rect = canvas.getBoundingClientRect()
-      lastPointRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      }
-    },
-    [],
-  )
-
-  const handleDrawMove = useCallback(
-    (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!drawingRef.current) {
-        return
-      }
-      const canvas = canvasRef.current
-      const last = lastPointRef.current
-      if (!canvas || !last) {
-        return
-      }
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        return
-      }
-      const rect = canvas.getBoundingClientRect()
-      const point = {x: e.clientX - rect.left, y: e.clientY - rect.top}
-
-      ctx.save()
-      if (drawTool === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out'
-        ctx.lineWidth = 24
-      } else if (drawTool === 'highlighter') {
-        ctx.globalCompositeOperation = 'source-over'
-        ctx.strokeStyle = drawColor
-        ctx.globalAlpha = 0.35
-        ctx.lineWidth = 18
-      } else {
-        ctx.globalCompositeOperation = 'source-over'
-        ctx.strokeStyle = drawColor
-        ctx.globalAlpha = 1
-        ctx.lineWidth = 2.5
-      }
-      ctx.beginPath()
-      ctx.moveTo(last.x, last.y)
-      ctx.lineTo(point.x, point.y)
-      ctx.stroke()
-      ctx.restore()
-
-      lastPointRef.current = point
-    },
-    [drawTool, drawColor],
-  )
-
-  const handleDrawEnd = useCallback(() => {
-    drawingRef.current = false
-    lastPointRef.current = null
-  }, [])
-
-  const handleClearCanvas = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) {
-      return
-    }
-    const ctx = canvas.getContext('2d')
-    ctx?.clearRect(0, 0, canvas.width, canvas.height)
-  }, [])
-
   // Marp 렌더링 데이터 (memoized)
   const marpRenderData = useMemo(() => ({html, css, fonts}), [html, css, fonts])
 
@@ -1043,132 +841,31 @@ export function MarpSlides({
 
       {/* 슬라이드 검색 모달 */}
       {isSearchOpen && (
-        <div
-          className={styles.searchOverlay}
-          onClick={handleSearchOverlayClick}
-          role="dialog"
-          aria-label="슬라이드 검색"
-          aria-modal="true"
-        >
-          <div className={styles.searchDialog}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className={styles.searchInput}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && searchResults.length > 0) {
-                  handleSearchSelect(searchResults[0].index)
-                }
-              }}
-              placeholder="슬라이드 내용 검색…"
-              aria-label="검색어"
-            />
-            <div className={styles.searchResults}>
-              {searchQuery.trim() && searchResults.length === 0 && (
-                <div className={styles.searchEmpty}>결과 없음</div>
-              )}
-              {searchResults.map((r) => (
-                <button
-                  key={r.index}
-                  className={styles.searchResult}
-                  onClick={() => handleSearchSelect(r.index)}
-                >
-                  <span className={styles.searchResultIndex}>
-                    {r.index + 1}
-                  </span>
-                  <span className={styles.searchResultSnippet}>
-                    {r.snippet}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className={styles.searchHint}>
-              {searchResults.length > 0
-                ? `${searchResults.length}건 일치 · Enter로 첫 결과 이동 · ESC로 닫기`
-                : '/ 또는 Cmd/Ctrl+F로 열기 · ESC로 닫기'}
-            </div>
-          </div>
-        </div>
+        <MarpSearchModal
+          inputRef={searchInputRef}
+          query={searchQuery}
+          onQueryChange={(value) => setSearchQuery(value)}
+          results={searchResults}
+          onSelect={handleSearchSelect}
+          onOverlayClick={handleSearchOverlayClick}
+        />
       )}
 
       {/* QR 코드 모달 */}
       {qrUrl && (
-        <div
-          className={styles.qrOverlay}
-          onClick={handleQrOverlayClick}
-          role="dialog"
-          aria-label="QR 코드"
-          aria-modal="true"
-        >
-          <div className={styles.qrDialog}>
-            <div className={styles.qrCode}>
-              <QRCodeSVG
-                value={qrUrl}
-                size={240}
-                level="M"
-                marginSize={2}
-                bgColor="#ffffff"
-                fgColor="#000000"
-              />
-            </div>
-            <button
-              className={styles.qrUrl}
-              onClick={handleCopyQrUrl}
-              title="클릭하여 복사"
-            >
-              {qrUrl}
-            </button>
-            <div className={styles.qrHint}>
-              클릭하여 URL 복사 · ESC 또는 Q로 닫기
-            </div>
-          </div>
-        </div>
+        <MarpQrModal
+          qrUrl={qrUrl}
+          onOverlayClick={handleQrOverlayClick}
+          onCopy={handleCopyQrUrl}
+        />
       )}
 
       {/* 단축키 도움말 모달 */}
       {isHelpOpen && (
-        <div
-          className={styles.helpOverlay}
-          onClick={handleHelpOverlayClick}
-          role="dialog"
-          aria-label="키보드 단축키 도움말"
-          aria-modal="true"
-        >
-          <div className={styles.helpDialog}>
-            <div className={styles.helpHeader}>
-              <h2>키보드 단축키</h2>
-              <button
-                className={styles.helpClose}
-                onClick={() => setIsHelpOpen(false)}
-                aria-label="닫기"
-              >
-                ×
-              </button>
-            </div>
-            <div className={styles.helpContent}>
-              {SHORTCUT_GROUPS.map((group) => (
-                <section key={group.title} className={styles.helpGroup}>
-                  <h3>{group.title}</h3>
-                  <ul>
-                    {group.items.map((item) => (
-                      <li key={item.desc}>
-                        <span className={styles.helpDesc}>{item.desc}</span>
-                        <span className={styles.helpKeys}>
-                          {item.keys.map((k, i) => (
-                            <kbd key={i}>{k}</kbd>
-                          ))}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
-            <div className={styles.helpHint}>ESC 또는 ? 로 닫기</div>
-          </div>
-        </div>
+        <MarpHelpModal
+          onClose={() => setIsHelpOpen(false)}
+          onOverlayClick={handleHelpOverlayClick}
+        />
       )}
 
       {/* 컨텍스트 메뉴 */}
