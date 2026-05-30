@@ -10,6 +10,7 @@ import LanguageSwitch from './LanguageSwitch'
 import MobileNav from './MobileNav'
 import ScrollTop from './ScrollTop'
 import SectionContainer from './SectionContainer'
+import SiteSearch from './SiteSearch'
 import TweaksPanel from './TweaksPanel'
 
 import {SiteConfig} from '@/config'
@@ -134,6 +135,7 @@ function Header() {
             <HeaderNav />
             <span className="header-sep" aria-hidden="true" />
             <div className="header-icons">
+              <SiteSearch />
               <button
                 type="button"
                 className="icon-btn"
@@ -183,6 +185,7 @@ function Header() {
 
 const LayoutWrapper = ({children}: {children: ReactNode}) => {
   const pathname = usePathname()
+  const isEn = pathname?.startsWith('/en')
   let containerClass = 'xl:max-w-5xl'
   const wide = false
 
@@ -201,9 +204,14 @@ const LayoutWrapper = ({children}: {children: ReactNode}) => {
 
   return (
     <>
+      <a href="#main" className="skip-link">
+        {isEn ? 'Skip to content' : '본문으로 건너뛰기'}
+      </a>
       <Header />
       <SectionContainer className={wide ? '' : containerClass} wide={wide}>
-        <main className="min-h-[calc(100vh-260px)] pt-6">{children}</main>
+        <main id="main" className="min-h-[calc(100vh-260px)] pt-6">
+          {children}
+        </main>
         <Footer />
       </SectionContainer>
       <ScrollTop />
