@@ -7,24 +7,15 @@ import {ViewTransition} from 'react'
 
 import {parseTitleEmphasis, stripTitleEmphasis} from '@yceffort/shared/utils'
 import {format} from 'date-fns'
-import {MDXRemote} from 'next-mdx-remote-client/rsc'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeKatex from 'rehype-katex'
-import prism from 'rehype-prism-plus'
-import rehypeSlug from 'rehype-slug'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
-import remarkToc from 'remark-toc'
 
 import MathLoader from '@/components/layouts/Post/math'
-import MDXComponents from '@/components/MDXComponents'
+import {PostArticle} from '@/components/PostArticle'
 import ProfileImage from '@/components/ProfileImage'
 import SeriesNavigation from '@/components/SeriesNavigation'
 import TableOfContents from '@/components/TableOfContents'
 import Tag from '@/components/Tag'
 import {SiteConfig} from '@/config'
-import imageMetadataPlugin from '@/utils/imageMetadata'
-import {extractCodeFilename, parseCodeSnippet} from '@/utils/Markdown'
+import {buildBlogPostingJsonLd} from '@/utils/jsonLd'
 import {buildOgImageUrl} from '@/utils/og'
 import {
   findPostByYearAndSlug,
@@ -156,32 +147,15 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
   const postYear = new Date(date).getFullYear()
 
   const postUrl = `${SiteConfig.url}/${postSlug}`
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: plainTitle,
-    datePublished: new Date(date).toISOString(),
-    dateModified: new Date(date).toISOString(),
+  const jsonLd = buildBlogPostingJsonLd({
+    title: plainTitle,
     description,
-    image: `${SiteConfig.url}${ogImageUrl}`,
+    date,
+    tags,
+    imageUrl: `${SiteConfig.url}${ogImageUrl}`,
     url: postUrl,
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': postUrl,
-    },
     inLanguage: 'ko-KR',
-    keywords: tags,
-    author: {
-      '@type': 'Person',
-      name: SiteConfig.author.name,
-      url: SiteConfig.url,
-    },
-    publisher: {
-      '@type': 'Person',
-      name: SiteConfig.author.name,
-      url: SiteConfig.url,
-    },
-  }
+  })
 
   const titleParts = parseTitleEmphasis(title)
 
@@ -273,28 +247,7 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
           />
         )}
 
-        <div className="post-layout">
-          <article className="post-article prose max-w-none dark:prose-dark">
-            <MDXRemote
-              source={body}
-              components={MDXComponents}
-              options={{
-                mdxOptions: {
-                  remarkPlugins: [remarkMath, remarkToc, remarkGfm],
-                  rehypePlugins: [
-                    rehypeKatex,
-                    rehypeSlug,
-                    extractCodeFilename,
-                    [prism, {showLineNumbers: true}],
-                    parseCodeSnippet,
-                    rehypeAutolinkHeadings,
-                    [imageMetadataPlugin, {path}],
-                  ],
-                },
-              }}
-            />
-          </article>
-        </div>
+        <PostArticle body={body} path={path} />
 
         <footer className="post-footer">
           <Link href="/">&larr; Back to the blog</Link>

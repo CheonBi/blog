@@ -1,0 +1,46 @@
+import {SiteConfig} from '@/config'
+
+export function buildBlogPostingJsonLd({
+  title,
+  description,
+  date,
+  tags,
+  imageUrl,
+  url,
+  inLanguage,
+}: {
+  title: string
+  description?: string
+  date: string
+  tags?: string[]
+  imageUrl: string
+  url: string
+  inLanguage: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: title,
+    datePublished: new Date(date).toISOString(),
+    dateModified: new Date(date).toISOString(),
+    description,
+    image: imageUrl,
+    url,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+    },
+    inLanguage,
+    keywords: tags,
+    author: {
+      '@type': 'Person',
+      name: SiteConfig.author.name,
+      url: SiteConfig.url,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: SiteConfig.author.name,
+      url: SiteConfig.url,
+    },
+  }
+}
