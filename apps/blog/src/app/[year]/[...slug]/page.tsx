@@ -11,15 +11,17 @@ import {format} from 'date-fns'
 import MathLoader from '@/components/layouts/Post/math'
 import {PostArticle} from '@/components/PostArticle'
 import ProfileImage from '@/components/ProfileImage'
+import RelatedPosts from '@/components/RelatedPosts'
 import SeriesNavigation from '@/components/SeriesNavigation'
 import TableOfContents from '@/components/TableOfContents'
 import Tag from '@/components/Tag'
 import {SiteConfig} from '@/config'
-import {buildBlogPostingJsonLd} from '@/utils/jsonLd'
+import {buildBlogPostingJsonLd, buildBreadcrumbJsonLd} from '@/utils/jsonLd'
 import {buildOgImageUrl} from '@/utils/og'
 import {
   findPostByYearAndSlug,
   getFeaturedSlugs,
+  getRelatedPosts,
   getSeriesPosts,
 } from '@/utils/Post'
 
@@ -129,6 +131,7 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
   } = post
 
   const seriesPosts = series ? await getSeriesPosts(series) : []
+  const relatedPosts = await getRelatedPosts(postSlug, tags, 'ko', series)
 
   const updatedAt = format(new Date(date), 'yyyy-MM-dd')
   const transitionName = `post-${postSlug.replace(/\//g, '-')}`
@@ -147,15 +150,22 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
   const postYear = new Date(date).getFullYear()
 
   const postUrl = `${SiteConfig.url}/${postSlug}`
-  const jsonLd = buildBlogPostingJsonLd({
-    title: plainTitle,
-    description,
-    date,
-    tags,
-    imageUrl: `${SiteConfig.url}${ogImageUrl}`,
-    url: postUrl,
-    inLanguage: 'ko-KR',
-  })
+  const jsonLd = [
+    buildBlogPostingJsonLd({
+      title: plainTitle,
+      description,
+      date,
+      tags,
+      imageUrl: `${SiteConfig.url}${ogImageUrl}`,
+      url: postUrl,
+      inLanguage: 'ko-KR',
+    }),
+    buildBreadcrumbJsonLd([
+      {name: 'Home', url: SiteConfig.url},
+      {name: `${postYear}`, url: `${SiteConfig.url}/archive#${postYear}`},
+      {name: plainTitle, url: postUrl},
+    ]),
+  ]
 
   const titleParts = parseTitleEmphasis(title)
 
@@ -248,6 +258,8 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
         )}
 
         <PostArticle body={body} path={path} />
+
+        <RelatedPosts posts={relatedPosts} title="관련 글" />
 
         <footer className="post-footer">
           <Link href="/">&larr; Back to the blog</Link>

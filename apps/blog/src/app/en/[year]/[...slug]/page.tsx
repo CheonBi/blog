@@ -10,12 +10,17 @@ import {format} from 'date-fns'
 import MathLoader from '@/components/layouts/Post/math'
 import {PostArticle} from '@/components/PostArticle'
 import ProfileImage from '@/components/ProfileImage'
+import RelatedPosts from '@/components/RelatedPosts'
 import TableOfContents from '@/components/TableOfContents'
 import Tag from '@/components/Tag'
 import {SiteConfig} from '@/config'
-import {buildBlogPostingJsonLd} from '@/utils/jsonLd'
+import {buildBlogPostingJsonLd, buildBreadcrumbJsonLd} from '@/utils/jsonLd'
 import {buildOgImageUrl} from '@/utils/og'
-import {findPostByYearAndSlug, getFeaturedSlugs} from '@/utils/Post'
+import {
+  findPostByYearAndSlug,
+  getFeaturedSlugs,
+  getRelatedPosts,
+} from '@/utils/Post'
 
 export async function generateMetadata(props: {
   params: Promise<{year: string; slug: string[]}>
@@ -117,6 +122,8 @@ async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
     readingTime,
   } = post
 
+  const relatedPosts = await getRelatedPosts(postSlug, tags, 'en')
+
   const updatedAt = format(new Date(date), 'yyyy-MM-dd')
   const transitionName = `post-${postSlug.replace(/\//g, '-')}`
   const plainTitle = stripTitleEmphasis(title)
@@ -133,15 +140,21 @@ async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
   const postYear = new Date(date).getFullYear()
 
   const postUrl = `${SiteConfig.url}/en/${postSlug}`
-  const jsonLd = buildBlogPostingJsonLd({
-    title: plainTitle,
-    description,
-    date,
-    tags,
-    imageUrl: `${SiteConfig.url}${ogImageUrl}`,
-    url: postUrl,
-    inLanguage: 'en',
-  })
+  const jsonLd = [
+    buildBlogPostingJsonLd({
+      title: plainTitle,
+      description,
+      date,
+      tags,
+      imageUrl: `${SiteConfig.url}${ogImageUrl}`,
+      url: postUrl,
+      inLanguage: 'en',
+    }),
+    buildBreadcrumbJsonLd([
+      {name: 'Home', url: `${SiteConfig.url}/en`},
+      {name: plainTitle, url: postUrl},
+    ]),
+  ]
 
   const titleParts = parseTitleEmphasis(title)
 
@@ -219,6 +232,12 @@ async function EnPostBody({year, slug}: {year: string; slug: string[]}) {
         </section>
 
         <PostArticle body={body} path={path} />
+
+        <RelatedPosts
+          posts={relatedPosts}
+          pathPrefix="/en"
+          title="Related posts"
+        />
 
         <footer className="post-footer">
           <Link href="/en">&larr; Back to the blog</Link>

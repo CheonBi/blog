@@ -114,6 +114,41 @@ export const getSeriesPosts = cache(async function getSeriesPosts(
     )
 })
 
+export async function getRelatedPosts(
+  slug: string,
+  tags: string[],
+  locale: Locale = 'ko',
+  excludeSeries?: string,
+  limit = 4,
+): Promise<Post[]> {
+  const posts = await getAllPosts(locale)
+  const tagSet = new Set(tags)
+
+  return posts
+    .filter(
+      (p) =>
+        p.fields.slug !== slug &&
+        (excludeSeries == null || p.frontMatter.series !== excludeSeries),
+    )
+    .map((post) => ({
+      post,
+      score: post.frontMatter.tags.reduce(
+        (n, t) => (tagSet.has(t) ? n + 1 : n),
+        0,
+      ),
+    }))
+    .filter(({score}) => score > 0)
+    .sort((a, b) =>
+      b.score !== a.score
+        ? b.score - a.score
+        : a.post.frontMatter.date < b.post.frontMatter.date
+          ? 1
+          : -1,
+    )
+    .slice(0, limit)
+    .map(({post}) => post)
+}
+
 export const getFeaturedPosts = cache(async function getFeaturedPosts(
   locale: Locale = 'ko',
 ): Promise<{popular: Post[]; recent: Post[]}> {
