@@ -1,57 +1,28 @@
 import {NextResponse} from 'next/server'
 
 import {stripTitleEmphasis} from '@yceffort/shared/utils'
+import MiniSearch from 'minisearch'
 
 import type {Locale} from '@/utils/postPaths'
 
 import {getAllPosts} from '@/utils/Post'
+import {miniSearchOptions, type SearchDoc} from '@/utils/search'
 
 const norm = (s: string) => s.normalize('NFC')
 
-function stripInline(text: string): string {
-  return text
+// 본문 마크다운에서 검색용 평문을 뽑는다. 코드블록은 제외(노이즈)하되 헤딩·문단은
+// 전부 살려 전문 검색이 가능하게 한다.
+function toPlainText(body: string): string {
+  return body
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/~~~[\s\S]*?~~~/g, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
     .replace(/[`*_~>#|]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-}
-
-// 본문에서 검색용 발췌(모든 헤딩 + 첫 문단)를 추출한다. 전체 본문은 gzip ~1.4MB라
-// 클라이언트로 보내기엔 무거워, 본문에만 등장하는 용어를 살리는 최소 발췌만 인덱싱한다.
-function buildSearchText(body: string): string {
-  const headings: string[] = []
-  const paragraph: string[] = []
-  let inFence = false
-  let paragraphDone = false
-
-  for (const raw of body.split('\n')) {
-    const line = raw.trim()
-    if (line.startsWith('```') || line.startsWith('~~~')) {
-      inFence = !inFence
-      continue
-    }
-    if (inFence) {
-      continue
-    }
-    if (/^#{1,6}\s/.test(line)) {
-      headings.push(line.replace(/^#+\s*/, ''))
-      continue
-    }
-    if (paragraphDone) {
-      continue
-    }
-    if (line) {
-      paragraph.push(line)
-    } else if (paragraph.length > 0) {
-      paragraphDone = true
-    }
-  }
-
-  const headingText = stripInline(headings.join(' '))
-  const paragraphText = stripInline(paragraph.join(' ')).slice(0, 400)
-  return `${headingText} ${paragraphText}`.trim()
 }
 
 export async function GET(request: Request) {
@@ -60,19 +31,28 @@ export async function GET(request: Request) {
 
   try {
     const posts = await getAllPosts(locale)
-    const index = posts
+    const docs: SearchDoc[] = posts
       .filter((p) => p.frontMatter.published)
-      .map((p) => ({
-        slug: p.fields.slug,
-        title: norm(stripTitleEmphasis(p.frontMatter.title)),
-        description: norm(p.frontMatter.description ?? ''),
-        tags: p.frontMatter.tags,
-        body: norm(buildSearchText(p.body)),
-        date: p.frontMatter.date.slice(0, 10),
-      }))
+      .map((p) => {
+        const body = toPlainText(p.body)
+        // 옛 글은 description에 마크다운(헤딩·코드펜스)이 통째로 들어있어 평문화한다.
+        const description = norm(toPlainText(p.frontMatter.description ?? ''))
+        return {
+          slug: p.fields.slug,
+          title: norm(stripTitleEmphasis(p.frontMatter.title)),
+          description,
+          tags: p.frontMatter.tags,
+          body: norm(body),
+          snippet: (description || body).slice(0, 160),
+          date: p.frontMatter.date.slice(0, 10),
+        }
+      })
+
+    const mini = new MiniSearch<SearchDoc>(miniSearchOptions)
+    mini.addAll(docs)
 
     return NextResponse.json(
-      {index},
+      {index: mini.toJSON()},
       {
         headers: {
           'cache-control': 'public, max-age=300, stale-while-revalidate=86400',
@@ -82,6 +62,6 @@ export async function GET(request: Request) {
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[API/search-index] Error building index:', error)
-    return NextResponse.json({index: []}, {status: 500})
+    return NextResponse.json({index: null}, {status: 500})
   }
 }
