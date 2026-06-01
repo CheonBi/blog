@@ -10,10 +10,45 @@ interface SearchItem {
   title: string
   description: string
   tags: string[]
+  body: string
   date: string
 }
 
 const MAX_RESULTS = 20
+
+// 토큰별로 가장 강한 필드 하나에서만 점수를 매겨(긴 본문이 점수를 독식하지 않도록)
+// 합산한다. 모든 토큰이 어딘가에 매칭돼야 결과에 남는다(AND). 미매칭이면 -1.
+function scoreItem(item: SearchItem, tokens: string[], phrase: string): number {
+  const title = item.title.toLowerCase()
+  const tags = item.tags.join(' ').toLowerCase()
+  const body = item.body.toLowerCase()
+  const description = item.description.toLowerCase()
+
+  let score = 0
+  for (const t of tokens) {
+    if (title.includes(t)) {
+      score += 10
+    } else if (tags.includes(t)) {
+      score += 6
+    } else if (body.includes(t)) {
+      score += 4
+    } else if (description.includes(t)) {
+      score += 2
+    } else {
+      return -1
+    }
+  }
+
+  if (title === phrase) {
+    score += 20
+  } else if (title.startsWith(phrase)) {
+    score += 8
+  } else if (title.includes(phrase)) {
+    score += 4
+  }
+
+  return score
+}
 
 export default function SiteSearch() {
   const {locale, pathPrefix} = useLocale()
@@ -73,17 +108,28 @@ export default function SiteSearch() {
     }
   }, [open])
 
-  const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean)
+  const tokens = query
+    .normalize('NFC')
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  const phrase = tokens.join(' ')
   const results =
     tokens.length === 0
       ? []
       : (index ?? [])
-          .filter((item) => {
-            const haystack =
-              `${item.title} ${item.description} ${item.tags.join(' ')}`.toLowerCase()
-            return tokens.every((t) => haystack.includes(t))
-          })
+          .map((item) => ({item, score: scoreItem(item, tokens, phrase)}))
+          .filter((r) => r.score >= 0)
+          .sort((a, b) =>
+            b.score !== a.score
+              ? b.score - a.score
+              : a.item.date < b.item.date
+                ? 1
+                : -1,
+          )
           .slice(0, MAX_RESULTS)
+          .map((r) => r.item)
 
   return (
     <>
