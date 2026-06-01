@@ -7,6 +7,11 @@ import {getAllPosts} from '@/utils/Post'
 
 export async function GET() {
   const allPosts = await getAllPosts('en')
+  // 인자 없는 new Date()는 요청 시점 IO로 간주돼 라우트가 동적이 되고, 런타임에
+  // posts를 읽으려다 500이 난다. 최신 글 날짜(빌드 타임 고정값)를 쓴다.
+  const lastBuildDate = new Date(
+    allPosts[0]?.frontMatter.date ?? 0,
+  ).toUTCString()
 
   const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -16,7 +21,7 @@ export async function GET() {
     <atom:link href="${SiteConfig.url}/en/feed.xml" rel="self" type="application/rss+xml" />
     <description>${SiteConfig.subtitle}</description>
     <language>en</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
     ${allPosts
       .map((post) => {
         const postDate = new Date(post.frontMatter.date)
