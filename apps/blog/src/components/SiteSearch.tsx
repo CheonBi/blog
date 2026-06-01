@@ -52,7 +52,9 @@ export default function SiteSearch() {
     }
     setLoading(true)
     try {
-      const res = await fetch(`/api/search-index?locale=${locale}`)
+      const res = await fetch(
+        locale === 'en' ? '/api/search-index/en' : '/api/search-index',
+      )
       const data = await res.json()
       if (data.index) {
         setIndex(MiniSearch.loadJS<SearchDoc>(data.index, miniSearchOptions))
