@@ -79,7 +79,7 @@ export function cache(fn) {
 
 `ReactSharedInternals`는 React 패키지들(`react`, `react-dom`, `react-reconciler`, `react-server`) 사이의 공유 통신 채널이다. 이들은 따로 배포되는 패키지라 서로의 내부를 직접 import할 수 없어서, `react`가 가변 객체 하나를 노출하고 나머지가 그걸 읽고 쓴다. 안에는 렌더 도중 바뀌는 "현재 디스패처"들이 한 글자 슬롯에 담겨 있다 — `H`는 훅 디스패처(`useState` 등이 타는 길), `T`는 트랜지션 설정, 그리고 우리가 보는 **`A`가 AsyncDispatcher**다[^4]. 슬롯 주석 그대로 `ReactCurrentCache`, 즉 "현재 캐시"를 가리킨다.
 
-이 객체가 예전에 `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED`(직역하면 "쓰면 해고된다")라는 이름으로 노출되던, 그 악명 높은 내부 객체다. React 19에서 이 이름은 [덜 극적인 `__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE`로 바뀌었지만](https://github.com/facebook/react/pull/28789), 손대지 말라는 의도는 그대로다.
+이 객체가 예전에 `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED`(직역하면 "쓰면 해고된다")라는 이름으로 노출되던, 그 악명 높은 내부 객체다. React 19에서 이 이름은 여러 PR에 걸친 내부 정리를 거쳐 [덜 극적인 `__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE`로 바뀌었지만](https://github.com/facebook/react/pull/28789), 손대지 말라는 의도는 그대로다.
 
 이 디스패처는 **React가 서버에서 RSC를 렌더하는 동안에만** 채워진다. Flight 서버 런타임이 렌더를 시작할 때 `A`에 자기 디스패처를 꽂고, 렌더가 끝나면 비운다. 그 외의 모든 상황 — 클라이언트 번들, 컴포넌트 바깥의 모듈 최상위 코드, 일반 이벤트 핸들러 — 에서 `A`는 `null`이다.
 
