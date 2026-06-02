@@ -196,10 +196,10 @@ This is where the most confusing rule in the docs dissolves.
 
 Call `cache(fn)` twice and you get two different wrapper functions. But what gets used as the WeakMap key is not the wrapper — it's the **original `fn` you passed in**. So wrappers made by passing the same `fn` share the same root node no matter where in the tree they're called.
 
-The problem is that people usually write it like this.
+That said, people usually write it like this.
 
 ```tsx
-// 🚩 a new wrapper with its own empty cache on every render
+// a new wrapper on every render — often called an anti-pattern
 export function Temperature({cityData}) {
   const getWeekReport = cache(calculateWeekReport)
   const report = getWeekReport(cityData)
@@ -207,9 +207,11 @@ export function Temperature({cityData}) {
 }
 ```
 
-Now, on every render and every instance, `cache(calculateWeekReport)` is called anew and a new wrapper is created. The wrapper itself differs each time; the root key is still `calculateWeekReport`, so you'd think the cache node is shared — but because **the call site builds a new wrapper, calls it once, and throws it away**, memoization is meaningless here. It's also impossible to call the same memoized function from a different component.
+The official docs flag this as an anti-pattern — since a new wrapper is created on every render, they say it "creates a new memoized function each time the component is rendered which doesn't allow for any cache sharing" ([cache – React docs](https://react.dev/reference/react/cache)). But **at the source level that explanation is wrong.** As we saw, the root node's key is not the wrapper but the original `fn` (`calculateWeekReport`), and that `fn` is module-level, so it's the same every time. Even though a new wrapper is built and thrown away each render, at call time every one of them lands on the same node, via the same `calculateWeekReport` key in the same per-request WeakMap. So **as long as you call it with the same argument, the cache really is shared.** The same holds if another component wraps `cache(calculateWeekReport)` separately — contrary to the docs' wording, it does share.
 
-The right answer is to wrap it once at module scope and import it.
+What actually defeats the cache is not the wrapper's identity. It's (1) defining `fn` **inline inside the component** — e.g. `cache((c) => …)` — so the `fn` reference changes every render, or (2) passing **a new object as the argument** each time (see Step 2). The example above does neither, so it actually works.
+
+So why still "wrap it once at module scope"? Even though sharing works, you pay for a throwaway wrapper each render, you lean on behavior the docs don't guarantee, and the moment someone inlines `fn` it breaks silently. The recommended form is to wrap it once in a dedicated module and import it.
 
 ```tsx
 // getWeekReport.js — defined once in a dedicated module
@@ -225,7 +227,7 @@ export function Temperature({cityData}) {
 }
 ```
 
-"Wrap it once at module scope" isn't superstition — it follows directly from the wrapper's identity and the call structure.
+"Wrap it once at module scope" isn't a requirement that _makes_ the cache work — it's recommended because it pins a stable `fn` reference and removes all three fragilities at once.
 
 ### Step 2: Each Argument Descends One Level of the Tree
 

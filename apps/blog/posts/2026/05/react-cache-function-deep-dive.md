@@ -196,10 +196,10 @@ export function cache(fn) {
 
 `cache(fn)`을 두 번 호출하면 wrapper 함수는 서로 다른 두 개가 나온다. 하지만 WeakMap의 키로 쓰이는 건 wrapper가 아니라 **넘긴 원본 `fn`**이다. 그러니 같은 `fn`을 넘겨 만든 wrapper들은 트리 어디서 호출되든 같은 루트 노드를 공유한다.
 
-문제는 보통 사람들이 이렇게 쓴다는 거다.
+그런데 보통은 이렇게들 쓴다.
 
 ```tsx
-// 🚩 매 렌더마다 자기만의 빈 캐시를 가진 새 wrapper 생성
+// 매 렌더마다 cache()를 다시 호출해 새 wrapper 생성 — 흔히 안티패턴으로 불린다
 export function Temperature({cityData}) {
   const getWeekReport = cache(calculateWeekReport)
   const report = getWeekReport(cityData)
@@ -207,9 +207,11 @@ export function Temperature({cityData}) {
 }
 ```
 
-이러면 매 렌더, 매 인스턴스마다 `cache(calculateWeekReport)`가 새로 불려 wrapper가 새로 생긴다. wrapper 자체는 매번 달라도 루트 키는 `calculateWeekReport`로 같으니 캐시 노드는 공유될 것 같지만 — 애초에 **호출 위치가 매번 새 wrapper를 만들어 호출 한 번 하고 버리는 구조**라 메모이제이션이 의미를 갖지 못한다. 다른 컴포넌트와 같은 메모이즈 함수를 부르는 것도 불가능하다.
+공식 문서는 이걸 안티패턴으로 못 박는다 — wrapper가 매 렌더 새로 생기니 "creates a new memoized function each time the component is rendered which doesn't allow for any cache sharing"라고([cache – React 공식 문서](https://react.dev/reference/react/cache)). 그런데 **소스 기준으로는 틀린 설명이다.** 앞서 봤듯 루트 노드의 키는 wrapper가 아니라 원본 `fn`(`calculateWeekReport`)이고, 그건 모듈 레벨이라 매번 같다. wrapper를 매 렌더 새로 만들어 버려도 호출 시점엔 전부 같은 요청 단위 WeakMap에서 같은 `calculateWeekReport` 키로 같은 노드에 도착한다. 그래서 **같은 인자로 부르는 한 캐시는 실제로 공유된다.** 다른 컴포넌트가 `cache(calculateWeekReport)`를 따로 감싸 불러도 마찬가지다 — 문서 표현과 달리 공유는 된다.
 
-정답은 모듈 레벨에서 한 번만 감싸고 import해 쓰는 것이다.
+캐시를 정말로 깨뜨리는 건 wrapper의 정체성이 아니다. (1) `cache((c) => …)`처럼 **`fn`을 컴포넌트 안에서 인라인 정의**해 `fn` 레퍼런스가 매 렌더 바뀌거나, (2) **인자를 매번 새 객체로** 넘기는 경우(아래 2단계)다. 위 예제는 둘 다 아니라서 사실은 동작한다.
+
+그렇다면 왜 여전히 "모듈 레벨에서 한 번만 감싸라"고 할까. 공유가 되더라도 — 매 렌더 throwaway wrapper를 만드는 사소한 비용, 문서가 보장하지 않는 동작에 기대는 취약함, 누군가 `fn`을 인라인으로 바꾸는 순간 조용히 깨지는 위험 때문이다. 권장 형태는 전용 모듈에서 한 번만 감싸고 import해 쓰는 것이다.
 
 ```tsx
 // getWeekReport.js — 전용 모듈에서 한 번만 정의
@@ -225,7 +227,7 @@ export function Temperature({cityData}) {
 }
 ```
 
-"모듈 레벨에서 한 번만 감싸라"는 규칙이 미신이 아니라 — wrapper의 정체성과 호출 구조에서 곧장 나오는 결론이다.
+"모듈 레벨에서 한 번만 감싸라"는 규칙은 캐시를 _동작하게 만드는_ 필수 조건이라서가 아니라 — `fn` 레퍼런스를 안정적으로 고정하고 위 세 취약함을 한 번에 없애기 때문에 권장된다.
 
 ### 2단계: 인자는 트리를 한 단계씩 내려간다
 
