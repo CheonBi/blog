@@ -9,13 +9,13 @@ description: '항상 왜 그럴까를 고민해 봐야 하는 것 같다'
 
 [이 전 블로그 포스팅](/2021/01/brotli-better-html-compression)을 통해서 brotli가 무엇인지, 왜 좋은지, 왜 써야 하는지에 대해서 알아봤다. 그러나 한 가지 더 궁금한 것이 있다. 과연 비단 IE 에서 지원하지 않는다는 이유만으로 쓰지 않는 것일까? 시스템 엔지니어들이 게을러서 brotli 지원을 안해주는 것일까?
 
-Gzip은 웹 압축에 있어서 일종의 디 팩토 같이 자리잡고 있다. 대충 모든 웹사이트의 80% 정도가 gzip으로 서빙되고 있는 것으로 알려져 있다. [참고](https://almanac.httparchive.org/en/2019/compression) 근데 압축이 안되있는 사이트가 60% 쯤 정도 된다. (허허)
+Gzip은 웹 압축에 있어서 일종의 디팩토처럼 자리잡고 있다. 이 글을 처음 쓰던 2021년 무렵에는 웹사이트의 약 80% 정도가 gzip으로 서빙되고 있었고, 아예 압축이 안되어 있는 사이트가 60% 쯤 정도 됐다. (허허) [참고](https://almanac.httparchive.org/en/2019/compression)
 
 아무튼 지간에, Gzip도 충분히 효과적인 압축 알고리즘이지만, brotli가 gzip보다 더 크게 압축해 주는 알고리즘으로 등장했다.
 
 ![gzip-vs-brotli](https://csswizardry.com/wp-content/uploads/2020/04/react-dom-brotli.png)
 
-그리고 이전에 말했듯이, IE에서는 brotli를 지원하지 않지만, 현재 사이트의 93%가 IE외의 환경에서 서비스 되므로 대부분의 사용자에게 brotli를 이용하여 서비스 할 수 있다. 6%는 무시하라는 말처럼 들릴 수도 있지만(?) brotli를 받아줄 수 없는 브라우저의 경우 gzip으로 fallback 되게 할 수 있다. 이는 나중에 다룬다.
+그리고 이전 글에서 말했듯이, brotli를 받아주지 못하는 거의 유일한 브라우저가 IE였는데, 이 글을 쓰던 2021년에도 이미 사이트의 93%가 IE 외 환경에서 서비스되고 있었다. 6%는 무시하라는 말처럼 들릴 수도 있지만(?) brotli를 받아줄 수 없는 브라우저의 경우 gzip으로 fallback 되게 할 수 있다. (그리고 잘 알려진 대로 IE는 2022년 6월에 완전히 은퇴했다. 즉 지금은 사실상 모든 브라우저가 brotli를 받을 수 있어, 이 "IE 핑계"는 더 이상 유효하지 않다.) fallback 방법은 나중에 다룬다.
 
 그런데 왜, 많은 사이트들이 brotli를 사용하지 않는 것일까? brotli로 전환하는 것은 얼마나 중요한 것일까?
 
@@ -85,11 +85,23 @@ brotli로 제공되는 사이트에 brotli 사용을 중지하면 된다. https:
 결과: https://docs.google.com/spreadsheets/d/18A_dP1DuavmMjmFnHXf4gdw6ThTne5e6UyzUUgxKI5s/edit#gid=0
 
 - gzip 크기 감소 vs 비압축: 73% 감소
-- gzip fcp vs 비 압축: 23 % 감소
-- brotli 크기 감소 vs gzip: 5%
-- brotli fcp vs 5zip: 3%
+- gzip fcp vs 비압축: 23.3% 감소
+- brotli 크기 감소 vs gzip: 5.8% 감소
+- brotli fcp vs gzip: 3.5% 감소
 
-gzip은 비 압축 대비 약 72% 정도의 크기 감소를 이뤄 냈고, 이에 더해 brotli는 gzip 대비 5.7%를 더 감소 시켰다.
+gzip은 비압축 대비 약 73% 정도의 크기 감소를 이뤄 냈고, 이에 더해 brotli는 gzip 대비 5.8%를 더 감소시켰다.
+
+## 그 사이에 바뀐 것들 (2026년에 다시 보며)
+
+이 글은 2021년에 쓴 것이라, 몇 가지는 그 사이에 꽤 달라졌다.
+
+**brotli는 이제 "안 쓰는" 기술이 아니다.** [HTTP Archive Web Almanac](https://almanac.httparchive.org/en/2024/markup)에 따르면 2024년 기준 모바일 페이지의 약 37%가 brotli로 서빙되고 있다 (2023년 28%에서 상승). 특히 [2025년 CDN 챕터](https://almanac.httparchive.org/en/2025/cdn)를 보면, CDN을 거치는 요청은 46%가 brotli, 42%가 gzip으로 brotli가 이미 gzip을 추월했다. 반면 CDN 없이 원본 서버가 직접 응답하는 경우는 여전히 brotli 39% / gzip 61%로 gzip이 우세하다. 즉 "버튼 하나 누르면 켜지는" CDN 환경에서는 brotli가 사실상 기본값이 됐고, 직접 nginx/apache를 운영하는 쪽이 상대적으로 뒤처져 있는 셈이다.
+
+**이제는 zstd라는 선택지도 생겼다.** 페이스북이 만든 [Zstandard(zstd)](https://en.wikipedia.org/wiki/Zstd)는 2025년 CDN 요청의 약 12%까지 올라왔다. 압축률과 압축 속도의 트레이드오프를 더 유연하게 조절할 수 있어서, 이제 "그런데 왜 brotli를 안 쓸까?"라는 질문은 "그런데 왜 zstd를 안 쓸까?"로 한 단계 옮겨가고 있다.
+
+**왕복(RTT) 버킷 논리에는 전제가 있다.** 위에서 설명한 "작아도 같은 왕복 버킷에 들어가면 전송 시간은 같다"는 분석은 _새 TCP 연결 하나로 파일 하나를 받는 HTTP/1.1_ 상황을 가정한 것이다. HTTP/2의 멀티플렉싱이나 HTTP/3(QUIC)에서는 여러 리소스가 하나의 연결을 공유하기 때문에, 개별 파일의 왕복 버킷보다 누적 전송량(congestion window가 얼마나 빨리 커지는가)이 더 중요해진다. 번들이 크고 리소스가 많을수록, brotli가 절약하는 5~20%가 누적 전송량을 줄여 실제 체감 차이로 이어질 여지가 더 커진다.
+
+**동적 콘텐츠에서 brotli를 안 켜는 진짜 이유는 CPU다.** brotli의 최대 압축 레벨(11)은 gzip 최대치보다 압축 시간이 훨씬 오래 걸린다. 그래서 미리 압축해 두고 그대로 내보낼 수 있는 정적 자산에는 레벨 11을, 매 요청마다 즉석에서 압축해야 하는 동적 응답에는 비용이 낮은 레벨(보통 4~5)을 쓰거나 아예 gzip을 유지하는 것이 합리적이다. "왜 brotli를 안 쓰나"의 실무적인 답은 IE보다 오히려 이 CPU 비용 쪽에 가깝다.
 
 ## 결론
 
