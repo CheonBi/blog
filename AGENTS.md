@@ -16,7 +16,7 @@
 
 | 패키지 | 경로 | 도메인(원본) | 설명 |
 |--------|------|--------------|------|
-| blog | `apps/blog` | yceffort.kr | 메인 블로그 (글 415개, 한/영 이중 언어) |
+| blog | `apps/blog` | yceffort.kr | 메인 블로그 (고유 글 385개 + 영문본 30개 = 415개 `.md`, 한/영 이중 언어) |
 | research | `apps/research` | research.yceffort.kr | Marp 기반 발표 슬라이드 사이트 |
 | shared | `packages/shared` | – | 공용 컴포넌트(`Providers`, `ThemeSwitch`, `SocialIcon`, 아이콘) · 유틸 |
 
@@ -76,7 +76,7 @@ apps/blog/
       about/                  # ★ AboutHero · AboutIntro · Resume (개인정보 하드코딩)
       LayoutWrapper.tsx Footer 등
     utils/ hooks/ constants/ type/
-  posts/<YEAR>/<MM>/<slug>.md(.en.md)   # ★ 블로그 글 (원저자 콘텐츠 415개)
+  posts/<YEAR>/<MM>/<slug>.md(.en.md)   # ★ 블로그 글 (원저자 콘텐츠 385개 + 영문본 30개)
   public/                     # ★ 프로필 사진·파비콘·OG 배경·썸네일 등 에셋
   scripts/                    # translate / generate-thumbnail / generate-tags
 apps/research/
@@ -105,10 +105,16 @@ packages/shared/src/          # 공용 컴포넌트·유틸 (getContactHref 등)
 | 프로필·파비콘·OG·썸네일 | `apps/blog/public/*`, `apps/research/public/*` | 바이너리 에셋 교체 |
 | 패키지 메타 | `package.json`(루트), `apps/blog/package.json` | author·repository·name·description |
 | 라이선스 | `apps/blog/LICENSE` | 저작권자 |
+| 사이트맵 URL | `apps/blog/src/app/sitemap.ts` | `yceffort.kr` 약 10곳 하드코딩 (`config.url` 미사용) |
+| 태그 페이지 canonical·OG | `apps/blog/src/app/tags/[tag]/pages/[id]/page.tsx:18,21` | `yceffort.kr` 하드코딩 |
+| 글 하단 Discussion 이슈 링크 | `apps/blog/src/app/[year]/[...slug]/page.tsx:139` | `yceffort/yceffort-blog-v2` repo·`assignees=yceffort` → 새 repo로 교체 또는 제거 |
+| 푸터 GitHub 링크 | `apps/blog/src/components/LayoutWrapper.tsx:161`, `apps/research/src/components/LayoutWrapper.tsx:141` | `github.com/yceffort` 하드코딩 (config 미사용) |
+| 내부링크 판별 도메인 | `apps/blog/src/components/MDXComponents.tsx:68` | `!href.includes('yceffort.kr')` — 새 도메인 미반영 시 자기 글 링크가 외부 취급됨 |
+| 블로그 README | `apps/blog/README.md` | 도메인·이메일·repo 소개 (루트 `README.md`와 별개) |
 
 > 잔존 식별자 점검(글 제외):
 > ```bash
-> git grep -nIE "yceffort\.kr|yceffort_dev|root@yceffort|G-ND58S24JBX|github\.com/yceffort" -- ':!apps/*/posts/**' ':!apps/research/research/**' ':!pnpm-lock.yaml'
+> git grep -nIE "yceffort\.kr|yceffort_dev|root@yceffort|G-ND58S24JBX|github\.com/yceffort" -- ':!apps/*/posts/**' ':!apps/research/research/**' ':!pnpm-lock.yaml' ':!AGENTS.md' ':!PLANS.md' ':!.codex/**'
 > ```
 
 ---
@@ -147,11 +153,11 @@ packages/shared/src/          # 공용 컴포넌트·유틸 (getContactHref 등)
 ## 7. 에이전트 가드레일 (반드시 지킬 것)
 
 1. **비밀키 금지**: `.env.local`(ANTHROPIC/GEMINI 키)은 절대 커밋하지 마세요. 이미 `.gitignore`에 있습니다.
-2. **원저자 글 415개를 임의로 삭제·대량 편집하지 마세요.** 보존/아카이브/삭제는 **사용자 결정 사항**입니다([`PLANS.md`](./PLANS.md) Phase 0 참조). 지시 없이 `posts/**`를 일괄 변경하지 마세요.
+2. **원저자 글(고유 385개 + 영문본 30개)을 임의로 삭제·대량 편집하지 마세요.** 보존/아카이브/삭제는 **사용자 결정 사항**입니다([`PLANS.md`](./PLANS.md) Phase 0 참조). 지시 없이 `posts/**`를 일괄 변경하지 마세요.
 3. **도메인·식별자 교체는 일괄적으로.** `yceffort.kr` → 새 도메인처럼 바꿀 때는 blog·research 양쪽 `config.ts`, `layout.tsx`, `robots.txt`, manifest를 함께 맞춰 정합성을 유지하세요.
 4. **lockfile 보호**: 의존성 추가/변경이 꼭 필요할 때만 `pnpm`으로, 이유를 설명하고 진행하세요.
 5. **빌드를 깨지 마세요**: 의미 있는 변경 후에는 `pnpm lint`와 `pnpm build:blog`(필요 시 `build:research`)로 검증합니다.
-6. **개인화 문서는 로컬 전용**: `AGENTS.md`·`PLANS.md`·`.codex/`·`CLAUDE.md`·`.claude/`는 `.gitignore`로 제외되어 있습니다. fork 정책상 git에 올리지 않습니다.
+6. **에이전트 문서 추적 정책**: `AGENTS.md`·`PLANS.md`·`.codex/`는 **git에 추적·커밋**합니다(CheonBi fork 기준 — `AGENTS.md`는 Codex·Cursor·Claude 등이 읽는 표준 루트 파일이라 저장소에 함께 둠). `.gitignore`로 제외되는 건 `CLAUDE.md`·`.claude/` 뿐입니다.
 
 ---
 
