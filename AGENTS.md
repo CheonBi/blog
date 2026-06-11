@@ -145,7 +145,7 @@ packages/shared/src/          # 공용 컴포넌트·유틸 (getContactHref 등)
 - **ESLint**: `@naverpay/eslint-config` 기반(`eslint.config.js`). **prettier 검사는 CI에서 강제**되므로 커밋 전 `pnpm prettier:fix`.
 - **pre-commit 훅**: `lefthook`이 스테이징된 파일에 ESLint/Prettier/Stylelint `--fix`를 자동 적용합니다(`lefthook.yml`). 훅을 `--no-verify`로 건너뛰지 마세요.
 - **스타일**: 들여쓰기·따옴표·세미콜론 등은 주변 코드와 prettier 설정(`.prettierrc`)을 따릅니다. import 정렬 규칙이 ESLint에 포함되어 있습니다.
-- **커밋 메시지**: 최근 히스토리는 **이모지 프리픽스** 관례를 따릅니다(`📝 ...`, `🐛 ...`, `✨ ...`). 별도의 conventional-commits 강제는 없습니다. 기존 스타일에 맞추세요.
+- **커밋 메시지**: 최근 히스토리는 **이모지 프리픽스** 관례를 따릅니다(`📝 ...`, `🐛 ...`, `✨ ...`). 별도의 conventional-commits 강제는 없습니다. 기존 스타일에 맞추세요. **`Co-Authored-By` 등 AI 공동 작성자 트레일러는 넣지 않습니다.**
 - 새 브랜치는 `main`이 아닌 작업 브랜치에서. (CI는 `main` 외 브랜치 push에서 동작)
 
 ---
