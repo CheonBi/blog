@@ -8,16 +8,30 @@
 
 ---
 
-## Phase 0 — 먼저 정할 것 🔴 (이게 정해져야 나머지가 진행됨)
+## Phase 0 — 먼저 정할 것 🔴 (이게 정해져야 나머지가 진행됨) — ✅ 확정 (2026-06-11)
 
-- [ ] **새 도메인** 결정 (예: `example.com`). 미정이면 우선 placeholder로 두고 한 번에 치환.
-- [ ] **신원 정보** 확정: 표시 이름 / 닉네임 / 이메일 / GitHub 핸들 / (선택) Twitter·LinkedIn 등.
-- [ ] **사이트 톤**: 제목(`yceffort`)·부제(`Grind. Learn. Repeat.`)를 무엇으로 바꿀지.
-- [ ] **원저자 글 415개 처리 방침** 결정:
-  - (A) 전부 삭제하고 빈 블로그로 시작 / (B) 일부만 남기고 정리 / (C) 학습용으로 당분간 보존.
-  - 같은 정책을 `apps/research/research/*` 슬라이드에도 적용할지.
-- [ ] **research 서브사이트**를 유지할지, 제거할지(메뉴·배포 포함).
-- [ ] **자산 준비** 여부: 프로필 사진, 파비콘 세트, OG 배경 이미지(아래 Phase 3에서 사용).
+- [x] **새 도메인**: `cheonbi.kr` (blog) / `research.cheonbi.kr` (research) **확정**. placeholder 불필요 — 바로 최종값으로 치환.
+- [x] **신원 정보**: 표시 이름·닉네임 `CheonBi`, 이메일 `root@cheonbi.kr`, GitHub `CheonBi`. Twitter·LinkedIn 등 기타 소셜은 **미사용**(원저자 `yceffort_dev` 제거).
+- [x] **사이트 톤**: 제목 `yceffort` → `CheonBi`, 부제 `Grind. Learn. Repeat.`는 **유지**.
+- [x] **원저자 글 처리 방침**: **(C) 전부 보존** (고유 385 + 영문본 30 = 415개 `.md`, 비파괴). `apps/research/research/*` 슬라이드도 research 유지 결정에 따라 **보존**.
+- [x] **research 서브사이트**: **유지** (메뉴 `🧪 Research` 링크·별도 배포 포함 — 도메인만 `research.cheonbi.kr`로 교체).
+- [x] **자산 준비**: **미준비** — 프로필/파비콘/OG 배경은 placeholder·기존 파일 유지, Phase 3에서 교체.
+- [x] **Google Analytics** (보강 결정): 원저자 ID `G-ND58S24JBX` **비활성화(`''`)** → Phase 5에서 새 GA4 속성 ID 적용.
+
+### 확정 치환 매핑 (Phase 1이 그대로 적용)
+
+| 찾기 (원저자) | 바꾸기 (CheonBi) |
+|---------------|------------------|
+| `yceffort.kr` | `cheonbi.kr` |
+| `research.yceffort.kr` | `research.cheonbi.kr` |
+| `yceffort` (제목·`author.name`·copyright·GitHub 핸들) | `CheonBi` |
+| `root@yceffort.kr` | `root@cheonbi.kr` |
+| `yceffort_dev` (twitter contact) | (제거 — 빈 문자열) |
+| `G-ND58S24JBX` | `''` (비활성화) |
+| `github.com/yceffort` | `github.com/CheonBi` |
+
+- **치환 순서 주의**: 구체적 토큰(`research.yceffort.kr`, `yceffort.kr`, `root@yceffort.kr`, `yceffort_dev`, `github.com/yceffort`)을 먼저 처리하고, 단독 `yceffort`(제목·`author.name`·copyright·`LICENSE` 저작권자)는 전역 일괄 대신 **파일별로** 마지막에 교체.
+- 콘텐츠 **보존(C)** · research **유지** → Phase 4는 대량 삭제 없음(본문 내 `yceffort.kr` 자기참조 링크 처리만 잔존).
 
 ---
 
@@ -39,7 +53,14 @@
 - [ ] `package.json`(루트) — `author`, `repository.url`, `name`, `description`
 - [ ] `apps/blog/package.json` — `description`("yceffort blog")
 - [ ] `apps/blog/LICENSE` — `Copyright (c) 2025 yceffort` 저작권자
-- [ ] `README.md` — 도메인·저자·소개 문구
+- [ ] `README.md`(루트) — 도메인·저자·소개 문구
+- [ ] `apps/blog/README.md` — 도메인·이메일·repo 소개 (루트와 별개)
+- [ ] **`config.ts`로 안 빠진 코드 내 하드코딩** (도메인/식별자 바꿀 때 함께 — `git grep`으로 확인):
+  - [ ] `apps/blog/src/app/sitemap.ts` — `yceffort.kr` 약 10곳 (`config.url` 미사용)
+  - [ ] `apps/blog/src/app/tags/[tag]/pages/[id]/page.tsx:18,21` — canonical·OG URL
+  - [ ] `apps/blog/src/app/[year]/[...slug]/page.tsx:139` — 글 하단 Discussion 이슈 링크(repo·`assignees=yceffort`) → 새 repo로 교체/제거
+  - [ ] `apps/blog/src/components/MDXComponents.tsx:68` — 내부링크 판별 도메인(`!href.includes('yceffort.kr')`); 미반영 시 자기 글 링크가 외부 취급
+  - [ ] 푸터 GitHub 링크 — `apps/blog/src/components/LayoutWrapper.tsx:161`, `apps/research/src/components/LayoutWrapper.tsx:141` (`github.com/yceffort`)
 
 ---
 
@@ -52,8 +73,8 @@
   - [ ] 하드코딩된 링크 라벨 `yceffort`(GitHub), `yceffort_dev`(Twitter) — `:53`, `:63`
 - [ ] `apps/blog/src/components/about/AboutIntro.tsx` — 자기소개 3문단 전체
 - [ ] `apps/blog/src/components/about/Resume.tsx` — 생년월일·이메일·**경력/학력/활동/저서** 전면 교체 (또는 섹션 제거)
-- [ ] `apps/research/src/components/LayoutWrapper.tsx` — `github.com/yceffort` 링크(`:141`)
 - [ ] (선택) `apps/blog/src/app/resume/` 페이지 유지 여부
+  - 푸터 GitHub 링크(blog `LayoutWrapper.tsx:161` / research `:141`)는 **Phase 1**에서 함께 처리
 
 ---
 
@@ -93,7 +114,8 @@
 - [ ] 잔존 식별자 0 확인:
   ```bash
   git grep -nIE "yceffort\.kr|yceffort_dev|root@yceffort|G-ND58S24JBX|github\.com/yceffort" \
-    -- ':!apps/*/posts/**' ':!apps/research/research/**' ':!pnpm-lock.yaml'
+    -- ':!apps/*/posts/**' ':!apps/research/research/**' ':!pnpm-lock.yaml' \
+    ':!AGENTS.md' ':!PLANS.md' ':!.codex/**'
   ```
 - [ ] `pnpm dev:blog`로 홈·About·Resume·태그·RSS(`/feed.xml`)·사이트맵(`/sitemap.xml`)·매니페스트 육안 확인
 - [ ] OG 이미지(`/api/og`) 렌더 확인
