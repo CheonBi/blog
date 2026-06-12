@@ -8,7 +8,7 @@ tags:
   - testing
 published: true
 date: 2026-06-12
-description: 'QA가 통과하고, 기획이 승인하고, 고객이 만족한다면 코드를 읽을 줄 몰라도 되는가. 찬성 측의 최선의 논증을 먼저 세우고, 그것이 틀린 이유를 따져본 뒤, 이해가 어디로 이동하는지와 주니어가 무엇을 목표로 해야 하는지를 정리한다.'
+description: '스펙을 만족하고 버그를 고칠 수 있다면 코드를 읽을 줄 몰라도 될까. 이해는 사라지는 게 아니라 어디로 이동하는지를 따진다.'
 thumbnail: /thumbnails/2026/06/do-you-need-to-read-code.png
 ---
 
