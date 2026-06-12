@@ -190,6 +190,8 @@ AI 이전에는 코드를 만드는 게 사람이었고, 사람이 어떻게 실
 
 읽기의 빈도는 줄어도 된다. 읽기의 능력은 줄면 안 된다.
 
+> 이 질문을 코드 바깥으로 가져가면 어떻게 될까. 같은 논리를 기획·개발·디자인의 직군 경계에 적용한 다음 글 — [AI가 기획·개발·디자인의 경계를 지운다면, 무엇이 남는가](https://yceffort.kr/2026/06/when-job-titles-blur)로 이어진다.
+
 ## 참고 자료
 
 - [Linus Torvalds Talks AI, Vibe Coding and Programmer Productivity](https://thenewstack.io/torvalds-ai-programming-productivity/) - The New Stack
