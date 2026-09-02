@@ -1,0 +1,59 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "react",
+    "jsx-a11y",
+    "import",
+    "oxc",
+    "unicorn",
+    "nextjs",
+    "promise"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "rules": {
+    "no-console": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "name": "lodash",
+        "message": "lodash\ub294 CommonJS\ub85c \uc791\uc131\ub418\uc5b4 \uc788\uc5b4 \ud2b8\ub9ac\uc250\uc774\ud0b9\uc774 \ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4. lodash/* \ud615\uc2dd\uc73c\ub85c import \ud574\uc8fc\uc138\uc694."
+      }
+    ],
+    "react-hooks/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": "off",
+    "no-underscore-dangle": "off",
+    "unicorn/require-post-message-target-origin": "off",
+    "typescript/no-unsafe-type-assertion": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/scripts/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["**/api/og/**"],
+      "rules": {
+        "nextjs/no-img-element": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/public/**",
+    "!**/public/sw.js",
+    "**/.cache/**"
+  ]
+}

@@ -1,0 +1,29 @@
+pre-commit:
+  parallel: true
+  commands:
+    oxlint:
+      glob: "*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}"
+      exclude: "labs/**"
+      run: pnpm exec oxlint --type-aware --fix {staged_files}
+      stage_fixed: true
+    oxfmt:
+      glob: "*.{ts,cts,tsx,js,cjs,jsx,json,md,yaml,yml}"
+      exclude: "labs/**"
+      run: pnpm exec oxfmt {staged_files}
+      stage_fixed: true
+    stylelint:
+      root: "apps/blog/"
+      glob: "*.{scss,css}"
+      run: pnpm exec stylelint --fix {staged_files}
+      stage_fixed: true
+    markdown:
+      glob: "*.{md,mdx}"
+      exclude: "labs/**"
+      run: node apps/blog/scripts/check-markdown.mjs {staged_files}
+    research-markdown:
+      glob: "apps/research/research/*.md"
+      run: node apps/research/scripts/check-slides-markdown.mjs {staged_files}
+    translation-sync:
+      glob: "*.md"
+      exclude: "labs/**"
+      run: node apps/blog/scripts/check-translation-sync.mjs {staged_files}
