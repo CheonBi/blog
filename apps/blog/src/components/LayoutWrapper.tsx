@@ -24,7 +24,7 @@ function HeaderLogo() {
   return (
     <Link
       href={pathPrefix || '/'}
-      aria-label="yceffort's blog"
+      aria-label="cheonbi's blog"
       className="flex items-center gap-3"
     >
       <div className="logo-ring" aria-hidden="true">
@@ -39,7 +39,7 @@ function HeaderLogo() {
           />
         </span>
       </div>
-      <div className="logo-name">yceffort</div>
+      <div className="logo-name">{SiteConfig.author.name}</div>
     </Link>
   )
 }
@@ -163,7 +163,7 @@ function Header({enSlugs}: {enSlugs: string[]}) {
                 <PushAlertTooltip onOpen={() => setTweaksOpen(true)} />
               </span>
               <a
-                href="https://github.com/yceffort"
+                href="https://github.com/CheonBi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="icon-btn"

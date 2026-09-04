@@ -6,7 +6,7 @@ export const SiteConfig = {
   url: isDev ? 'http://localhost:3000' : 'https://cheonbi.kr',
   pathPrefix: '/',
   title: 'cheonbi',
-  subtitle: 'Build. Break. Learn. Repeat.',
+  subtitle: 'Break. Build. Repeat.',
   copyright: 'cheonbi © All rights reserved.',
   disqusShortname: '',
   postsPerPage: 5,

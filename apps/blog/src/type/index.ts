@@ -13,7 +13,7 @@ export interface FrontMatter {
   seriesOrder?: number
   featured?: boolean
   thumbnail?: string
-  /** 대응하는 research 발표 슬라이드의 slug (research.yceffort.kr/slides/{slide}) */
+  /** 대응하는 research 발표 슬라이드의 slug  */
   slide?: string
 }
 
