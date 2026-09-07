@@ -202,7 +202,7 @@ const LayoutWrapper = ({
 
   if (pathname === '/' || pathname === '/en') {
     containerClass = 'xl:max-w-7xl'
-  } else if (pathname === '/about') {
+  } else if (pathname === '/about' || pathname === '/resume') {
     containerClass = 'max-w-6xl'
   } else if (
     pathname?.startsWith('/pages') ||

@@ -304,8 +304,8 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
             Issue on GitHub →
           </Link>
         </footer> */}
+        <TableOfContents />
       </div>
-      <TableOfContents />
     </>
   )
 }

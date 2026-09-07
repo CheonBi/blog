@@ -1,16 +1,18 @@
 ---
 title: 기본 썸네일 생성 분석
 tags:
-  - typecsript
+  - typescript
   - next
   - react
-  - netwrok
+  - network
 published: true
 date: 2026-09-03 15:32:00
 description: yceffort 님이 제작하신 블로그 기본 썸네일 생성을 나중에 커스터마이징 할 수 있게 코드를 분석해본다.
 ---
 
-# 기본 썸네일 생성 원리
+## Table of Contents
+
+## 기본 썸네일 생성 원리
 
 이 문서는 Blog 앱이 포스트에 썸네일을 연결하는 과정을 설명한다.
 
@@ -516,9 +518,7 @@ Route Handler를 포함한 현재 구현은 두 번째 주소에서 생성 이�
 - 응답이 500인가? 서버 로그에서 `next/og`, Sharp, 외부 폰트 요청 오류를 확인한다.
 - API는 200인데 화면에만 안 보이는가? `next/image`의 원본 URL, `images.localPatterns`, 이미지 CSS 크기를 확인한다.
 
-## 핵심 정리
-
-현재 썸네일 처리는 “파일 기반 썸네일을 먼저 사용하고, 없으면 생성 API URL을 데이터에 넣는 구조”다.
+## 정리
 
 ```text
 로컬 PNG 존재
@@ -530,4 +530,4 @@ Route Handler를 포함한 현재 구현은 두 번째 주소에서 생성 이�
 → ImageResponse로 1200×630 이미지 반환
 ```
 
-기본 썸네일은 로컬 파일을 복사해 만드는 방식이 아니다. slug에서 재현 가능한 seed를 만들고, seed에 따라 색상·배경·레이아웃을 선택한 뒤, JSX/SVG/CSS 도형을 `ImageResponse`로 렌더링한다. 같은 slug는 같은 아트를 만들고, `ART_VERSION`은 URL을 바꾸어 캐시를 분리한다.
+`getAllPosts()`는 로컬 PNG가 있으면 그 파일을 사용하고, 없으면 slug를 담은 `/api/og/art` URL을 반환한다. API는 slug에서 재현 가능한 seed를 만들어 1200×630 이미지를 렌더링한다. `ART_VERSION`을 바꾸면 디자인은 유지하면서 새 캐시 URL을 만들 수 있다.
