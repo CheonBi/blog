@@ -81,7 +81,7 @@ const Hero = memo(function HeroBase({
               <span className="stroke">,</span>
             </span>
             <span className="ln">
-              {title[titleIndex + 2].replace(/\.$/, '')}
+              {title[titleIndex + 2].replace(/\.$/, '')}{' '}
               <span className="accent">.</span>
             </span>
           </h1>
