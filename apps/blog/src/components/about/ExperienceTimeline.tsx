@@ -1,10 +1,10 @@
 import type {ReactNode} from 'react'
 
-interface ResumeTimelineProps {
+interface ExperienceTimelineProps {
   children?: ReactNode
 }
 
-interface ResumeTimelineItemProps {
+interface ExperienceTimelineEntryProps {
   children?: ReactNode
   period?: string
   title: string
@@ -16,7 +16,7 @@ const markerClassName =
 
 const markerDotClassName = 'h-3 w-3 rounded-full bg-gray-400 dark:bg-gray-500'
 
-export function ResumeTimeline({children}: ResumeTimelineProps) {
+export function ExperienceTimeline({children}: ExperienceTimelineProps) {
   return (
     <ol className="relative border-l border-gray-200 dark:border-gray-700">
       {children}
@@ -24,12 +24,12 @@ export function ResumeTimeline({children}: ResumeTimelineProps) {
   )
 }
 
-export function ResumeTimelineItem({
+export function ExperienceTimelineEntry({
   children,
   period,
   title,
   last = false,
-}: ResumeTimelineItemProps) {
+}: ExperienceTimelineEntryProps) {
   return (
     <li className={last ? 'ml-6' : 'mb-10 ml-6'}>
       <span className={markerClassName}>

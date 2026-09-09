@@ -1,4 +1,39 @@
-import {ResumeTimeline, ResumeTimelineItem} from './ResumeTimeline'
+import {
+  activities,
+  employments,
+  educations,
+  type ResumeEntry,
+} from '@/constants/resume'
+
+import {ExperienceTimeline, ExperienceTimelineEntry} from './ExperienceTimeline'
+
+function Experience({entry}: {entry: ResumeEntry}) {
+  return (
+    <ExperienceTimelineEntry
+      title={`${entry.title}, ${entry.organization}`}
+      period={entry.period}
+    >
+      <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+        <p className="font-semibold text-gray-800 dark:text-gray-200">
+          {entry.role}
+        </p>
+        {entry.highlights.length > 0 && (
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {entry.highlights.map((highlight) => (
+              <li key={highlight}>{highlight}</li>
+            ))}
+          </ul>
+        )}
+        {entry.techStack.length > 0 && (
+          <p className="mt-4 text-gray-500 dark:text-gray-400">
+            <span className="font-semibold">Tech Stack:</span>{' '}
+            {entry.techStack.join(', ')}
+          </p>
+        )}
+      </div>
+    </ExperienceTimelineEntry>
+  )
+}
 
 export function Resume() {
   return (
@@ -65,50 +100,31 @@ export function Resume() {
         <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
           Employment History
         </h2>
-        <ResumeTimeline>
-          <ResumeTimelineItem title="ENITT" period="2022-2024">
-            <div className="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">
-              <ul className="list-disc space-y-1 pl-5">
-                <li>서비스 개발</li>
-                <li>레거시 애플리케이션 업그레이드</li>
-                <li>개발 및 운영</li>
-                <li>서비스 전반을 풀스택으로 관리</li>
-              </ul>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold">Tech Stack:</span> Angular,
-              AngularJS, JavaScript, TypeScript, Ruby on Rails, MySQL, Redis
-            </p>
-          </ResumeTimelineItem>
-
-          <ResumeTimelineItem title="파워이십일" period="2022-2024">
-            <div className="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">
-              {' '}
-              <ul className="list-disc space-y-1 pl-5">
-                <li>서비스 개발</li>
-                <li>레거시 애플리케이션 업그레이드</li>
-                <li>개발 및 운영</li>
-                <li>서비스 전반을 풀스택으로 관리</li>
-              </ul>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold">Tech Stack:</span> Angular,
-              AngularJS, JavaScript, TypeScript, Ruby on Rails, MySQL, Redis
-            </p>
-          </ResumeTimelineItem>
-        </ResumeTimeline>
+        <ExperienceTimeline>
+          {employments.map((employment) => (
+            <Experience key={employment.id} entry={employment} />
+          ))}
+        </ExperienceTimeline>
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 md:p-12">
         <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
           Education
         </h2>
+        <ExperienceTimeline>
+          <Experience key={educations[0].id} entry={educations[0]} />
+        </ExperienceTimeline>
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 md:p-12">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
           Activities
         </h2>
+        <ExperienceTimeline>
+          {activities.map((activity) => (
+            <Experience key={activity.id} entry={activity} />
+          ))}
+        </ExperienceTimeline>
       </section>
     </div>
   )
