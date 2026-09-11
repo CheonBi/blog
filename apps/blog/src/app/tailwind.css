@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css");
 @import "tailwindcss";
 
 /* stylelint-disable-next-line scss/at-rule-no-unknown */
@@ -21,6 +22,7 @@ dialog {
 
 /* ========= DESIGN TOKENS (dark-first, :root=light, html.dark=dark) ========= */
 :root {
+  --font-ko: "SUIT Variable";
   --bg: #fafafa;
   --bg-2: #f2f2f5;
   --surface: #fff;
@@ -102,6 +104,7 @@ html.dark {
       );
     font-family:
       var(--font-sans),
+      var(--font-ko),
       -apple-system,
       BlinkMacSystemFont,
       "Segoe UI",

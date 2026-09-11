@@ -87,10 +87,9 @@ const Hero = memo(function HeroBase({
           </h1>
           <div className="hero-sub">
             <p>
-              A blog by{' '}
-              <b style={{color: 'var(--ink)'}}>{SiteConfig.author.name}</b>, a
-              frontend engineer taking software apart to see how it works:
-              framework internals, performance, and lessons from production.
+              <b style={{color: 'var(--ink)'}}>{SiteConfig.author.name}</b>`s
+              field notes on frontend engineering: framework internals, stubborn
+              performance problems, and lessons learned the production way.
             </p>
             <div className="hero-stats">
               <span>

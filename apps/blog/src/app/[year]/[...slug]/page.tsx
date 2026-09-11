@@ -293,19 +293,17 @@ async function PostBody({year, slug}: {year: string; slug: string[]}) {
 
         <SubscribeCta />
 
-        {/* <footer className="post-footer">
+        <footer className="post-footer">
           <p className="post-author-note">
-            <Link href="/about">yceffort</Link> — 프론트엔드 엔지니어입니다.
-            발표·기술 자문·기고 문의는{" "}
-            <Link href="/about#contact">이곳에서 받고 있습니다</Link>.
+            <Link href="/about">cheonbi</Link> — 소프트웨어 엔지니어입니다.
           </p>
           <Link href="/">&larr; Back to the blog</Link>
-          <Link href={link} className="issue">
+          {/* <Link href={link} className="issue">
             Issue on GitHub →
-          </Link>
-        </footer> */}
-        <TableOfContents />
+          </Link> */}
+        </footer>
       </div>
+      <TableOfContents />
     </>
   )
 }

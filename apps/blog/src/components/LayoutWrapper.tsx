@@ -201,7 +201,7 @@ const LayoutWrapper = ({
   const wide = false
 
   if (pathname === '/' || pathname === '/en') {
-    containerClass = 'xl:max-w-7xl'
+    containerClass = 'xl:max-w-5xl'
   } else if (pathname === '/about' || pathname === '/resume') {
     containerClass = 'max-w-6xl'
   } else if (

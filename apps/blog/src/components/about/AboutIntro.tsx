@@ -1,5 +1,3 @@
-import {SiteConfig} from '@/config'
-
 export function AboutIntro() {
   return (
     <div className="pt-8 pb-8 xl:col-span-2">
@@ -23,13 +21,6 @@ export function AboutIntro() {
           <li>JavaScript·TypeScript 도구와 npm 패키지</li>
           <li>Linux Server와 컨테이너 운영</li>
         </ul>
-
-        <h2 id="contact">문의</h2>
-        <p>
-          <a href={`mailto:${SiteConfig.author.contacts.email}`}>
-            {SiteConfig.author.contacts.email}
-          </a>
-        </p>
       </div>
     </div>
   )
