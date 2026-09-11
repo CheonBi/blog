@@ -6,7 +6,7 @@ export const SiteConfig = {
   url: isDev ? 'http://localhost:3000' : 'https://cheonbi.kr',
   pathPrefix: '/',
   title: 'cheonbi',
-  subtitle: 'CODE. SYSTEM. With The Decisions Between.',
+  subtitle: 'CODE. SYSTEM. Under the Hood',
   copyright: 'cheonbi © All rights reserved.',
   disqusShortname: '',
   postsPerPage: 5,

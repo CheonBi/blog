@@ -39,6 +39,9 @@ dialog {
   --primary-2: #a78bfa; /* purple */
   --primary-3: #ec4899; /* pink */
   --accent: #14b8a6; /* teal */
+  --highlight: #4f46e5;
+  --highlight-2: #06b6d4;
+  --highlight-3: #facc15;
 
   --radius: 12px;
   --v-line: rgba(0, 0, 0, 0.05);
@@ -763,11 +766,40 @@ body[data-minimal="true"] .hero-title .accent {
     background-position: 100% 50%;
   }
 }
+@keyframes hero-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
 
 .hero-title .stroke {
   margin-left: 0.02em;
   font-weight: 700;
   color: var(--ink-4);
+}
+.hero-title .highlight {
+  padding-right: 0.04em;
+  background: linear-gradient(
+    110deg,
+    color-mix(in oklab, var(--highlight) 52%, var(--ink-2)) 0%,
+    color-mix(in oklab, var(--highlight-2) 58%, var(--ink-2)) 25%,
+    color-mix(in oklab, var(--highlight-3) 44%, var(--ink-2)) 50%,
+    color-mix(in oklab, var(--highlight-2) 58%, var(--ink-2)) 75%,
+    color-mix(in oklab, var(--highlight) 52%, var(--ink-2)) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-position: 0% 50%;
+  background-size: 200% 100%;
+  color: transparent;
+  animation: hero-flow 18s linear infinite;
+  .hero-title .ln:not(:last-child) {
+    margin-right: 0.22em;
+  }
 }
 .hero-sub {
   display: flex;
