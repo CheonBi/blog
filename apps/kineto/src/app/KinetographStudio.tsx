@@ -1,12 +1,20 @@
-export default function KinetographStudio() {
+import RailIndex from '@/components/RailIndex'
+
+type KinetographStudioProps = {
+  currentIndex?: number
+  totalIndex?: number
+}
+
+export default function KinetographStudio({
+  currentIndex = 1,
+  totalIndex = 4,
+}: KinetographStudioProps) {
   return (
     <>
       <header className="site-header">
-        <a className="wordmark" href="#top">
-          Kinetograph
-        </a>
+        <span className="wordmark">Kinetograph</span>
 
-        <p className="header-note">Independent video journal · Seoul</p>
+        <p className="header-note">Independent journal · Seoul</p>
 
         <nav aria-label="주요 메뉴">
           <a href="#archive">Archive</a>
@@ -17,12 +25,12 @@ export default function KinetographStudio() {
       </header>
 
       <aside className="side-rail" aria-label="저널 정보">
-        <p className="side-description">기억을 남기는 공간</p>
-        <div className="rail-line" aria-hidden="true" />
-        <p className="rail-index">
-          <span>01</span>
-          <span>04</span>
-        </p>
+        <div className="rail-axis">
+          <p className="side-description">기억을 남기는 공간</p>
+          <div className="rail-line" aria-hidden="true" />
+        </div>
+
+        <RailIndex current={currentIndex} total={totalIndex} />
       </aside>
     </>
   )

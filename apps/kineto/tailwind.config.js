@@ -189,13 +189,21 @@ const config = {
       },
       fontFamily: {
         sans: [
+          'Pretendard Variable',
           'Pretendard',
           'Inter',
           'ui-sans-serif',
           'system-ui',
           'sans-serif',
         ],
-        serif: ['Georgia', 'Times New Roman', 'ui-serif', 'serif'],
+        serif: [
+          'Pretendard Variable',
+          'Pretendard',
+          'Georgia',
+          'Times New Roman',
+          'ui-serif',
+          'serif',
+        ],
         mono: [
           'Geist Mono',
           'JetBrains Mono',

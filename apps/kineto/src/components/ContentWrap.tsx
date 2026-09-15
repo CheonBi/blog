@@ -5,9 +5,9 @@ export default function ContentWrap() {
       id="archive"
       aria-labelledby="stage-title"
     >
-      <h1 id="stage-title">지나가는 장면을 기록합니다</h1>
+      <h1 id="stage-title">지나가는 혹은 지나갔던 장면을 기록합니다</h1>
 
-      <p className="stage-season">Autumn journal / 2026</p>
+      <p className="stage-season">Life is a long journal / 1997.11.29 ~</p>
 
       <article className="journal-card journal-card-one">
         <span className="card-number" aria-hidden="true">
