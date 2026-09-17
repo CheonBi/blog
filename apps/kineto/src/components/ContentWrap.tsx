@@ -1,3 +1,7 @@
+import {pages, titles} from '@/utils/EmptyPages'
+
+import Contents from './Contents'
+
 export default function ContentWrap() {
   return (
     <section
@@ -5,11 +9,11 @@ export default function ContentWrap() {
       id="archive"
       aria-labelledby="stage-title"
     >
-      <h1 id="stage-title">지나가는 혹은 지나갔던 장면을 기록합니다</h1>
+      <p className="stage-season">2026.09.01 부터 시작된 기록들</p>
 
-      <p className="stage-season">Life is a long journal / 1997.11.29 ~</p>
+      <Contents pages={pages} titles={titles} />
 
-      <article className="journal-card journal-card-one">
+      {/* <article className="journal-card journal-card-one">
         <span className="card-number" aria-hidden="true">
           1
         </span>
@@ -40,7 +44,7 @@ export default function ContentWrap() {
         <div className="journal-media media-night">
           <span>Frame 003</span>
         </div>
-      </article>
+      </article> */}
 
       <div className="stage-progress" aria-label="첫 번째 화면">
         <span>01</span>

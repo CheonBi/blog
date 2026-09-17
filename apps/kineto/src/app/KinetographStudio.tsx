@@ -2,12 +2,12 @@ import RailIndex from '@/components/RailIndex'
 
 type KinetographStudioProps = {
   currentIndex?: number
-  totalIndex?: number
+  totalIndex: number
 }
 
 export default function KinetographStudio({
   currentIndex = 1,
-  totalIndex = 4,
+  totalIndex,
 }: KinetographStudioProps) {
   return (
     <>

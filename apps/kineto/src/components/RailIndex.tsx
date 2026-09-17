@@ -29,20 +29,29 @@ export default function RailIndex({
 
   useEffect(() => {
     let animationFrame = 0
+    const scrollRoot = document.querySelector<HTMLElement>('.journal-list')
+
+    if (!scrollRoot) {
+      return undefined
+    }
 
     const updateActiveIndex = () => {
       animationFrame = 0
 
       const pages = Array.from(
-        document.querySelectorAll<HTMLElement>('[data-kineto-page]'),
+        scrollRoot.querySelectorAll<HTMLElement>('[data-kineto-page]'),
       )
 
       if (pages.length === 0) {
         return
       }
 
-      const viewportAnchor = window.innerHeight * 0.45
+      const rootBounds = scrollRoot.getBoundingClientRect()
+      const viewportAnchor =
+        rootBounds.top + scrollRoot.clientTop + scrollRoot.clientHeight * 0.5
+
       let closestIndex: number | null = null
+
       let closestDistance = Number.POSITIVE_INFINITY
 
       pages.forEach((page, index) => {
@@ -57,14 +66,8 @@ export default function RailIndex({
           Number.isFinite(declaredIndex) && declaredIndex > 0
             ? declaredIndex
             : index + 1
-        const containsAnchor =
-          bounds.top <= viewportAnchor && bounds.bottom >= viewportAnchor
-        const distance = containsAnchor
-          ? 0
-          : Math.min(
-              Math.abs(bounds.top - viewportAnchor),
-              Math.abs(bounds.bottom - viewportAnchor),
-            )
+        const cardCenter = bounds.top + bounds.height / 2
+        const distance = Math.abs(cardCenter - viewportAnchor)
 
         if (closestIndex === null || distance < closestDistance) {
           closestDistance = distance
@@ -89,12 +92,12 @@ export default function RailIndex({
     }
 
     scheduleUpdate()
-    window.addEventListener('scroll', scheduleUpdate, {passive: true})
+    scrollRoot.addEventListener('scroll', scheduleUpdate, {passive: true})
     window.addEventListener('resize', scheduleUpdate)
 
     return () => {
       cancelAnimationFrame(animationFrame)
-      window.removeEventListener('scroll', scheduleUpdate)
+      scrollRoot.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
     }
   }, [safeTotal])

@@ -7,7 +7,7 @@ tags:
   - frontend
 published: true
 date: 2026-09-15 17:03:37
-description: 긴 페이지 목록을 5개 단위로 잘라 표시하고, 스크롤 위치에 맞춰 현재 번호와 표시 구간을 갱신하는 방법을 정리한다.
+description: 스크롤 위치를 페이지 번호로 바꾸는 일반적인 방법과 Kineto의 씬 단위 RailIndex 구현을 정리한다.
 ---
 
 ## Table Of Contents
@@ -52,6 +52,72 @@ CSS는 다섯 번호의 배치와 전환을 맡는다. 어떤 번호 다섯 개�
 
 ---
 
+## RailIndex는 두 계산을 연결한다
+
+RailIndex는 스크롤 진행률을 숫자로 바꾸는 컴포넌트가 아니다. 현재 화면을 대표하는 콘텐츠 단위를 먼저 고르고, 그 단위의 번호가 들어 있는 작은 목록만 렌더링한다.
+
+```text
+스크롤 위치
+  → 현재 콘텐츠 단위 찾기
+  → activeIndex 계산
+  → activeIndex가 속한 번호 묶음 계산
+  → 번호 목록과 active 스타일 렌더링
+```
+
+앞부분은 scroll spy에 가깝고, 뒷부분은 windowed pagination에 가깝다. 두 계산을 분리하면 스크롤 감지 방식을 바꿔도 번호 묶음 계산은 그대로 쓸 수 있다.
+
+### 일반적인 페이지 인덱스
+
+본문이 문서 흐름을 따라 이어지고 `<section>` 하나가 번호 하나에 대응한다면 `IntersectionObserver`로 충분하다. 컨테이너 중앙에 좁은 감지 영역을 만들고, 그 영역에 들어온 section의 번호를 상태에 넣는다.
+
+```tsx
+useEffect(() => {
+  const scrollRoot = document.querySelector<HTMLElement>('.content-list')
+  const sections = scrollRoot?.querySelectorAll<HTMLElement>('[data-page]')
+
+  if (!scrollRoot || !sections?.length) {
+    return
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const current = entries.find((entry) => entry.isIntersecting)
+
+      if (current) {
+        setActiveIndex(Number((current.target as HTMLElement).dataset.page))
+      }
+    },
+    {
+      root: scrollRoot,
+      rootMargin: '-45% 0px -45% 0px',
+      threshold: 0,
+    },
+  )
+
+  sections.forEach((section) => observer.observe(section))
+  return () => observer.disconnect()
+}, [])
+```
+
+브라우저가 교차 여부를 계산하므로 애플리케이션 코드에서 매 scroll 이벤트마다 모든 section의 좌표를 읽지 않아도 된다. 일정한 높이의 섹션이 차례대로 놓인 문서, 목차, 슬라이드형 페이지에 맞는다.
+
+### Kineto에서 바뀌는 기준
+
+Kineto는 저널 카드 다섯 개를 하나의 `journal-page` 씬에 배치한다. 카드들은 씬 안에서 서로 다른 높이와 위치를 가지며, 브라우저 창 대신 `.journal-list`가 스크롤된다. RailIndex의 번호 하나는 카드 하나가 아니라 씬 하나를 뜻한다.
+
+| 구분        | 일반적인 구현               | Kineto 구현                           |
+| ----------- | --------------------------- | ------------------------------------- |
+| 번호 단위   | section 또는 콘텐츠 한 개   | 저널 5개를 담은 씬 한 개              |
+| 스크롤 대상 | `window` 또는 일반 컨테이너 | 고정 화면 안의 `.journal-list`        |
+| 감지 방식   | `IntersectionObserver`      | 컨테이너 기준선과 씬 중앙의 거리 비교 |
+| DOM 표식    | `data-page={index + 1}`     | `data-kineto-page={sceneIndex + 1}`   |
+| 전체 개수   | 콘텐츠 배열의 길이          | `ceil(저널 수 / 5)`                   |
+| 갱신 제한   | 브라우저 observer           | `requestAnimationFrame`               |
+
+번호 단위와 `total`의 단위를 맞춰야 한다. 저널이 20개라면 Kineto의 씬과 RailIndex 번호는 각각 4개다. `total={20}`을 넘기면 스크롤할 수 없는 05–20 번호가 생긴다.
+
+---
+
 ## 필요한 상태를 세 개로 줄인다
 
 인덱스를 계산하려면 다음 값이 필요하다.
@@ -62,7 +128,7 @@ const activeIndex = 1
 const windowSize = 5
 ```
 
-`total`은 전체 페이지 수, `activeIndex`는 현재 페이지 번호다. `windowSize`는 한 번에 노출할 번호 개수다.
+`total`은 전체 인덱스 수, `activeIndex`는 현재 번호다. `windowSize`는 한 번에 노출할 번호 개수다. Kineto에서는 앞의 두 값이 모두 씬 단위를 사용한다.
 
 현재 묶음의 시작 번호는 다음 식으로 구한다.
 
@@ -120,49 +186,121 @@ function formatIndex(value: number) {
 
 ---
 
-## 스크롤 위치를 페이지 번호로 바꾼다
+## 내부 스크롤 위치를 페이지 번호로 바꾼다
 
-각 페이지의 루트 요소에 순서를 표시한다.
+Kineto는 먼저 저널 배열을 다섯 개씩 잘라 씬을 만든다. `data-kineto-page`는 개별 카드가 아닌 `.journal-page`에 붙인다.
 
 ```tsx
-{
-  pages.map((page, index) => (
-    <section key={page.id} data-kineto-page={index + 1}>
-      <PageContent page={page} />
-    </section>
-  ))
-}
+const JOURNALS_PER_SCENE = 5
+const scenes = chunk(pages, JOURNALS_PER_SCENE)
+
+return scenes.map((scene, sceneIndex) => (
+  <section
+    className="journal-page"
+    key={sceneIndex}
+    data-kineto-page={sceneIndex + 1}
+  >
+    {scene.map((page, slotIndex) => (
+      <JournalCard key={page.id} page={page} slot={slotIndex + 1} />
+    ))}
+  </section>
+))
 ```
 
-인덱스 컴포넌트는 `[data-kineto-page]` 요소를 찾고, 각 요소의 위치를 `getBoundingClientRect()`로 읽는다.
+배열의 `sceneIndex`는 0부터 시작하고 RailIndex는 1부터 시작한다. 여기서 `+ 1`을 빼면 네 개의 씬이 `0, 1, 2, 3`으로 표시된다. RailIndex는 0을 유효한 번호로 보지 않고 첫 번째 요소의 fallback 값인 1을 사용한다. 첫째 씬과 둘째 씬이 모두 1이 되어 active 번호가 `01–03`까지만 움직이는 버그가 생긴다.
 
-뷰포트 정중앙보다 조금 위인 45% 지점을 기준선으로 사용했다.
+처음 구현은 브라우저 창을 스크롤했다. 기준선도 `window.innerHeight`로 계산했다.
 
 ```ts
 const viewportAnchor = window.innerHeight * 0.45
 ```
 
-기준선이 페이지의 위쪽과 아래쪽 사이에 들어오면 그 페이지를 현재 페이지로 정한다.
+화면을 고정하고 `.journal-list`만 스크롤하도록 레이아웃을 바꾸자 이 계산이 틀어졌다. 브라우저 창의 높이에는 헤더와 여백도 포함된다. 씬이 실제로 지나가는 영역은 `.journal-list` 안쪽뿐이다.
+
+스크롤 컨테이너와 씬을 같은 좌표계에서 비교해야 한다. 먼저 컨테이너를 찾고 씬 조회 범위도 그 안으로 좁힌다.
 
 ```ts
-const bounds = page.getBoundingClientRect()
+const scrollRoot = document.querySelector<HTMLElement>('.journal-list')
 
-const containsAnchor =
-  bounds.top <= viewportAnchor && bounds.bottom >= viewportAnchor
+if (!scrollRoot) {
+  return
+}
+
+const sceneElements = Array.from(
+  scrollRoot.querySelectorAll<HTMLElement>('[data-kineto-page]'),
+)
 ```
 
-페이지 사이에 여백이 있어 기준선과 겹치는 요소가 없다면, 기준선에서 가장 가까운 페이지를 고른다.
+`getBoundingClientRect()`는 요소 위치를 브라우저 viewport 좌표로 반환한다. 컨테이너의 `top`과 씬의 `top`도 같은 원점을 사용한다.
+
+```text
+브라우저 viewport의 top: 0
+
+┌─ journal-list: rootBounds.top
+│
+│       기준선: rootBounds.top + clientTop + clientHeight × 0.5
+│
+└─ journal-list의 bottom
+```
+
+컨테이너 안쪽 높이의 50%를 기준선으로 잡는다.
 
 ```ts
-const distance = containsAnchor
-  ? 0
-  : Math.min(
-      Math.abs(bounds.top - viewportAnchor),
-      Math.abs(bounds.bottom - viewportAnchor),
-    )
+const rootBounds = scrollRoot.getBoundingClientRect()
+const viewportAnchor =
+  rootBounds.top + scrollRoot.clientTop + scrollRoot.clientHeight * 0.5
 ```
 
-화면의 50% 대신 45%를 사용한 이유는 사용자가 아래로 읽을 때 다음 콘텐츠를 조금 일찍 현재 항목으로 인식하기 때문이다. 카드 높이와 상단 헤더 크기에 따라 40%에서 55% 사이의 값을 직접 조정하면 된다.
+`clientTop`은 위쪽 테두리 두께다. 현재 디자인에는 테두리가 없어 값이 0이지만, 기준선을 컨테이너의 실제 내용 영역에서 계산하려고 식에 포함했다.
+
+여기에는 `scrollRoot.scrollTop`을 더하지 않는다. `scrollTop`은 스크롤 콘텐츠 내부 좌표이고 `getBoundingClientRect()`는 viewport 좌표다. 둘을 섞으면 스크롤한 거리를 두 번 반영한다.
+
+### Kineto에서는 씬 중앙점을 비교한다
+
+각 씬 안의 카드는 자유롭게 배치되지만 RailIndex는 카드 위치를 읽지 않는다. `.journal-page`의 중앙과 컨테이너 기준선 사이의 거리를 비교한다. 카드 배치를 바꿔도 씬 번호가 바뀌는 지점은 유지된다.
+
+```ts
+const bounds = sceneElement.getBoundingClientRect()
+const sceneCenter = bounds.top + bounds.height / 2
+const distance = Math.abs(sceneCenter - viewportAnchor)
+```
+
+모든 씬의 `distance`를 비교해서 가장 가까운 씬 번호를 현재 페이지로 사용한다.
+
+```ts
+let closestIndex: number | null = null
+let closestDistance = Number.POSITIVE_INFINITY
+
+sceneElements.forEach((sceneElement, index) => {
+  const bounds = sceneElement.getBoundingClientRect()
+
+  if (bounds.height === 0) {
+    return
+  }
+
+  const declaredIndex = Number(sceneElement.dataset.kinetoPage)
+  const pageIndex =
+    Number.isFinite(declaredIndex) && declaredIndex > 0
+      ? declaredIndex
+      : index + 1
+
+  const sceneCenter = bounds.top + bounds.height / 2
+  const distance = Math.abs(sceneCenter - viewportAnchor)
+
+  if (distance < closestDistance) {
+    closestDistance = distance
+    closestIndex = Math.min(total, Math.trunc(pageIndex))
+  }
+})
+```
+
+기준선을 위아래로 옮기고 싶다면 마지막 비율만 조정한다.
+
+- `0.35`: 씬이 위쪽에 도달했을 때 번호가 바뀐다.
+- `0.5`: 컨테이너 중앙에서 번호가 바뀐다.
+- `0.65`: 다음 씬이 아래쪽에 들어올 때 번호가 바뀐다.
+
+현재 레이아웃은 `0.5`를 사용한다. 카드 크기나 간격을 바꿔도 기준선은 `.journal-list` 중앙에 남는다.
 
 ### scroll 이벤트를 프레임당 한 번만 처리하기
 
@@ -173,13 +311,19 @@ const distance = containsAnchor
 ```ts
 useEffect(() => {
   let animationFrame = 0
+  const scrollRoot = document.querySelector<HTMLElement>('.journal-list')
+
+  if (!scrollRoot) {
+    return
+  }
 
   const updateActiveIndex = () => {
     animationFrame = 0
 
-    const pages = document.querySelectorAll<HTMLElement>('[data-kineto-page]')
+    const sceneElements =
+      scrollRoot.querySelectorAll<HTMLElement>('[data-kineto-page]')
 
-    // 기준선과 가장 가까운 페이지를 찾아 activeIndex를 갱신한다.
+    // 기준선과 가장 가까운 씬을 찾아 activeIndex를 갱신한다.
   }
 
   const scheduleUpdate = () => {
@@ -189,18 +333,18 @@ useEffect(() => {
   }
 
   scheduleUpdate()
-  window.addEventListener('scroll', scheduleUpdate, {passive: true})
+  scrollRoot.addEventListener('scroll', scheduleUpdate, {passive: true})
   window.addEventListener('resize', scheduleUpdate)
 
   return () => {
     cancelAnimationFrame(animationFrame)
-    window.removeEventListener('scroll', scheduleUpdate)
+    scrollRoot.removeEventListener('scroll', scheduleUpdate)
     window.removeEventListener('resize', scheduleUpdate)
   }
 }, [total])
 ```
 
-`passive: true`는 이 이벤트 핸들러가 스크롤을 취소하지 않는다는 사실을 브라우저에 알려준다. cleanup에서는 예약한 프레임과 이벤트 리스너를 함께 제거한다.
+스크롤 이벤트는 실제로 스크롤되는 `.journal-list`에서 받아야 한다. `scroll` 이벤트는 `window`까지 버블링되지 않는다. `passive: true`는 핸들러가 스크롤을 취소하지 않는다는 사실을 브라우저에 알려준다. cleanup에서는 예약한 프레임과 이벤트 리스너를 함께 제거한다.
 
 상태도 값이 달라질 때만 갱신한다.
 
@@ -252,6 +396,18 @@ setObservedIndex((previousIndex) =>
 ```
 
 1번에서 5번까지 움직이는 동안 `windowStart`는 계속 1이다. `<ol>`도 유지되며 각 `<li>`의 active 클래스만 이동한다.
+
+번호 목록은 시각적인 위치 표시이므로 스크린 리더가 번호를 하나씩 읽지 않게 `aria-hidden`을 붙인다. 현재 위치는 화면 밖 status 요소로 따로 전달한다.
+
+```tsx
+<ol className="rail-index-list" aria-hidden="true">
+  {/* 화면에 보이는 번호 목록 */}
+</ol>
+
+<span className="rail-index-status" aria-live="polite" aria-atomic="true">
+  {activeIndex} / {safeTotal} 페이지
+</span>
+```
 
 ---
 
@@ -356,30 +512,38 @@ aside는 축과 인덱스라는 두 영역만 배치하면 된다. 이 배치는
 
 ## Next.js에서는 클라이언트 경계를 작게 둔다
 
-페이지 목록과 전체 개수는 서버에서 만들 수 있다. 스크롤 위치는 `window`와 DOM이 생긴 뒤에만 알 수 있으므로 인덱스 컴포넌트에 `'use client'`를 선언한다.
+저널 목록과 씬 개수는 서버에서 계산할 수 있다. 스크롤 위치는 DOM이 생긴 뒤에만 알 수 있으므로 `RailIndex`에만 `'use client'`를 선언한다.
 
 ```tsx
 // Server Component
-export default async function ArchivePage() {
-  const pages = await getPages()
+export default function Home() {
+  const totalIndex = Math.ceil(pages.length / JOURNALS_PER_SCENE)
 
   return (
-    <main>
-      <KinetographStudio currentIndex={1} totalIndex={pages.length} />
-
-      {pages.map((page, index) => (
-        <section key={page.id} data-kineto-page={index + 1}>
-          <PageContent page={page} />
-        </section>
-      ))}
+    <main className="journal-shell">
+      <KinetographStudio currentIndex={1} totalIndex={totalIndex} />
+      <ContentWrap />
     </main>
   )
 }
 ```
 
-`KinetographStudio` 전체를 클라이언트 컴포넌트로 바꿀 필요는 없다. 상태와 스크롤 이벤트가 필요한 `RailIndex`만 클라이언트에서 실행한다. 서버는 페이지 데이터와 초기 인덱스를 props로 전달한다.
+`totalIndex`에는 저널 수가 아니라 씬 수를 넣는다. 개발 중에 100, 347 같은 값을 넣어 번호 묶음의 경계를 시험할 수 있지만, 실제 데이터와 연결할 때는 `Math.ceil(pages.length / JOURNALS_PER_SCENE)` 또는 `scenes.length`를 사용해야 한다.
+
+`currentIndex`는 DOM을 측정하기 전의 초기값이다. `RailIndex`가 `.journal-list`를 찾고 첫 측정을 마치면 `observedIndex`가 이 값을 대신한다. 서버가 URL이나 저장된 위치에서 시작 번호를 알고 있다면 그 값을 `currentIndex`로 전달할 수 있다.
+
+`KinetographStudio` 전체를 클라이언트 컴포넌트로 바꿀 필요는 없다. 상태와 scroll listener가 필요한 `RailIndex`만 클라이언트에서 실행하고, 서버 컴포넌트는 저널 데이터와 씬 개수를 전달한다.
 
 Next.js 라우트나 별도 스크롤 컨테이너가 현재 페이지 상태를 이미 관리한다면 DOM 위치를 다시 측정하지 않아도 된다. 그 상태를 `current` prop으로 넘기고, `visibleIndices` 계산만 재사용하면 된다.
+
+### 다른 프로젝트에 적용하는 순서
+
+1. 번호 하나가 무엇을 뜻하는지 정한다. section, 슬라이드, Kineto의 씬처럼 DOM 요소 하나와 대응해야 한다.
+2. 대상 요소에 1부터 시작하는 `data-*` 번호를 붙인다.
+3. 실제 스크롤 컨테이너를 `root`로 잡는다. 내부 스크롤이면 `window`를 사용하지 않는다.
+4. 일반 문서 흐름에는 `IntersectionObserver`, 정확한 기준선이 필요한 레이아웃에는 좌표 비교를 사용한다.
+5. `total`, `activeIndex`, DOM의 `data-*` 값이 같은 단위를 쓰는지 확인한다.
+6. 마지막으로 window 계산과 CSS active 스타일을 붙인다.
 
 ---
 
@@ -405,6 +569,15 @@ Next.js 라우트나 별도 스크롤 컨테이너가 현재 페이지 상태를
 <KinetographStudio currentIndex={6} totalIndex={347} />
 ```
 
-스크롤 동작을 확인할 때는 페이지 요소에 `data-kineto-page`가 빠지지 않았는지 먼저 본다. 각 페이지의 높이가 0이면 위치 계산에서 제외해야 한다. 마지막으로 모바일에서 세로 목록이 가로 목록으로 바뀌는지, 동작 줄이기 설정에서 전환이 멈추는지 확인한다.
+현재 Kineto의 임시 데이터는 저널 20개를 씬당 5개씩 나눈다. 실제 연결값은 다음과 같다.
+
+| 값                   | 결과           |
+| -------------------- | -------------- |
+| 저널 수              | 20             |
+| 씬 수와 `totalIndex` | 4              |
+| `data-kineto-page`   | 1, 2, 3, 4     |
+| RailIndex 표시       | 01, 02, 03, 04 |
+
+스크롤 동작을 확인할 때는 씬 요소에 `data-kineto-page`가 빠지지 않았는지 본다. 각 씬의 높이가 0이면 위치 계산에서 제외해야 한다. 모바일에서는 세로 목록이 가로 목록으로 바뀌는지, 동작 줄이기 설정에서는 전환이 멈추는지도 확인한다.
 
 페이지 수가 커져도 인덱스가 처리하는 핵심 값은 현재 번호와 다섯 개짜리 배열이다. 전체 데이터 크기는 표시 영역의 DOM 크기를 바꾸지 않는다.
