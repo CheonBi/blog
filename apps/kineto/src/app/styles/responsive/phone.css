@@ -1,0 +1,246 @@
+/* Phone and compact phone landscape */
+@media (max-width: 640px),
+  (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+  :root {
+    --page-gutter: 18px;
+    --header-height: 82px;
+  }
+
+  .journal-shell {
+    display: grid;
+    grid-template-rows: var(--header-height) 42px minmax(0, 1fr);
+    grid-template-columns: 1fr;
+    height: 100svh;
+    min-height: 0;
+    padding-right: var(--page-gutter);
+    padding-bottom: 32px;
+    padding-left: var(--page-gutter);
+    overflow: hidden;
+  }
+
+  .site-header {
+    grid-row: 1;
+    grid-column: 1;
+    grid-template-columns: 1fr auto;
+  }
+
+  .header-note {
+    display: none;
+  }
+
+  .wordmark {
+    font-size: 1rem;
+  }
+
+  .site-header nav {
+    gap: 18px;
+  }
+
+  .site-header nav a {
+    font-size: 0.58rem;
+  }
+
+  .side-rail {
+    display: flex;
+    grid-row: 2;
+    grid-column: 1;
+    flex-direction: row;
+    align-items: start;
+    width: 100%;
+    padding: 0 0 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .rail-axis {
+    flex-direction: row;
+  }
+
+  .side-description {
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
+    writing-mode: horizontal-tb;
+  }
+
+  .rail-line {
+    width: min(30vw, 120px);
+    height: 1px;
+    margin: 3px 0 0 20px;
+  }
+
+  .rail-index {
+    flex: none;
+    width: auto;
+    margin-top: 0;
+  }
+
+  .rail-index-list {
+    display: flex;
+    gap: 10px;
+  }
+
+  .journal-stage {
+    display: block;
+    grid-row: 3;
+    grid-column: 1;
+    height: 100%;
+    min-height: 0;
+    padding: 56px 0 10px;
+    overflow-x: clip;
+    overflow-y: hidden;
+  }
+
+  .stage-title {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    flex: 0 0 auto;
+    width: min(82%, 400px);
+    font-size: clamp(2rem, 9.5vw, 3.4rem);
+    transform: none;
+  }
+
+  .stage-title[data-slot] {
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: min(82%, 400px);
+  }
+
+  .stage-title[data-slot="1"],
+  .stage-title[data-slot="3"],
+  .stage-title[data-slot="5"] {
+    margin-right: clamp(12px, 4vw, 20px);
+    margin-left: auto;
+    text-align: left;
+  }
+
+  .stage-title[data-slot="2"],
+  .stage-title[data-slot="4"] {
+    margin-right: auto;
+    margin-left: clamp(12px, 4vw, 20px);
+    text-align: right;
+  }
+
+  .stage-season {
+    top: 34px;
+    right: 0;
+    font-size: 0.44rem;
+  }
+
+  .journal-page {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(72px, 18vw, 96px);
+    height: auto;
+    min-height: 0;
+    padding-bottom: 112px;
+    overflow: visible;
+  }
+
+  .journal-page:first-child {
+    padding-top: clamp(48px, 14vw, 76px);
+  }
+
+  .stage-title[data-slot="1"] {
+    order: 1;
+  }
+
+  .journal-card[data-slot="1"] {
+    order: 2;
+  }
+
+  .stage-title[data-slot="2"] {
+    order: 3;
+  }
+
+  .journal-card[data-slot="2"] {
+    order: 4;
+  }
+
+  .stage-title[data-slot="3"] {
+    order: 5;
+  }
+
+  .journal-card[data-slot="3"] {
+    order: 6;
+  }
+
+  .stage-title[data-slot="4"] {
+    order: 7;
+  }
+
+  .journal-card[data-slot="4"] {
+    order: 8;
+  }
+
+  .stage-title[data-slot="5"] {
+    order: 9;
+  }
+
+  .journal-card[data-slot="5"] {
+    order: 10;
+  }
+
+  .journal-card[data-slot] {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: min(82%, 430px);
+  }
+
+  .journal-card[data-slot="1"],
+  .journal-card[data-slot="3"],
+  .journal-card[data-slot="5"] {
+    margin-right: auto;
+  }
+
+  .journal-card[data-slot="2"],
+  .journal-card[data-slot="4"] {
+    margin-left: auto;
+  }
+
+  .journal-card[data-slot="2"] .card-caption,
+  .journal-card[data-slot="4"] .card-caption {
+    right: auto;
+    left: 0;
+    text-align: right;
+  }
+
+  .card-number {
+    top: -17px;
+    left: 8px;
+    font-size: 1.55rem;
+  }
+
+  .card-caption {
+    top: calc(100% + 10px);
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+
+  .card-caption h2 {
+    font-size: 0.58rem;
+  }
+
+  .card-caption p {
+    font-size: 0.42rem;
+    line-height: 1.5;
+  }
+
+  .card-caption-vertical {
+    top: 70%;
+    left: -21px;
+    width: auto;
+  }
+
+  .stage-progress {
+    display: none;
+  }
+}

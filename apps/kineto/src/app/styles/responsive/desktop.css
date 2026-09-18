@@ -1,0 +1,31 @@
+/* Short tablet and desktop viewport */
+@media (min-width: 641px) and (max-height: 700px) {
+  :root {
+    --header-height: 76px;
+  }
+
+  .journal-shell {
+    padding-bottom: 18px;
+  }
+
+  .side-rail {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .rail-line {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Wide desktop */
+@media (min-width: 1440px) {
+  .journal-page {
+    height: clamp(1280px, 160svh, 1600px);
+  }
+
+  .stage-title {
+    max-width: 560px;
+  }
+}

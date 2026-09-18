@@ -1,0 +1,80 @@
+/* Small phone */
+@media (max-width: 420px) {
+  :root {
+    --page-gutter: 14px;
+    --header-height: 74px;
+  }
+
+  .site-header nav {
+    gap: 12px;
+  }
+
+  .journal-stage {
+    padding-top: 50px;
+  }
+
+  .journal-page {
+    gap: 64px;
+    padding-bottom: 92px;
+  }
+
+  .journal-page:first-child {
+    padding-top: 44px;
+  }
+
+  .stage-title[data-slot] {
+    width: 88%;
+    font-size: clamp(1.9rem, 10vw, 2.55rem);
+  }
+
+  .journal-card[data-slot] {
+    width: 86%;
+  }
+
+  .side-description {
+    font-size: 0.5rem;
+  }
+
+  .rail-line {
+    width: min(24vw, 86px);
+    margin-left: 12px;
+  }
+}
+
+/* Phone landscape */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+  :root {
+    --header-height: 62px;
+  }
+
+  .journal-shell {
+    grid-template-rows: var(--header-height) 34px minmax(0, 1fr);
+    padding-bottom: 16px;
+  }
+
+  .side-rail {
+    padding-bottom: 8px;
+  }
+
+  .journal-stage {
+    padding-top: 24px;
+  }
+
+  .journal-page {
+    gap: 44px;
+    padding-bottom: 80px;
+  }
+
+  .journal-page:first-child {
+    padding-top: 24px;
+  }
+
+  .stage-title[data-slot] {
+    width: 70%;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+  }
+
+  .journal-card[data-slot] {
+    width: min(64%, 430px);
+  }
+}

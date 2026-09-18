@@ -201,10 +201,6 @@ h2 {
   min-height: 0;
 }
 
-.journal-stage::-webkit-scrollbar {
-  display: none;
-}
-
 .stage-title {
   position: absolute;
   z-index: 0;
@@ -269,6 +265,8 @@ h2 {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
@@ -283,6 +281,10 @@ h2 {
     #000 calc(100% - clamp(20px, 4vh, 44px)),
     transparent 100%
   );
+}
+
+.journal-list::-webkit-scrollbar {
+  display: none;
 }
 
 .journal-page {
@@ -301,6 +303,7 @@ h2 {
   letter-spacing: 0.07em;
   writing-mode: vertical-rl;
   text-orientation: upright;
+  pointer-events: none;
 }
 
 .journal-card {

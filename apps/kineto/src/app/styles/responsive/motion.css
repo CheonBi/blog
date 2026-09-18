@@ -1,0 +1,20 @@
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .rail-index-list,
+  .rail-index-list li {
+    transition: none;
+    animation: none;
+  }
+
+  .stage-title,
+  .journal-card {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    animation: none;
+  }
+}

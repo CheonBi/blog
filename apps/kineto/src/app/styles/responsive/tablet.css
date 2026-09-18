@@ -1,0 +1,132 @@
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1023px) {
+  :root {
+    --page-gutter: clamp(20px, 3vw, 32px);
+    --rail-width: 54px;
+  }
+
+  .site-header {
+    grid-template-columns: max-content 1fr;
+  }
+
+  .header-note {
+    display: none;
+  }
+
+  .site-header nav {
+    grid-column: 2;
+    justify-self: end;
+    gap: clamp(18px, 3vw, 30px);
+  }
+
+  .journal-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(52px, 8vw, 92px);
+    row-gap: clamp(84px, 11vw, 128px);
+    align-items: center;
+    height: auto;
+    min-height: 0;
+    padding: clamp(80px, 11vh, 120px) 2% clamp(112px, 15vh, 160px);
+    overflow: visible;
+  }
+
+  .stage-title[data-slot] {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+  }
+
+  .stage-title[data-slot="1"],
+  .stage-title[data-slot="3"],
+  .stage-title[data-slot="5"] {
+    grid-column: 2;
+    justify-self: end;
+    text-align: left;
+  }
+
+  .stage-title[data-slot="2"],
+  .stage-title[data-slot="4"] {
+    grid-column: 1;
+    justify-self: start;
+    text-align: right;
+  }
+
+  .journal-card[data-slot="1"],
+  .journal-card[data-slot="3"],
+  .journal-card[data-slot="5"] {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .journal-card[data-slot="2"],
+  .journal-card[data-slot="4"] {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .journal-card[data-slot] {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: min(100%, 380px);
+    margin: 0;
+  }
+
+  .stage-title[data-slot="1"],
+  .journal-card[data-slot="1"] {
+    grid-row: 1;
+  }
+
+  .stage-title[data-slot="2"],
+  .journal-card[data-slot="2"] {
+    grid-row: 2;
+  }
+
+  .stage-title[data-slot="3"],
+  .journal-card[data-slot="3"] {
+    grid-row: 3;
+  }
+
+  .stage-title[data-slot="4"],
+  .journal-card[data-slot="4"] {
+    grid-row: 4;
+  }
+
+  .stage-title[data-slot="5"],
+  .journal-card[data-slot="5"] {
+    grid-row: 5;
+  }
+
+  .card-caption,
+  .journal-card[data-slot="2"] .card-caption,
+  .journal-card[data-slot="4"] .card-caption {
+    top: calc(100% + 12px);
+    right: auto;
+    left: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .journal-card[data-slot="2"] .card-caption,
+  .journal-card[data-slot="4"] .card-caption {
+    text-align: right;
+  }
+
+  .stage-season {
+    top: 28px;
+    right: 0;
+    font-size: 0.64rem;
+  }
+
+  .stage-progress {
+    display: none;
+  }
+}
