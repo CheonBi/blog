@@ -248,6 +248,8 @@ h2 {
 .stage-title {
   --title-entry-x: 72px;
   --title-exit-x: -24px;
+  --title-edge-x: 1px;
+  --title-depth-x: 2px;
 
   position: absolute;
   z-index: 0;
@@ -262,6 +264,11 @@ h2 {
   letter-spacing: -0.045em;
   line-height: 1.06;
   pointer-events: none;
+  text-shadow:
+    -0.5px -0.5px 0 color-mix(in srgb, var(--paper) 76%, transparent),
+    var(--title-edge-x) 1px 0 rgb(95 49 63 / 0.2),
+    var(--title-depth-x) 3px 0 rgb(95 49 63 / 0.1),
+    var(--title-depth-x) 9px 16px rgb(18 23 25 / 0.1);
   text-wrap: balance;
   word-break: keep-all;
 
@@ -276,6 +283,8 @@ h2 {
 .stage-title[data-slot="2"] {
   --title-entry-x: -72px;
   --title-exit-x: 24px;
+  --title-edge-x: -1px;
+  --title-depth-x: -2px;
 
   top: 29%;
   left: 5%;
@@ -290,6 +299,8 @@ h2 {
 .stage-title[data-slot="4"] {
   --title-entry-x: -72px;
   --title-exit-x: 24px;
+  --title-edge-x: -1px;
+  --title-depth-x: -2px;
 
   top: 63%;
   left: 4%;
