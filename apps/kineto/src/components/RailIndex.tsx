@@ -35,8 +35,19 @@ export default function RailIndex({
       return undefined
     }
 
+    const shell = scrollRoot.closest<HTMLElement>('.journal-shell')
+
     const updateActiveIndex = () => {
       animationFrame = 0
+
+      const scrollRange = scrollRoot.scrollHeight - scrollRoot.clientHeight
+      const scrollProgress =
+        scrollRange > 0 ? scrollRoot.scrollTop / scrollRange : 0
+
+      shell?.style.setProperty(
+        '--scroll-progress',
+        Math.min(1, Math.max(0, scrollProgress)).toFixed(4),
+      )
 
       const pages = Array.from(
         scrollRoot.querySelectorAll<HTMLElement>('[data-kineto-page]'),
@@ -99,6 +110,7 @@ export default function RailIndex({
       cancelAnimationFrame(animationFrame)
       scrollRoot.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
+      shell?.style.removeProperty('--scroll-progress')
     }
   }, [safeTotal])
 

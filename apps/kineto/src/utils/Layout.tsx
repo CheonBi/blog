@@ -3,11 +3,24 @@ type journalIndex = {
   slotIndex: number
 }
 
-const MEDIA_CLASSES = ['media-river', 'media-night', 'media-rain'] as const
+const MEDIA_ASSETS = [
+  {
+    className: 'media-river',
+    src: '/images/journal/river-seoul.png',
+  },
+  {
+    className: 'media-night',
+    src: '/images/journal/night-seoul.png',
+  },
+  {
+    className: 'media-rain',
+    src: '/images/journal/rain-seoul.png',
+  },
+] as const
 
 export const JOURNALS_PER_SCENE = 5
 
-export function getMediaClass(seed: number) {
+export function getMedia(seed: number) {
   const normalizedSeed = Math.abs(Math.trunc(seed))
   let mixedSeed = normalizedSeed
 
@@ -15,7 +28,11 @@ export function getMediaClass(seed: number) {
   mixedSeed = Math.imul(mixedSeed ^ (mixedSeed >>> 16), 0x45d9f3b)
   mixedSeed ^= mixedSeed >>> 16
 
-  return MEDIA_CLASSES[(mixedSeed >>> 0) % MEDIA_CLASSES.length]
+  return MEDIA_ASSETS[(mixedSeed >>> 0) % MEDIA_ASSETS.length]
+}
+
+export function getMediaClass(seed: number) {
+  return getMedia(seed).className
 }
 
 export function getJournalLayoutIndex(index: number): journalIndex {

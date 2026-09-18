@@ -1,5 +1,7 @@
+import Image from 'next/image'
+
 import type {ContentProps} from '@/type'
-import {chunk, getMediaClass, JOURNALS_PER_SCENE} from '@/utils/Layout'
+import {chunk, getMedia, JOURNALS_PER_SCENE} from '@/utils/Layout'
 
 export default function Contents({pages, titles}: ContentProps) {
   const scenes = chunk(pages, JOURNALS_PER_SCENE)
@@ -24,26 +26,36 @@ export default function Contents({pages, titles}: ContentProps) {
               </h1>
             ))}
 
-          {scene.map((page, slotIndex) => (
-            <article
-              className="journal-card"
-              data-slot={slotIndex + 1}
-              key={page.id}
-            >
-              <span className="card-number" aria-hidden="true">
-                {page.id}
-              </span>
-              <div
-                className={`journal-media ${getMediaClass(page.id)}`}
-                aria-hidden="true"
+          {scene.map((page, slotIndex) => {
+            const media = getMedia(page.id)
+
+            return (
+              <article
+                className="journal-card"
+                data-slot={slotIndex + 1}
+                key={page.id}
               >
-                <span>Frame {page.id}</span>
-              </div>
-              <div className="card-caption">
-                <h2>{page.title}</h2>
-              </div>
-            </article>
-          ))}
+                <span className="card-number" aria-hidden="true">
+                  {page.id}
+                </span>
+                <div
+                  className={`journal-media ${media.className}`}
+                  aria-hidden="true"
+                >
+                  <Image
+                    src={media.src}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 82vw, (max-width: 1023px) 45vw, 31vw"
+                  />
+                  <span>Frame {page.id}</span>
+                </div>
+                <div className="card-caption">
+                  <h2>{page.title}</h2>
+                </div>
+              </article>
+            )
+          })}
         </section>
       ))}
     </div>

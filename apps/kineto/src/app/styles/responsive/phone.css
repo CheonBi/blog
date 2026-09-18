@@ -68,6 +68,17 @@
     margin: 3px 0 0 20px;
   }
 
+  .side-rail::after {
+    top: auto;
+    right: auto;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: scaleX(var(--scroll-progress));
+    transform-origin: left;
+  }
+
   .rail-index {
     flex: none;
     width: auto;

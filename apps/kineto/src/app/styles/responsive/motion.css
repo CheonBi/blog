@@ -5,7 +5,19 @@
   }
 
   .rail-index-list,
-  .rail-index-list li {
+  .rail-index-list li,
+  .wordmark,
+  .header-note,
+  .site-header nav,
+  .side-description,
+  .side-rail::after,
+  .journal-media,
+  .journal-media::before,
+  .journal-media::after,
+  .journal-media > img,
+  .journal-media > span,
+  .card-number,
+  .card-caption {
     transition: none;
     animation: none;
   }

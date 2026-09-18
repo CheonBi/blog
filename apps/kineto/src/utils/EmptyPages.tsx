@@ -23,9 +23,32 @@ const titles: string[] = [
   '그때는 몰랐던 소중함',
 ]
 
+const journalTitles: string[] = [
+  '비 온 뒤, 서울',
+  '한강의 느린 오후',
+  '막차를 기다리는 사람들',
+  '여름이 지나간 자리',
+  '창문 너머의 불빛',
+  '오래된 골목에서 발견한 것들',
+  '새벽 네 시의 편의점',
+  '아무 일도 없었던 하루',
+  '흐린 날의 산책 기록',
+  '서랍 속에 남은 필름 한 롤',
+  '성북동의 늦은 오후',
+  '강 건너 불빛이 켜질 때',
+  '우리가 자주 걷던 길',
+  '비어 있는 정류장',
+  '아주 사소한 장면에 관하여',
+  '9월의 마지막 주말',
+  '낮과 밤 사이의 푸른 시간',
+  '돌아오지 않는 계절을 찍는 일',
+  '천천히 사라지는 풍경',
+  '다시 만나게 될 순간들',
+]
+
 const pages: JournalPage[] = Array.from({length: 20}, (_, index) => ({
   id: index + 1,
-  title: `Journal ${String(index + 1).padStart(2, '0')}`,
+  title: journalTitles[index],
 }))
 
 export {pages, titles}
