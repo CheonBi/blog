@@ -1,7 +1,7 @@
 import {MDXRemote} from 'next-mdx-remote-client/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
-import prism from 'rehype-prism-plus'
+import prism from 'rehype-prism-plus/common'
 import rehypeSlug from 'rehype-slug'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkGfm from 'remark-gfm'
@@ -31,7 +31,7 @@ export function PostArticle({body, path}: {body: string; path: string}) {
                 rehypeKatex,
                 rehypeSlug,
                 extractCodeFilename,
-                [prism, {showLineNumbers: true}],
+                [prism, {ignoreMissing: true, showLineNumbers: true}],
                 parseCodeSnippet,
                 rehypeAutolinkHeadings,
                 [imageMetadataPlugin, {path}],
