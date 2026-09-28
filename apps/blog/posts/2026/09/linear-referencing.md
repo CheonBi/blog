@@ -8,11 +8,15 @@ tags:
 published: true
 date: 2026-09-03 09:30:00
 description: 선형 센서가 보내는 누적거리를 지도 좌표로 바꾸는 데이터 모델과 계산 과정을 정리한다.
-series: 센서에서 관제 화면까지
-seriesOrder: 1
+series: 거리값을 위치로 해석하는 법
+seriesOrder: 2
 ---
 
 ## Table Of Contents
+
+> 이전 글: [원본과 계산 결과를 나눠 두는 이유](/2026/09/event-distance-to-mms-series/01-event-ingest-and-trigger)<br />
+> 다음 글: [보간식보다 기준점을 먼저 고른다](/2026/09/event-distance-to-mms-series/02-distance-to-coordinate)<br />
+> 시리즈: [거리값을 위치로 해석하는 법](/series/event-distance-to-mms)
 
 ## 센서가 "1,300m" 라고만 말할 때, 지도에 점을 찍는 법
 

@@ -114,6 +114,11 @@ const config: NextConfig = {
         permanent: true,
       },
       {
+        source: '/series/control-room-dispatch',
+        destination: '/series/event-distance-to-mms',
+        permanent: true,
+      },
+      {
         source: '/',
         has: [{type: 'query', key: 'page', value: '(?<no>\\d+)'}],
         destination: '/pages/:no',

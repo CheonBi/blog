@@ -8,11 +8,15 @@ tags:
 published: true
 date: 2026-09-18
 description: 이름으로 추론하던 노드 종류를 외래키로 옮기고, 실행계획과 버퍼를 비교하며 잘못된 가정과 소프트 삭제 버그를 바로잡은 과정을 기록한다.
-series: 센서에서 관제 화면까지
-seriesOrder: 2
+series: 거리값을 위치로 해석하는 법
+seriesOrder: 4
 ---
 
 ## Table Of Contents
+
+> 이전 글: [보간식보다 기준점을 먼저 고른다](/2026/09/event-distance-to-mms-series/02-distance-to-coordinate)<br />
+> 다음 글: [위치 결과 하나로 그림과 문장을 만든다](/2026/09/event-distance-to-mms-series/03-map-image-and-message)<br />
+> 시리즈: [거리값을 위치로 해석하는 법](/series/event-distance-to-mms)
 
 ## 짐작하는 쿼리를 걷어내다: 실행계획이 가정을 뒤집은 과정
 
