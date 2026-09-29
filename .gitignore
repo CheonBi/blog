@@ -61,6 +61,10 @@ CLAUDE.md
 .agents/*
 .claude/*
 .codex/*
+skills-lock.json
+skills-lock.*
+_workspace
+_workspace/*
 
 # Other
 doc/*

@@ -16,7 +16,7 @@ description: yceffort 님이 제작하신 블로그 기본 썸네일 생성을 �
 
 이 문서는 Blog 앱이 포스트에 썸네일을 연결하는 과정을 설명한다.
 
-대상 코드는 다음과 같다.
+포스트를 읽고 썸네일을 연결·생성하는 코드를 살펴본다.
 
 - [`src/utils/Post.ts`](../src/utils/Post.ts): 포스트를 읽고 썸네일 URL을 결정한다.
 - [`src/utils/postPaths.ts`](../src/utils/postPaths.ts): Markdown 파일 경로를 포스트 slug로 변환한다.
@@ -28,13 +28,13 @@ description: yceffort 님이 제작하신 블로그 기본 썸네일 생성을 �
 
 ## 현재 상태 요약
 
-현재 코드는 다음 우선순위를 갖는다.
+현재 코드는 로컬 PNG를 먼저 찾는다.
 
 1. `public/thumbnails/{slug}.png` 파일을 찾는다.
 2. 파일이 있으면 정적 이미지 URL을 사용한다.
 3. 파일이 없으면 `/api/og/art?...` 생성 URL을 사용한다.
 
-`/api/og/art` Route Handler는 `next/og`의 `ImageResponse`를 사용해 실제 이미지를 반환한다. 따라서 로컬 PNG가 없는 포스트도 생성 썸네일을 표시할 수 있다. 생성기는 포스트 제목을 조회하지 않고 slug만 받으므로, 포스트 카드용 fallback은 글자가 없는 추상 아트로 생성된다.
+`/api/og/art` Route Handler는 `next/og`의 `ImageResponse`를 사용해 실제 이미지를 반환한다. 따라서 로컬 PNG가 없는 포스트도 생성 썸네일을 표시할 수 있다. 생성기는 포스트 제목을 조회하지 않고 slug만 받으므로 포스트 카드용 fallback은 글자가 없는 추상 아트로 생성된다.
 
 ## 전체 흐름
 
@@ -62,7 +62,7 @@ public/thumbnails/{slug}.png 존재 여부 확인
 
 ## 1. 포스트 파일을 읽는 단계
 
-`Post.ts`의 `getAllPosts()`는 다음 경로 아래의 Markdown과 MDX 파일을 찾는다.
+`Post.ts`의 `getAllPosts()`는 `posts` 경로 아래의 Markdown과 MDX 파일을 찾는다.
 
 ```ts
 const POST_ROOT = path.join(process.cwd(), 'posts')
@@ -75,7 +75,7 @@ Blog 앱의 실행 위치가 `apps/blog`이므로 `process.cwd()`가 `apps/blog`
 apps/blog/posts
 ```
 
-예를 들어 다음 파일이 있다고 하자.
+포스트 파일을 하나 예로 들면 경로는 이렇다.
 
 ```text
 apps/blog/posts/2026/09/blog-01-linear-referencing.md
@@ -112,7 +112,7 @@ const thumbnail = fs.existsSync(`${THUMB_DIR}/${slug}.png`)
   : buildArtThumbnail(slug)
 ```
 
-따라서 slug가 다음과 같다면:
+slug가 다음과 같다면:
 
 ```text
 2026/09/blog-01-linear-referencing
@@ -130,7 +130,7 @@ apps/blog/public/thumbnails/2026/09/blog-01-linear-referencing.png
 /thumbnails/2026/09/blog-01-linear-referencing.png
 ```
 
-Next.js에서 `public` 디렉터리는 웹 루트(`/`)로 노출된다. 그러므로 파일 시스템의 `public/thumbnails`는 URL의 `/thumbnails`에 대응한다.
+Next.js에서 `public` 디렉터리는 웹 루트(`/`)로 노출된다. 파일 시스템의 `public/thumbnails`는 URL의 `/thumbnails`에 대응한다.
 
 ### 파일명이 중요한 이유
 
@@ -196,7 +196,7 @@ Route Handler는 `v` 값을 디자인 계산에 사용하지 않는다. 대신 `
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-따라서 아트 디자인을 바꾼 뒤 `ART_VERSION`을 올리면 새 URL이 새 캐시 항목을 만든다. 버전을 올리지 않으면 기존 URL에 연결된 캐시가 남을 수 있다.
+아트 디자인을 바꾼 뒤 `ART_VERSION`을 올리면 새 URL이 새 캐시 항목을 만든다. 버전을 올리지 않으면 기존 URL에 연결된 캐시가 남을 수 있다.
 
 ## 4. 컴포넌트가 썸네일을 출력하는 단계
 
@@ -242,11 +242,11 @@ frontMatter: {
 )}
 ```
 
-현재 `getAllPosts()`는 로컬 파일이 없을 때도 `buildArtThumbnail()`이 반환한 URL을 넣는다. 따라서 일반적인 포스트에서는 `thumbnail`이 빈 값이 아니다. `/api/og/art`가 정상적으로 이미지를 반환한다면 SVG placeholder 분기까지 내려가지 않는다.
+현재 `getAllPosts()`는 로컬 파일이 없을 때도 `buildArtThumbnail()`이 반환한 URL을 넣는다. 일반적인 포스트에서는 `thumbnail`이 빈 값이 아니다. `/api/og/art`가 정상적으로 이미지를 반환한다면 SVG placeholder 분기까지 내려가지 않는다.
 
 ## 5. `next.config.ts` 설정의 역할
 
-현재 설정에는 다음 항목이 있다.
+현재 설정은 `images.localPatterns`로 이미지 경로를 허용한다.
 
 ```ts
 images: {
@@ -266,7 +266,7 @@ images: {
 | 이미지 URL 허용 | `next.config.ts`의 `images.localPatterns` | `next/image`가 해당 URL을 사용하도록 검사 조건을 통과시킨다. |
 | 이미지 생성     | `src/app/api/og/art/route.tsx`            | HTTP 요청을 받고 실제 이미지 응답을 만든다.                  |
 
-현재 저장소에는 두 설정과 Route Handler가 모두 있다. `localPatterns`는 요청 허용을 담당하고, Route Handler는 허용된 요청에 실제 이미지 본문을 반환한다.
+현재 저장소에는 두 설정과 Route Handler가 모두 있다. `localPatterns`는 요청 허용을 담당하고 Route Handler는 허용된 요청에 실제 이미지 본문을 반환한다.
 
 ## 6. 현재 코드에서 실제로 일어나는 결과
 
@@ -299,7 +299,7 @@ thumbnail 값:
 
 ## 7. `/api/og/art`의 생성 원리
 
-생성 API의 구현은 다음 파일에 있다.
+생성 API는 `route.tsx`에 구현되어 있다.
 
 ```text
 apps/blog/src/app/api/og/art/route.tsx
@@ -307,7 +307,7 @@ apps/blog/src/app/api/og/art/route.tsx
 
 ### 7.1 요청값 읽기
 
-요청 URL에는 네 query parameter가 들어올 수 있다. Route Handler가 실제로 읽는 값은 `slug`, `title`, `tag`이고, `v`는 URL 버전에만 사용한다.
+요청 URL에는 네 query parameter가 들어올 수 있다. Route Handler가 실제로 읽는 값은 `slug`, `title`, `tag`이고 `v`는 URL 버전에만 사용한다.
 
 | 파라미터 | 현재 fallback에서 전달하는가 | 역할                                                                      |
 | -------- | ---------------------------- | ------------------------------------------------------------------------- |
@@ -432,7 +432,7 @@ return new ImageResponse(<div>{/* generated artwork */}</div>, {
 
 Route Handler는 렌더링 전에 `unblockSvgLoader()`를 호출한다. Next 이미지 최적화가 Sharp를 먼저 사용한 프로세스에서는 SVG 로더가 차단될 수 있다. 이 함수는 같은 프로세스에서 `next/og`가 SVG를 래스터라이즈할 수 있도록 SVG 로더를 다시 허용한다.
 
-개념적으로는 다음과 같은 계약을 갖는다.
+이 계약에 따라 GET 요청에 이미지 응답을 반환한다.
 
 ```text
 GET /api/og/art?v=4&slug=2026%2F09%2Fblog-01-linear-referencing
@@ -456,7 +456,7 @@ frontMatter: {
 }
 ```
 
-객체에서 뒤에 작성한 `thumbnail`이 앞에서 펼친 `fm.thumbnail`을 덮어쓴다. 따라서 현재 우선순위는 다음과 같다.
+객체에서 뒤에 작성한 `thumbnail`이 앞에서 펼친 `fm.thumbnail`을 덮어쓴다. 현재 우선순위는 아래와 같다.
 
 ```text
 public/thumbnails/{slug}.png
@@ -530,4 +530,4 @@ Route Handler를 포함한 현재 구현은 두 번째 주소에서 생성 이�
 → ImageResponse로 1200×630 이미지 반환
 ```
 
-`getAllPosts()`는 로컬 PNG가 있으면 그 파일을 사용하고, 없으면 slug를 담은 `/api/og/art` URL을 반환한다. API는 slug에서 재현 가능한 seed를 만들어 1200×630 이미지를 렌더링한다. `ART_VERSION`을 바꾸면 디자인은 유지하면서 새 캐시 URL을 만들 수 있다.
+`getAllPosts()`는 로컬 PNG가 있으면 그 파일을 사용하고 없으면 slug를 담은 `/api/og/art` URL을 반환한다. API는 slug에서 재현 가능한 seed를 만들어 1200×630 이미지를 렌더링한다. `ART_VERSION`을 바꾸면 디자인은 유지하면서 새 캐시 URL을 만들 수 있다.
