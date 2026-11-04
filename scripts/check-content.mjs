@@ -20,6 +20,17 @@ const document = (name) => {
   assert.ok(match, `Missing frontmatter: ${name}`)
   return {metadata: match[1], body: match[2]}
 }
+const baseline = JSON.parse(read('docs/restoration-baseline.json'))
+const preservedDocuments = baseline.documents.filter((entry) => !entry.retired)
+for (const entry of baseline.documents.filter(
+  (candidate) => candidate.retired,
+)) {
+  assert.equal(
+    existsSync(path.join(root, entry.path)),
+    false,
+    `Retired content must not be republished: ${entry.path}`,
+  )
+}
 
 const posts = files('apps/blog/posts').filter((name) => /\.mdx?$/.test(name))
 const series = files('apps/blog/series').filter((name) => name.endsWith('.md'))
@@ -46,6 +57,11 @@ for (const name of decks) {
     `${name}: expected 12–16 slides, got ${count}`,
   )
   assert.match(metadata, /^post: https:\/\/cheonbi\.kr\//m)
+  assert.doesNotMatch(
+    metadata,
+    /^theme:\s*(?:yceffort|kakao|feconf)\s*$/m,
+    `Upstream career theme in deck: ${name}`,
+  )
   assert.ok(
     (body.match(/<!--/g) ?? []).length >= count,
     `Missing speaker notes: ${name}`,
@@ -63,16 +79,25 @@ for (const directory of [
   )) {
     assert.doesNotMatch(
       read(name),
-      /yceffort\.kr|G-ND58S24JBX|github\.com\/yceffort|payload\.(?:title|url) \|\| 'yceffort'/,
+      /yceffort\.kr|G-ND58S24JBX|github\.com\/yceffort|['"]yceffort['"]|(?:yceffort|kakao|feconf)Theme|@theme\s+(?:yceffort|kakao|feconf)\b/,
       `Upstream identity in runtime: ${name}`,
     )
   }
 }
 if (process.argv.includes('--baseline')) {
-  const baseline = JSON.parse(read('docs/restoration-baseline.json'))
-  assert.equal(posts.length, 15)
-  assert.equal(series.length, 2)
-  for (const entry of baseline.documents) {
+  assert.equal(
+    posts.length,
+    preservedDocuments.filter((entry) =>
+      entry.path.startsWith('apps/blog/posts/'),
+    ).length,
+  )
+  assert.equal(
+    series.length,
+    preservedDocuments.filter((entry) =>
+      entry.path.startsWith('apps/blog/series/'),
+    ).length,
+  )
+  for (const entry of preservedDocuments) {
     const {metadata, body} = document(entry.path)
     assert.equal(
       createHash('sha256').update(body).digest('hex'),

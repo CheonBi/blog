@@ -2,7 +2,7 @@
   "name": "research",
   "version": "1.0.0",
   "private": true,
-  "description": "yceffort research",
+  "description": "cheonbi research",
   "type": "module",
   "scripts": {
     "build": "next build && node scripts/generate-offline-runtime.mjs",

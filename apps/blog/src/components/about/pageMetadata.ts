@@ -9,15 +9,15 @@ const pages = {
   about: {
     title: 'About',
     description: {
-      ko: '소프트웨어 엔지니어 cheonbi. React와 TypeScript, Java와 Spring Boot로 서비스를 만들며 개발과 운영에서 얻은 경험을 기록합니다.',
-      en: 'cheonbi, a software engineer building services with React, TypeScript, Java, and Spring Boot.',
+      ko: `소프트웨어 엔지니어 ${SiteConfig.author.name}. React와 TypeScript, Java와 Spring Boot로 서비스를 만들며 개발과 운영에서 얻은 경험을 기록합니다.`,
+      en: `${SiteConfig.author.name}, a software engineer building services with React, TypeScript, Java, and Spring Boot.`,
     },
   },
   resume: {
     title: 'Resume',
     description: {
-      ko: '소프트웨어 엔지니어 cheonbi의 경력, 교육과 활동. 관제 시스템과 웹 서비스의 개발·운영 경험을 소개합니다.',
-      en: 'Career, education, and training of software engineer cheonbi, including monitoring systems and web services.',
+      ko: `소프트웨어 엔지니어 ${SiteConfig.author.name}의 경력, 교육과 활동. 관제 시스템과 웹 서비스의 개발·운영 경험을 소개합니다.`,
+      en: `Career, education, and training of software engineer ${SiteConfig.author.name}, including monitoring systems and web services.`,
     },
   },
 }

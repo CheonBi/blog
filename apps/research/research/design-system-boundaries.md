@@ -2,7 +2,7 @@
 title: 경계를 긋는 디자인 시스템
 description: SEED Design의 생성 파이프라인과 변경 관리에서 작은 팀이 가져올 경계를 살펴봅니다.
 marp: true
-theme: yceffort
+theme: cheonbi
 paginate: true
 size: 16:9
 tags:

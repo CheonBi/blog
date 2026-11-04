@@ -17,7 +17,7 @@ import {openGraphBase, SiteConfig} from '@/config'
 
 const ogImageUrl = buildOgImageUrl({
   title: SiteConfig.title,
-  description: '프론트엔드 딥다이브 슬라이드',
+  description: SiteConfig.description,
 })
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     default: SiteConfig.title,
     template: `%s | ${SiteConfig.title}`,
   },
-  description: 'cheonbi research — 프론트엔드 딥다이브 슬라이드',
+  description: SiteConfig.description,
   authors: [{name: SiteConfig.author.name}],
   referrer: 'origin-when-cross-origin',
   creator: SiteConfig.author.name,
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     ...openGraphBase,
     title: SiteConfig.title,
-    description: 'cheonbi research — 프론트엔드 딥다이브 슬라이드',
+    description: SiteConfig.description,
     url: SiteConfig.url,
     images: [{url: ogImageUrl, width: 1200, height: 630}],
   },

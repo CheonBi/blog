@@ -3,6 +3,7 @@
 import {memo, useEffect, useRef} from 'react'
 
 import * as heroStyles from '@/components/home/hero.styles'
+import {SiteConfig} from '@/config'
 
 const YEAR = new Date().getFullYear()
 interface HeroProps {
@@ -61,16 +62,20 @@ const Hero = memo(function HeroBase({
         <div className="hero-main">
           <div className={`hero-eyebrow ${heroStyles.hero_eyebrow}`}>
             <span className={`dot ${heroStyles.dot}`} />
-            LIVE · SEOUL · {YEAR}
+            {SiteConfig.hero.eyebrow} · {YEAR}
           </div>
           <h1 ref={titleRef} className={`hero-title ${heroStyles.hero_title}`}>
-            <span className={`ln ${heroStyles.ln}`}>GRIND.</span>
             <span className={`ln ${heroStyles.ln}`}>
-              <span className={`accent ${heroStyles.accent}`}>LEARN</span>
+              {SiteConfig.hero.title[0]}.
+            </span>
+            <span className={`ln ${heroStyles.ln}`}>
+              <span className={`accent ${heroStyles.accent}`}>
+                {SiteConfig.hero.title[1]}
+              </span>
               <span className={`stroke ${heroStyles.stroke}`}>,</span>
             </span>
             <span className={`ln ${heroStyles.ln}`}>
-              REPEAT
+              {SiteConfig.hero.title[2]}
               <span className={`accent ${heroStyles.accent}`}>.</span>
             </span>
           </h1>
@@ -82,11 +87,10 @@ const Hero = memo(function HeroBase({
                   color: 'var(--ink)',
                 }}
               >
-                cheonbi
+                {SiteConfig.author.name}
               </b>
-              {
-                ', a software engineer taking software apart to see how it works: framework internals, performance, and lessons from production.'
-              }
+              {'. '}
+              {SiteConfig.hero.description}
             </p>
             <div className={`hero-stats ${heroStyles.hero_stats}`}>
               <span>

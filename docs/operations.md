@@ -16,7 +16,7 @@ Vercel·Linux 서버·GA4·Upstash·VAPID·GitHub App은 아직 준비되지 않
 먼저 Preview를 검증한 뒤 도메인을 연결합니다.
 
 Kinetograph(Kineto)는 폐기했습니다. 앱과 기존 도메인의 Research 리디렉션,
-리디렉션 전용 배포 파일을 제거했습니다. 과거 개발 글은 기록으로 보존합니다.
+리디렉션 전용 배포 파일과 관련 게시글 2편·썸네일도 제거했습니다.
 기존 Vercel 프로젝트와 `kinetograph.cheonbi.kr`의 도메인 연결·DNS 레코드가
 남아 있다면 운영 계정에서 정리합니다. 외부 서비스의 삭제는 아직 수행하지 않았습니다.
 

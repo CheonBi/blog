@@ -5,7 +5,15 @@ const isDev = process.env.NODE_ENV === 'development'
 export const SiteConfig = {
   url: isDev ? 'http://localhost:3001' : 'https://research.cheonbi.kr',
   title: 'cheonbi research',
-  subtitle: 'research',
+  subtitle: 'Read. Build. Share.',
+  description:
+    '관제 시스템, 데이터 처리, 소프트웨어 설계를 탐구하고 정리하는 cheonbi의 발표 자료와 연구 노트.',
+  hero: {
+    eyebrow: 'ENGINEERING NOTES',
+    title: ['READ', 'BUILD', 'SHARE'],
+    description:
+      'Slides and research notes on monitoring systems, data pipelines, and software design.',
+  },
   postsPerPage: 6,
   googleAnalyticsId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? '',
   menu: [

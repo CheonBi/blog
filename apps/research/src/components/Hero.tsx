@@ -3,6 +3,7 @@
 import {memo, useEffect, useRef} from 'react'
 
 import * as heroStyles from '@/components/hero.styles'
+import {SiteConfig} from '@/config'
 
 const YEAR = new Date().getFullYear()
 
@@ -56,23 +57,29 @@ const Hero = memo(function HeroBase() {
       <div className={`home-hero-inner ${heroStyles.home_hero_inner}`}>
         <div className={`hero-eyebrow ${heroStyles.hero_eyebrow}`}>
           <span className={`dot ${heroStyles.dot}`} />
-          RESEARCH LAB · SEOUL · {YEAR}
+          {SiteConfig.hero.eyebrow} · {YEAR}
         </div>
         <h1 ref={titleRef} className={`hero-title ${heroStyles.hero_title}`}>
-          <span className={`ln ${heroStyles.ln}`}>SLOW.</span>
           <span className={`ln ${heroStyles.ln}`}>
-            <span className={`accent ${heroStyles.accent}`}>DEEP</span>
+            {SiteConfig.hero.title[0]}.
+          </span>
+          <span className={`ln ${heroStyles.ln}`}>
+            <span className={`accent ${heroStyles.accent}`}>
+              {SiteConfig.hero.title[1]}
+            </span>
             <span className={heroStyles.stroke}>,</span>
           </span>
           <span className={`ln ${heroStyles.ln}`}>
-            SHARE<span className={`accent ${heroStyles.accent}`}>.</span>
+            {SiteConfig.hero.title[2]}
+            <span className={`accent ${heroStyles.accent}`}>.</span>
           </span>
         </h1>
         <div className={heroStyles.hero_sub}>
           <p className={heroStyles.hero_sub_p}>
-            Slides and long-form research notes by{' '}
-            <b style={{color: 'var(--ink)'}}>cheonbi</b> — deep dives into the
-            software stack, presented one slide at a time.
+            {'Research by '}
+            <b style={{color: 'var(--ink)'}}>{SiteConfig.author.name}</b>
+            {'. '}
+            {SiteConfig.hero.description}
           </p>
         </div>
       </div>

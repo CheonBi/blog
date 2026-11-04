@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     default: SiteConfig.title,
     template: `%s | ${SiteConfig.title}`,
   },
-  description: 'Frontend-focused full stack engineer',
+  description: SiteConfig.description,
   authors: [
     {
       name: SiteConfig.author.name,
@@ -57,14 +57,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: SiteConfig.title,
-    description: 'Frontend-focused full stack engineer',
+    description: SiteConfig.description,
     url: 'https://cheonbi.kr',
     siteName: SiteConfig.title,
     images: [
       {
         url: buildOgImageUrl({
           title: SiteConfig.title,
-          description: 'Frontend-focused full stack engineer',
+          description: SiteConfig.description,
           type: 'page',
         }),
         width: 1200,

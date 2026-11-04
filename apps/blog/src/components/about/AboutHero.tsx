@@ -11,12 +11,10 @@ import {useLocale} from '@/hooks/useLocale'
 
 const intro = {
   ko: {
-    eyebrow: 'SOFTWARE ENGINEER · SEOUL',
-    sub: '프론트엔드와 풀스택 시스템을 만들고, 복잡한 문제를 작은 단위로 나누어 기록합니다. React, TypeScript, 웹 성능과 개발 도구에 관심이 있습니다.',
+    sub: 'React와 TypeScript, Java와 Spring Boot로 관제 웹 서비스와 데이터 처리 시스템을 만듭니다. 개발 과정의 선택과 시행착오를 기록합니다.',
   },
   en: {
-    eyebrow: 'SOFTWARE ENGINEER IN SEOUL',
-    sub: 'I build frontend and full stack systems and record how I break complex problems into smaller parts. I am interested in React, TypeScript, web performance, and developer tools.',
+    sub: 'I build monitoring web services and data processing systems with React, TypeScript, Java, and Spring Boot, and record the decisions and lessons along the way.',
   },
 }
 
@@ -26,13 +24,13 @@ const LoadTrace = dynamic(() => import('@/components/about/LoadTrace'), {
   loading: LoadTraceShell,
 })
 export function AboutHero() {
-  const {eyebrow, sub} = intro[useLocale().locale === 'en' ? 'en' : 'ko']
+  const {sub} = intro[useLocale().locale === 'en' ? 'en' : 'ko']
   return (
     <section className={`about-hero ${aboutStyles.about_hero}`}>
       <div>
         <div className={`hero-eyebrow ${heroStyles.hero_eyebrow}`}>
           <span className={`dot ${heroStyles.dot}`} />
-          {eyebrow}
+          {SiteConfig.author.bio.toUpperCase()}
         </div>
         <h1 className={aboutStyles.about_title}>{SiteConfig.author.name}.</h1>
         <p className={`page-sub ${tagsStyles.page_sub}`}>{sub}</p>
