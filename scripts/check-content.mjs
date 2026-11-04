@@ -57,6 +57,11 @@ for (const name of decks) {
     `${name}: expected 12–16 slides, got ${count}`,
   )
   assert.match(metadata, /^post: https:\/\/cheonbi\.kr\//m)
+  assert.doesNotMatch(
+    metadata,
+    /^theme:\s*(?:yceffort|kakao|feconf)\s*$/m,
+    `Upstream career theme in deck: ${name}`,
+  )
   assert.ok(
     (body.match(/<!--/g) ?? []).length >= count,
     `Missing speaker notes: ${name}`,
@@ -74,7 +79,7 @@ for (const directory of [
   )) {
     assert.doesNotMatch(
       read(name),
-      /yceffort\.kr|G-ND58S24JBX|github\.com\/yceffort|payload\.(?:title|url) \|\| 'yceffort'/,
+      /yceffort\.kr|G-ND58S24JBX|github\.com\/yceffort|['"]yceffort['"]|(?:yceffort|kakao|feconf)Theme|@theme\s+(?:yceffort|kakao|feconf)\b/,
       `Upstream identity in runtime: ${name}`,
     )
   }

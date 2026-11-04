@@ -53,7 +53,7 @@ if (files.length === 0) {
   process.exit(1)
 }
 
-// 덱 안의 /fonts/..., /feconf-2026/... 같은 절대 경로를 앱과 같이 public에서 찾는다
+// 덱 안의 /fonts/..., /thumbnails/... 같은 절대 경로를 앱과 같이 public에서 찾는다
 const TYPES = {
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',

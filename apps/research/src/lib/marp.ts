@@ -5,12 +5,10 @@ import type {Result as PostCSSResult, AtRule} from 'postcss'
 import postcssImportUrl from 'postcss-import-url'
 
 import {parsePresenterNotes} from './parsePresenterNotes'
+import {cheonbiTheme} from './themes/cheonbi'
 import {deckCoverCss} from './themes/deckCover'
-import {feconfTheme} from './themes/feconf'
 import {inkTheme} from './themes/ink'
-import {kakaoTheme} from './themes/kakao'
 import {midnightTheme} from './themes/midnight'
-import {yceffortTheme} from './themes/yceffort'
 
 const postcssStripFontFace = Object.assign(
   () => ({
@@ -99,10 +97,8 @@ async function renderMarp(markdown: string): Promise<RenderedMarp> {
 
   // 기본 테마에 표지 클래스를 덧붙인다. 기본 테마를 import하는 테마도 함께 쓸 수 있다
   marp.themeSet.add(marp.themeSet.get('default')!.css + deckCoverCss)
-  marp.themeSet.add(yceffortTheme)
+  marp.themeSet.add(cheonbiTheme)
   marp.themeSet.add(midnightTheme)
-  marp.themeSet.add(kakaoTheme)
-  marp.themeSet.add(feconfTheme)
   marp.themeSet.add(inkTheme)
 
   const {html, css} = marp.render(markdown, {htmlAsArray: true})

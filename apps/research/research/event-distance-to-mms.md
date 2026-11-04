@@ -2,7 +2,7 @@
 title: 거리값을 위치로 해석하는 법
 description: 센서의 원본 거리값을 위치로 해석하고 지도와 알림으로 전달할 때 필요한 데이터 경계를 살펴봅니다.
 marp: true
-theme: yceffort
+theme: cheonbi
 paginate: true
 size: 16:9
 tags:

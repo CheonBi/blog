@@ -1,5 +1,5 @@
-export const yceffortTheme = `
-/* @theme yceffort */
+export const cheonbiTheme = `
+/* @theme cheonbi */
 @import 'default';
 
 section {

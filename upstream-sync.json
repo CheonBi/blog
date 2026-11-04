@@ -51,6 +51,10 @@
     "infra/otel/grafana/dashboards/"
   ],
   "protected": [
+    "apps/research/src/lib/themes/cheonbi.ts",
+    "apps/research/src/lib/themes/yceffort.ts",
+    "apps/research/src/lib/themes/kakao.ts",
+    "apps/research/src/lib/themes/feconf.ts",
     "apps/blog/src/config.ts",
     "apps/research/src/config.ts",
     "apps/blog/src/data/",

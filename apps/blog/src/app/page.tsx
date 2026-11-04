@@ -6,17 +6,17 @@ import {SiteConfig} from '@/config'
 import {openGraphBase} from '@/utils/metadata'
 export const metadata: Metadata = {
   title: SiteConfig.title,
-  description: SiteConfig.subtitle,
+  description: SiteConfig.description,
   openGraph: {
     ...openGraphBase('ko'),
     title: SiteConfig.title,
-    description: SiteConfig.subtitle,
+    description: SiteConfig.description,
     url: SiteConfig.url,
     images: [
       {
         url: buildOgImageUrl({
           title: SiteConfig.title,
-          description: `${SiteConfig.subtitle}'s blog`,
+          description: SiteConfig.description,
           path: '/',
           type: 'page',
         }),

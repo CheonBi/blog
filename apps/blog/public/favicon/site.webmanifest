@@ -1,7 +1,7 @@
 {
   "name": "cheonbi",
   "short_name": "cheonbi",
-  "description": "Frontend-focused software engineer blog",
+  "description": "cheonbi의 관제 웹 서비스와 데이터 처리 개발 기록",
   "id": "/",
   "start_url": "/",
   "scope": "/",

@@ -1,6 +1,6 @@
 // Ink: an essay on paper. One modern sans (SUIT) on cool white, one violet accent,
 // no diagrams. Built for a Zoom screen share, so nothing relies on thin strokes,
-// pale greys, or motion. Fonts are self-hosted like the FEConf theme.
+// pale greys, or motion. Fonts are self-hosted.
 export const inkTheme = `
 /* @theme ink */
 @import 'default';
