@@ -46,7 +46,7 @@ pnpm check:content
 pnpm --filter @yceffort/markdown-rs parity
 ```
 
-기존 15편의 본문과 작성일 보존은 이행 검사용 `pnpm check:content --baseline`으로
+남은 13편의 본문과 작성일 보존은 이행 검사용 `pnpm check:content --baseline`으로
 확인합니다. 글을 정상적으로 수정한 뒤에는 일반 `check:content`를 사용합니다.
 
 [운영 연결](../../docs/operations.md), [동기화](../../docs/upstream-sync.md),

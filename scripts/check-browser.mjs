@@ -86,7 +86,10 @@ try {
   const baseline = JSON.parse(
     readFileSync(path.join(root, 'docs/restoration-baseline.json'), 'utf8'),
   )
-  for (const entry of baseline.documents) {
+  const retiredDocuments = baseline.documents.filter((entry) => entry.retired)
+  for (const entry of baseline.documents.filter(
+    (candidate) => !candidate.retired,
+  )) {
     await visit(
       `${blog}/${entry.path.includes('/series/') ? 'series/' : ''}${entry.slug}`,
     )
@@ -107,6 +110,12 @@ try {
   assert.ok((await page.locator('body').innerText()).includes('ENITT'))
   assert.equal(await page.locator('#publications, #open-source').count(), 0)
   const index = await (await fetch(`${blog}/api/search-index`)).json()
+  for (const entry of retiredDocuments) {
+    assert.equal((await fetch(`${blog}/${entry.slug}`)).status, 404)
+    assert.equal((await fetch(`${blog}/${entry.slug}.md`)).status, 404)
+    assert.ok(!JSON.stringify(index).includes(entry.slug), entry.slug)
+    assert.ok(!JSON.stringify(index).toLowerCase().includes('kineto'))
+  }
   assert.ok(
     JSON.stringify(index).includes('blog-java-functional-interface-lambda'),
   )
@@ -120,10 +129,10 @@ try {
   ]) {
     const response = await fetch(`${blog}${route}`)
     assert.equal(response.status, 200, route)
-    assert.doesNotMatch(
-      await response.text(),
-      /https:\/\/(?:research\.)?yceffort\.kr/,
-    )
+    const text = await response.text()
+    for (const entry of retiredDocuments)
+      assert.ok(!text.includes(entry.slug), `${route}: retired ${entry.slug}`)
+    assert.doesNotMatch(text, /https:\/\/(?:research\.)?yceffort\.kr/)
   }
   assert.equal((await fetch(`${blog}/2026/09/does-not-exist`)).status, 404)
   for (const [alias, target] of [

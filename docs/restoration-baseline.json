@@ -71,6 +71,7 @@
     {
       "path": "apps/blog/posts/2026/09/kineto-scene-journal-layout.md",
       "slug": "2026/09/kineto-scene-journal-layout",
+      "retired": true,
       "date": "2026-09-16 15:58:45",
       "bodySha256": "263240abb5acdf15a970f77c0b29e96a71b766405408fd3978f46d15c56be045"
     },
@@ -83,6 +84,7 @@
     {
       "path": "apps/blog/posts/2026/09/scroll-windowed-page-index.md",
       "slug": "2026/09/scroll-windowed-page-index",
+      "retired": true,
       "date": "2026-09-15 17:03:37",
       "bodySha256": "387b72d18090b6571e5d41160d633d390bd8273d5dfa9d4bd98084b9013dec41"
     },
