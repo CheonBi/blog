@@ -1,0 +1,70 @@
+import {stripTitleEmphasis} from '@yceffort/shared/utils'
+import Link from 'next/link'
+
+import LinkPendingHint from '@/components/post/LinkPendingHint'
+import type {Post} from '@/type'
+
+import {seriesNeighbors} from './neighbors'
+interface SeriesPrevNextProps {
+  seriesPosts: Post[]
+  currentSlug: string
+  pathPrefix?: string
+  locale?: 'ko' | 'en'
+}
+const LABELS = {
+  ko: {
+    aria: '시리즈 이전/다음 글',
+    prev: '← 이전 편',
+    next: '다음 편 →',
+  },
+  en: {
+    aria: 'Previous/next post in series',
+    prev: '← Previous',
+    next: 'Next →',
+  },
+}
+export default function SeriesPrevNext({
+  seriesPosts,
+  currentSlug,
+  pathPrefix = '',
+  locale = 'ko',
+}: SeriesPrevNextProps) {
+  const labels = LABELS[locale]
+  const {prevPost, nextPost} = seriesNeighbors(seriesPosts, currentSlug)
+  if (!prevPost && !nextPost) {
+    return null
+  }
+  return (
+    <nav
+      className="series-endnav"
+      aria-label={labels.aria}
+      data-nav="series-prevnext"
+    >
+      {prevPost ? (
+        <Link
+          href={`${pathPrefix}/${prevPost.fields.slug}`}
+          className="series-endnav-card prev"
+          data-vt-back
+        >
+          <span className="series-endnav-label">{labels.prev}</span>
+          <strong>{stripTitleEmphasis(prevPost.frontMatter.title)}</strong>
+          <LinkPendingHint />
+        </Link>
+      ) : (
+        <span className="series-endnav-card empty" aria-hidden="true" />
+      )}
+      {nextPost ? (
+        <Link
+          href={`${pathPrefix}/${nextPost.fields.slug}`}
+          className="series-endnav-card next"
+        >
+          <span className="series-endnav-label">{labels.next}</span>
+          <strong>{stripTitleEmphasis(nextPost.frontMatter.title)}</strong>
+          <LinkPendingHint />
+        </Link>
+      ) : (
+        <span className="series-endnav-card empty" aria-hidden="true" />
+      )}
+    </nav>
+  )
+}

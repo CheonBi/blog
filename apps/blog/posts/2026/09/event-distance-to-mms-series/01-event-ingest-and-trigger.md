@@ -9,6 +9,9 @@ date: 2026-09-18
 description: 원본 거리와 파생 위치를 구분하고, 이벤트 저장 뒤에 후속 처리를 예약하는 이유를 살펴본다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 1
+art:
+  undraw: data-input
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

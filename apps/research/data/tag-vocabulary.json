@@ -1,0 +1,10 @@
+{
+  "tags": {
+    "design-system": "design-system",
+    "architecture": "architecture",
+    "react": "React: components, hooks, rendering, server components, React internals",
+    "java": "java",
+    "gis": "gis",
+    "backend": "backend development: APIs, databases, server architecture"
+  }
+}

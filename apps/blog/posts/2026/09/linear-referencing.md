@@ -10,6 +10,9 @@ date: 2026-09-03 09:30:00
 description: 선형 센서가 보내는 누적거리를 지도 좌표로 바꾸는 데이터 모델과 계산 과정을 정리한다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 2
+art:
+  undraw: adventure-map
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

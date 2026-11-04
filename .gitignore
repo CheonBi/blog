@@ -68,3 +68,16 @@ _workspace/*
 
 # Other
 doc/*
+
+# Research generates these from the production build
+apps/research/public/offline-runtime.json
+apps/research/public/offline-shell.html
+apps/research/test-results/
+apps/research/playwright-report/
+test-results/
+playwright-report/
+
+# Markdown benchmark output (not application inputs)
+packages/markdown-rs/bench-results.json
+packages/markdown-rs/bench-wasi-results.json
+packages/markdown-rs/experience-results.json

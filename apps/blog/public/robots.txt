@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cheonbi.kr/sitemap.xml
+Sitemap: https://cheonbi.kr/feed.xml
+
+# LLM-friendly resources
+# https://cheonbi.kr/llms.txt
+# https://cheonbi.kr/llms-full.txt
+# https://cheonbi.kr/en/llms-full.txt

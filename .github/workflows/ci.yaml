@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm prettier
+      - run: pnpm check:content
+      - run: pnpm test:restoration
+      - run: pnpm --filter blog lint:style
+      - run: pnpm --filter blog test:styles
+      - run: pnpm --filter @yceffort/markdown-rs parity
+      - run: pnpm --filter blog test:telemetry
+      - run: pnpm --filter blog test:offline
+      - run: pnpm build
+      - run: pnpm --filter blog exec playwright install --with-deps chromium
+      - run: pnpm test:browser
+      - run: pnpm --filter research test:offline
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-diagnostics
+          path: |
+            .cache/browser-check
+            apps/research/test-results
+          retention-days: 7

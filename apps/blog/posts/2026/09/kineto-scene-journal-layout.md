@@ -9,6 +9,8 @@ tags:
 published: true
 date: 2026-09-16 15:58:45
 description: 세 장의 정적 카드로 시작한 Kineto를 씬 단위 저널로 확장하며 스크롤 인덱스, 미디어 변형, 숫자 대비와 반응형 제목 배치를 다듬은 과정을 기록한다.
+art:
+  undraw: grid-design
 ---
 
 ## Table Of Contents

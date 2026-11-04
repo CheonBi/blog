@@ -9,6 +9,9 @@ date: 2026-09-18
 description: 하나의 위치 결과를 지도나 도식, 알림 문장에 재사용해 서로 다른 표현이 어긋나지 않게 하는 방법을 살펴본다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 5
+art:
+  undraw: data-transfer
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

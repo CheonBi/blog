@@ -9,6 +9,9 @@ date: 2026-09-18
 description: 개인 정보의 수명과 외부 요청, 결과 기록이 서로 다른 시점에 일어날 때 생기는 설계 문제를 살펴본다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 6
+art:
+  undraw: data-reports
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

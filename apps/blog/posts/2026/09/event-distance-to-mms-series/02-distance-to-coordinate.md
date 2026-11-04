@@ -10,6 +10,9 @@ date: 2026-09-18
 description: 거리축에서 계산에 쓸 기준점을 고르고, 정보가 모자랄 때 추정을 멈추는 이유를 설명한다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 3
+art:
+  undraw: map
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

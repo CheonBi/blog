@@ -10,6 +10,8 @@ date: 2026-09-03 09:00:00
 description:
   JavaScript/TypeScript, 프론트엔드, Java, 백엔드, 수학, 컴퓨터과학 등 여러가지 컴퓨터공학에 어울리는 해결방식들을
   사용해 복잡한 문제를 작게 나누고 해결한 과정을 기록한다.
+art:
+  undraw: private-data
 ---
 
 ## Table Of Contents

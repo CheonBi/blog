@@ -1,4 +1,4 @@
-import {getContactHref} from '@cheonbi/shared/utils'
+import {getContactHref} from '@yceffort/shared/utils'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -6,11 +6,13 @@ export const SiteConfig = {
   url: isDev ? 'http://localhost:3000' : 'https://cheonbi.kr',
   pathPrefix: '/',
   title: 'cheonbi',
-  subtitle: 'CODE. SYSTEM. Under the Hood',
+  subtitle: 'Grind. Learn. Repeat.',
   copyright: 'cheonbi © All rights reserved.',
   disqusShortname: '',
   postsPerPage: 5,
-  googleAnalyticsId: '',
+  googleAnalyticsId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? '',
+  // infra/otel 의 수집 서버. CWV 를 OpenTelemetry 로 보낸다.
+  otelCollectorUrl: process.env.NEXT_PUBLIC_OTEL_COLLECTOR_URL ?? '',
   useKatex: false,
   menu: [
     {
@@ -30,8 +32,8 @@ export const SiteConfig = {
       path: '/about',
     },
     {
-      label: '🎥 Kinetograph',
-      path: isDev ? 'http://localhost:3001' : 'https://kinetograph.cheonbi.kr',
+      label: 'Research',
+      path: isDev ? 'http://localhost:3001' : 'https://research.cheonbi.kr',
     },
   ],
   author: {

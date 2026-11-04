@@ -37,13 +37,13 @@
   },
   "overrides": [
     {
-      "files": ["**/scripts/**"],
+      "files": ["**/scripts/**", "services/news/src/collect.ts"],
       "rules": {
         "no-console": "off"
       }
     },
     {
-      "files": ["**/api/og/**"],
+      "files": ["**/api/og/**", "packages/shared/src/og/**"],
       "rules": {
         "nextjs/no-img-element": "off"
       }
@@ -54,6 +54,7 @@
     "**/node_modules/**",
     "**/public/**",
     "!**/public/sw.js",
-    "**/.cache/**"
+    "**/.cache/**",
+    "experiments/**"
   ]
 }

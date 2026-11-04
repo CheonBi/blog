@@ -8,6 +8,8 @@ tags:
 published: true
 date: 2026-09-03 15:32:00
 description: yceffort 님이 제작하신 블로그 기본 썸네일 생성을 나중에 커스터마이징 할 수 있게 코드를 분석해본다.
+art:
+  undraw: design-inspiration
 ---
 
 ## Table of Contents

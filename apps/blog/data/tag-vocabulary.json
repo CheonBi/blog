@@ -1,0 +1,24 @@
+{
+  "tags": {
+    "a11y": "a11y",
+    "architecture": "architecture",
+    "backend": "backend development: APIs, databases, server architecture",
+    "css": "CSS styling, layout, CSS-in-JS, Tailwind",
+    "database": "database",
+    "design-system": "design-system",
+    "devops": "operations and infrastructure: servers, deployment environments, monitoring",
+    "event-driven": "event-driven",
+    "frontend": "frontend",
+    "gis": "gis",
+    "java": "java",
+    "math": "math",
+    "network": "network",
+    "next": "next",
+    "postgresql": "postgresql",
+    "react": "React: components, hooks, rendering, server components, React internals",
+    "security": "security vulnerabilities, attacks, authentication, supply-chain risks",
+    "sql": "sql",
+    "typescript": "TypeScript: its type system, typing techniques, or the TypeScript compiler and its tooling"
+  },
+  "redirects": {}
+}

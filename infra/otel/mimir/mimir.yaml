@@ -1,0 +1,53 @@
+# 작은 블로그 하나를 받는 단일 프로세스 설정. 여러 대로 늘리거나 장애에 견디는 구성은 아니다.
+# multitenancy 는 기본값(켜짐)으로 두고 X-Scope-OrgID 로 테넌트(blog)를 고른다.
+target: all
+
+blocks_storage:
+  backend: filesystem
+  bucket_store:
+    sync_dir: /data/tsdb-sync
+  filesystem:
+    dir: /data/blocks
+  tsdb:
+    dir: /data/tsdb
+
+compactor:
+  data_dir: /data/compactor
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+distributor:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+
+# 단일 프로세스라 쿼리를 24시간 단위로 쪼개고 16조각으로 샤딩해도 병렬 이득이 없고 대기 큐만 는다.
+# 대시보드 패널 하나가 수십 요청이 되어 테넌트 대기 상한(100)을 넘기면 429 가 나므로 패널 하나를 요청 하나로 둔다.
+frontend:
+  split_queries_by_interval: 0
+  parallelize_shardable_queries: false
+
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+    replication_factor: 1
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/rules
+
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+
+server:
+  http_listen_port: 9009
+  log_level: warn
+
+usage_stats:
+  enabled: false

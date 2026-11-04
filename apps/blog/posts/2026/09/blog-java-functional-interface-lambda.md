@@ -5,6 +5,8 @@ tags:
 published: true
 date: 2026-09-09 17:54:34
 description: 구현 클래스 없이 호출되는 함수형 인터페이스를 타깃 타입 추론부터 invokedynamic, 캡처, hidden class까지 따라간다.
+art:
+  undraw: code-thinking
 ---
 
 ## Table Of Contents

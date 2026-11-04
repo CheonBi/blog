@@ -1,17 +1,5 @@
-import {AboutHero} from '@/components/about/AboutHero'
-import {AboutTabs} from '@/components/about/AboutTabs'
-import {Resume} from '@/components/about/Resume'
+import {ResumePageView} from '@/components/about/ResumePageView'
 
 export default function Page() {
-  return (
-    <div className="page-view">
-      <AboutHero />
-
-      <AboutTabs active="resume" />
-
-      <div className="mt-4">
-        <Resume />
-      </div>
-    </div>
-  )
+  return <ResumePageView locale="ko" />
 }

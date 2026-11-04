@@ -1,0 +1,114 @@
+{
+  "beforeCommit": "2748692fecdd173eda7287297616d65cadb81633",
+  "upstreamCommit": "74913e3827db645e1a5ae6bbbb37a3211ec852b8",
+  "documents": [
+    {
+      "path": "apps/blog/posts/2026/09/2026-09-18-query-tuning.md",
+      "slug": "2026/09/2026-09-18-query-tuning",
+      "date": "2026-09-18",
+      "bodySha256": "6fc9b4019ab8113094dc61e870bb4cee26d0b789b4a2ca26003791ff8a5a41a3"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/blog-java-functional-interface-lambda.md",
+      "slug": "2026/09/blog-java-functional-interface-lambda",
+      "date": "2026-09-09 17:54:34",
+      "bodySha256": "c0992587a6f545faf4ba1080943dd93127c4c90733560bbe0881ac0e0d5eea08"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/blog-series-and-anonymization.md",
+      "slug": "2026/09/blog-series-and-anonymization",
+      "date": "2026-09-03 09:00:00",
+      "bodySha256": "1c008b8c27ebdbd125f1ca36f6b4a634a13e924eb587d09f3f7f5ac78e49438a"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/design-system-boundaries-series/01-seed-generation-pipeline.md",
+      "slug": "2026/09/design-system-boundaries-series/01-seed-generation-pipeline",
+      "date": "2026-09-22 10:00:00",
+      "bodySha256": "7f7a84281763e655dd84325fff146c6672502045624db58f58711571bfd82b08"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/design-system-boundaries-series/02-design-decisions-and-cost.md",
+      "slug": "2026/09/design-system-boundaries-series/02-design-decisions-and-cost",
+      "date": "2026-09-22 10:30:00",
+      "bodySha256": "7d8ab951a55ca2c42aaa5232cdefff21f1d795a1892c01781bb45823cdf07134"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/design-system-boundaries-series/03-the-real-problem-is-changing.md",
+      "slug": "2026/09/design-system-boundaries-series/03-the-real-problem-is-changing",
+      "date": "2026-09-22 11:00:00",
+      "bodySha256": "6678e99a4f391239541eae41f6663a8937cb9681649b09b52fa1ef11a6a028ac"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/design-system-boundaries-series/04-where-to-draw-the-line.md",
+      "slug": "2026/09/design-system-boundaries-series/04-where-to-draw-the-line",
+      "date": "2026-09-22 11:30:00",
+      "bodySha256": "a2ac79c0e6f763031ac408678f1ae006e443a9ef9e7cf5a5d091ab46e6b2f994"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/event-distance-to-mms-series/01-event-ingest-and-trigger.md",
+      "slug": "2026/09/event-distance-to-mms-series/01-event-ingest-and-trigger",
+      "date": "2026-09-18",
+      "bodySha256": "f5654856c3cadc80648910484bfa78441fca56d690d4a1bb219a2036c4309dc0"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/event-distance-to-mms-series/02-distance-to-coordinate.md",
+      "slug": "2026/09/event-distance-to-mms-series/02-distance-to-coordinate",
+      "date": "2026-09-18",
+      "bodySha256": "6d9dfeb4ca37a1af33b2802eba0b5e7caec69614b864d3dec867d436c49bd3fd"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/event-distance-to-mms-series/03-map-image-and-message.md",
+      "slug": "2026/09/event-distance-to-mms-series/03-map-image-and-message",
+      "date": "2026-09-18",
+      "bodySha256": "3b2cd92a1852ca24679a7e5a78a3a6832a8a61565865efe47196084c1af51054"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/event-distance-to-mms-series/04-send-history-and-operations.md",
+      "slug": "2026/09/event-distance-to-mms-series/04-send-history-and-operations",
+      "date": "2026-09-18",
+      "bodySha256": "84a5626f44fcce14f4d95d9ef6aa1e64d0c1f232a50b5dcc54f1eafaa9b42288"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/kineto-scene-journal-layout.md",
+      "slug": "2026/09/kineto-scene-journal-layout",
+      "date": "2026-09-16 15:58:45",
+      "bodySha256": "263240abb5acdf15a970f77c0b29e96a71b766405408fd3978f46d15c56be045"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/linear-referencing.md",
+      "slug": "2026/09/linear-referencing",
+      "date": "2026-09-03 09:30:00",
+      "bodySha256": "65d32ee12c1262b2522acf8aaa59c9fa5f74533db1d3176625ced72d875fc7ee"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/scroll-windowed-page-index.md",
+      "slug": "2026/09/scroll-windowed-page-index",
+      "date": "2026-09-15 17:03:37",
+      "bodySha256": "387b72d18090b6571e5d41160d633d390bd8273d5dfa9d4bd98084b9013dec41"
+    },
+    {
+      "path": "apps/blog/posts/2026/09/thumbnail-generation.md",
+      "slug": "2026/09/thumbnail-generation",
+      "date": "2026-09-03 15:32:00",
+      "bodySha256": "ed6ed4ce4546ec6a242fee3a2b0490caaac3a0cea3952a5ec2671955212339d6"
+    },
+    {
+      "path": "apps/blog/series/design-system-boundaries.md",
+      "slug": "design-system-boundaries",
+      "date": null,
+      "bodySha256": "afd747063b0faf7add719d9337dc8e35649c21f2f5fee207c19c56c3108b087a"
+    },
+    {
+      "path": "apps/blog/series/event-distance-to-mms.md",
+      "slug": "event-distance-to-mms",
+      "date": null,
+      "bodySha256": "19bb513463deb5ce1e9cffc6bea1e93aac5144b5a9718b69e6b6877b484884bb"
+    }
+  ],
+  "performance": {
+    "status": "reference-budget-passed; legacy-invalid",
+    "report": "docs/restoration-performance.json",
+    "validation": "docs/restoration-validation.md",
+    "note": "20 valid reference/restored trials, 5 per route and version. The legacy home fails the strict resource guard with /en HTTP 404; no valid pre-migration median is claimed."
+  }
+}

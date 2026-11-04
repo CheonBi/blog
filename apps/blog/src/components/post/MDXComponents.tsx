@@ -1,0 +1,133 @@
+import * as stylex from '@stylexjs/stylex'
+import Link from 'next/link'
+import type {HTMLProps, ReactElement} from 'react'
+
+import BarCompare from '@/components/post/BarCompare'
+import CodeBlock from '@/components/post/CodeBlock'
+import ImageZoom from '@/components/post/ImageZoom'
+import LiveDemo from '@/components/post/LiveDemo'
+import Mermaid from '@/components/post/Mermaid'
+
+const sx = stylex.create({
+  div: {
+    '@layer utilities': {
+      overflowX: 'auto',
+    },
+  },
+})
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractText(node: any): string {
+  if (typeof node === 'string') {
+    return node
+  }
+  if (typeof node === 'number') {
+    return String(node)
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractText).join('')
+  }
+  if (node && typeof node === 'object' && 'props' in node) {
+    return extractText(node.props.children)
+  }
+  return ''
+}
+function NextImage(props: HTMLProps<HTMLImageElement>) {
+  const {src} = props
+  const width = Number(props.width)
+  const height = Number(props.height)
+  if (src) {
+    const isExternal = src.startsWith('http')
+    // 크기를 못 읽은 이미지(public 이 없는 환경, 원본 <img> 태그)는 next/image 가 NaN 으로
+    // 던지므로 일반 img 로 내려간다. 확대 기능은 없지만 글은 열린다.
+    if (!Number.isFinite(width) || !Number.isFinite(height)) {
+      // oxlint-disable-next-line next/no-img-element -- 크기를 모르는 이미지는 next/image 를 못 쓴다
+      return <img src={src} alt={props.alt || ''} loading="lazy" />
+    }
+    return (
+      <ImageZoom
+        src={src}
+        alt={props.alt || ''}
+        width={width}
+        height={height}
+        isExternal={isExternal}
+      />
+    )
+  } else {
+    return <p>Currently, image is not available. {src}</p>
+  }
+}
+const MdxComponents = {
+  BarCompare,
+  LiveDemo,
+  img: NextImage,
+  table: (props: HTMLProps<HTMLTableElement>) => {
+    return (
+      <div className={stylex.props(sx.div).className}>
+        <table {...props} />
+      </div>
+    )
+  },
+  a: (props: HTMLProps<HTMLAnchorElement>) => {
+    const {href, children, ...rest} = props
+    if (!href) {
+      return null
+    }
+    // Demo artifacts are static files and should load only when opened.
+    if (href.startsWith('#') || href.startsWith('/demos/')) {
+      return (
+        <a href={href} {...rest}>
+          {children}
+        </a>
+      )
+    }
+    const isExternal = /^https?:\/\//.test(href) && !href.includes('cheonbi.kr')
+    if (isExternal) {
+      const {className, ...anchorRest} = rest
+      return (
+        <a
+          {...anchorRest}
+          href={href}
+          className={`external-link${className ? ` ${className}` : ''}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {children}
+        </a>
+      )
+    }
+    return (
+      <Link
+        href={href}
+        className={rest.className}
+        target={rest.target}
+        rel={rest.rel}
+      >
+        {children}
+      </Link>
+    )
+  },
+  pre: (props: HTMLProps<HTMLPreElement>) => {
+    const children = props.children as ReactElement<{
+      className?: string
+      children?: React.ReactNode
+      'data-filename'?: string
+    }>
+    if (
+      children &&
+      children.props &&
+      children.props.className &&
+      children.props.className.includes('language-mermaid')
+    ) {
+      const chartCode = extractText(children.props.children).trim()
+      return <Mermaid chart={chartCode} />
+    }
+    const filename = children?.props?.['data-filename']
+    return (
+      <CodeBlock className={props.className} filename={filename}>
+        {props.children}
+      </CodeBlock>
+    )
+  },
+}
+export default MdxComponents

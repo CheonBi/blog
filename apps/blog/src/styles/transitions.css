@@ -1,0 +1,149 @@
+/* Navigation and theme View Transitions. */
+@keyframes vt-slide-in-left {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+}
+@keyframes vt-slide-out-left {
+  to {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+}
+@keyframes vt-slide-in-right {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+}
+@keyframes vt-slide-out-right {
+  to {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+}
+@keyframes vt-banner-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+@keyframes vt-banner-out {
+  to {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+@keyframes circle-clip {
+  from {
+    clip-path: circle(
+      0% at var(--theme-toggle-x, 50%) var(--theme-toggle-y, 50%)
+    );
+  }
+  to {
+    clip-path: circle(
+      150% at var(--theme-toggle-x, 50%) var(--theme-toggle-y, 50%)
+    );
+  }
+}
+
+@layer site {
+  /* 이동 전환(본문 슬라이드, 공유 요소) 속도. 여기 한 곳에서 조절한다 */
+  :root {
+    --vt-nav-duration: 0.45s;
+  }
+  [data-vt-direction='back']::view-transition-new(*.page) {
+    animation: vt-slide-in-left var(--vt-nav-duration) ease-in-out 0s 1 normal both running;
+  }
+  [data-vt-direction='back']::view-transition-old(*.page) {
+    animation: vt-slide-out-right var(--vt-nav-duration) ease-in-out 0s 1 normal both running;
+  }
+  [data-vt-direction='forward']::view-transition-new(*.page) {
+    animation: vt-slide-in-right var(--vt-nav-duration) ease-in-out 0s 1 normal both running;
+  }
+  .theme-transition-circle::view-transition-old(root) {
+    animation: none 0s ease 0s 1 normal none running;
+  }
+  [data-vt-direction='forward']::view-transition-old(*.page) {
+    animation: vt-slide-out-left var(--vt-nav-duration) ease-in-out 0s 1 normal both running;
+  }
+  .theme-transition-circle::view-transition-new(root) {
+    animation: circle-clip 0.5s ease-in-out 0s 1 normal none running;
+  }
+  html::view-transition-group(root) {
+    animation-duration: 0.5s;
+    animation-timing-function: ease-in-out;
+  }
+  html::view-transition-new(root) {
+    mix-blend-mode: normal;
+    z-index: 9999;
+  }
+  html::view-transition-old(root) {
+    mix-blend-mode: normal;
+    z-index: 1;
+  }
+
+  /* 목차 표시나 저장 글 삭제처럼 이동이 아닌 업데이트로 본문 경계가 바뀌면 본문은 그대로 둔다 */
+  html:not([data-vt-direction])::view-transition-old(*.page) {
+    display: none;
+  }
+  html:not([data-vt-direction])::view-transition-new(*.page),
+  html:not([data-vt-direction])::view-transition-group(*.page) {
+    animation: none;
+  }
+
+  /* 줄바꿈이 다른 제목끼리 크로스페이드하면 글자가 겹쳐 보여서 old를 먼저 지운다 */
+  html::view-transition-old(*.morph) {
+    animation-duration: 0.18s;
+  }
+
+  /* 제목, 태그, 헤더 점 같은 공유 요소도 본문과 같은 속도로 움직인다 */
+  html::view-transition-group(*) {
+    animation-duration: var(--vt-nav-duration);
+  }
+}
+
+@supports (view-transition-name: none) {
+  @layer site {
+    html::view-transition-old(root) {
+      animation-duration: 0.3s;
+      animation-timing-function: ease-in-out;
+    }
+    [data-vt-direction='forward']::view-transition-new(*.page) {
+      animation-duration: var(--vt-nav-duration);
+      animation-timing-function: ease-in-out;
+    }
+    [data-vt-direction='back']::view-transition-new(*.page) {
+      animation-duration: var(--vt-nav-duration);
+      animation-timing-function: ease-in-out;
+    }
+    [data-vt-direction='back']::view-transition-old(*.page) {
+      animation-duration: var(--vt-nav-duration);
+      animation-timing-function: ease-in-out;
+    }
+    html::view-transition-new(root) {
+      animation-duration: 0.3s;
+      animation-timing-function: ease-in-out;
+    }
+    [data-vt-direction='forward']::view-transition-old(*.page) {
+      animation-duration: var(--vt-nav-duration);
+      animation-timing-function: ease-in-out;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 언어 전환처럼 문서를 새로 받는 이동에도 root 크로스페이드를 건다 */
+  @view-transition {
+    navigation: auto;
+  }
+  @layer site {
+    html::view-transition-new(announcement-banner):only-child {
+      animation: vt-banner-in 0.3s ease-out 0s 1 normal both running;
+    }
+    html::view-transition-old(announcement-banner):only-child {
+      animation: vt-banner-out 0.2s ease-in 0s 1 normal both running;
+    }
+  }
+}

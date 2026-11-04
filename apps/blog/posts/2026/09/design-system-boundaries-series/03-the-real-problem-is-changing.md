@@ -10,6 +10,9 @@ date: 2026-09-22 11:00:00
 description: SEED 팀이 직접 쓴 회고를 읽고 앞 글의 결론을 정정한다. V3를 다시 지은 이유는 확산이 아니라 고치기 두려웠기 때문이고, 저장소의 절반은 그 두려움을 없애는 장치다.
 series: 경계를 긋는 디자인 시스템
 seriesOrder: 3
+art:
+  undraw: build-mode
+slide: design-system-boundaries
 ---
 
 ## Table Of Contents
