@@ -10,6 +10,9 @@ date: 2026-09-22 10:30:00
 description: SEED Design이 토큰 DSL과 headless 분리, CDN 배포, AI 에이전트 표면에서 내린 선택 일곱 가지를 이유와 함께 정리하고, 컴포넌트 하나를 추가할 때 손대야 하는 지점을 센다.
 series: 경계를 긋는 디자인 시스템
 seriesOrder: 2
+art:
+  undraw: design-tools
+slide: design-system-boundaries
 ---
 
 ## Table Of Contents

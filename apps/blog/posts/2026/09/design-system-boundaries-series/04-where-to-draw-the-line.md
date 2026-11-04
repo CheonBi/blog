@@ -10,6 +10,9 @@ date: 2026-09-22 11:30:00
 description: 영향도 추적기와 대비 검증기를 직접 만들어 토큰 69개짜리 시스템에 돌린 결과를 놓고, 앞 글들의 권고 중 틀린 것을 정정하고 우선순위를 다시 매긴다.
 series: 경계를 긋는 디자인 시스템
 seriesOrder: 4
+art:
+  undraw: design-components
+slide: design-system-boundaries
 ---
 
 ## Table Of Contents

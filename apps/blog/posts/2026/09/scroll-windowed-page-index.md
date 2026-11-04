@@ -8,6 +8,8 @@ tags:
 published: true
 date: 2026-09-15 17:03:37
 description: 스크롤 위치를 페이지 번호로 바꾸는 일반적인 방법과 Kineto의 씬 단위 RailIndex 구현을 정리한다.
+art:
+  undraw: mobile-interface
 ---
 
 ## Table Of Contents

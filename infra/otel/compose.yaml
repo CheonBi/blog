@@ -1,0 +1,100 @@
+# 블로그의 Core Web Vitals 를 받는 수집 서버. 버전은 blog-experiments 의 cwv-otel-grafana lab 과 같고, metric 경로는 다르다
+# (README 의 'metric 경로가 lab 과 다른 이유').
+# 사용: cp env.example .env 로 값을 채운 뒤 docker compose up -d
+name: cheonbi-otel
+# json-file 로그는 기본으로 회전하지 않아 오래 두면 디스크를 채운다. 컨테이너마다 10MB 3개로 돌린다.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+services:
+  caddy:
+    profiles: ['public-tls']
+    image: caddy:2.11.7
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      - OTEL_DOMAIN=${OTEL_DOMAIN:?}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    ports:
+      - '80:80' # 인증서 발급(HTTP-01)
+      - '443:443'
+    depends_on:
+      - collector
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.164.0
+    restart: unless-stopped
+    logging: *logging
+    command: ['--config=/etc/otelcol/config.yaml']
+    # memory_limiter 의 limit_percentage 가 이 상한을 기준으로 계산된다. 없으면 호스트 전체 메모리 기준이 된다.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?}
+    ports:
+      - '127.0.0.1:${OTEL_HTTP_PORT:-14318}:4318'
+    volumes:
+      - ./collector/config.yaml:/etc/otelcol/config.yaml:ro
+    depends_on:
+      - tempo
+      - mimir
+
+  tempo:
+    image: grafana/tempo:3.1.1
+    restart: unless-stopped
+    logging: *logging
+    command:
+      ['-target=all', '-config.file=/etc/tempo.yaml', '-config.expand-env=true']
+    environment:
+      - TEMPO_RETENTION=${TEMPO_RETENTION:-8760h}
+      - TEMPO_QUERY_RANGE=${TEMPO_QUERY_RANGE:-8760h}
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+
+  mimir:
+    image: grafana/mimir:3.2.3
+    restart: unless-stopped
+    logging: *logging
+    # collector 가 OTLP 로 보내는 delta 를 그대로 저장하고, 이름에 단위 접미사(_milliseconds)를 붙인다.
+    command:
+      [
+        '-config.file=/etc/mimir.yaml',
+        '-compactor.blocks-retention-period=${MIMIR_RETENTION:-0}',
+        '-distributor.otel-native-delta-ingestion=true',
+        '-distributor.otel-metric-suffixes-enabled=true',
+      ]
+    volumes:
+      - ./mimir/mimir.yaml:/etc/mimir.yaml:ro
+      - mimir-data:/data
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?}
+      # 기본 설치는 쓰지 않는 앱 플러그인 5개를 받고 데이터소스 플러그인 프로세스를 13개 띄운다. Mimir(prometheus)와
+      # Tempo 만 남기면 프로세스가 2개로 줄고, 같은 조건에서 메모리가 60MiB 쯤 적다(2026-10-17 로컬 측정, 기본 222~261MiB,
+      # 줄임 159~201MiB). 운영 서버에서는 줄인 상태로 240~290MiB 였다.
+      - GF_PLUGINS_PREINSTALL_DISABLED=true
+      - GF_PLUGINS_DISABLE_PLUGINS=elasticsearch,grafana-postgresql-datasource,grafana-pyroscope-datasource,influxdb,jaeger,loki,mssql,mysql,opentsdb,stackdriver,zipkin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - '127.0.0.1:${GRAFANA_PORT:-3300}:3000' # SSH 터널로만 연다
+    depends_on:
+      - tempo
+      - mimir
+
+volumes:
+  caddy-data:
+  tempo-data:
+  mimir-data:

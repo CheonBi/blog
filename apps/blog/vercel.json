@@ -9,6 +9,10 @@
           "value": "nosniff"
         },
         {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://research.cheonbi.kr"
+        },
+        {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
         }

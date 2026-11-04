@@ -1,0 +1,2356 @@
+{
+  "uid": "cwv-ops",
+  "title": "CWV 운영 (Mimir)",
+  "tags": [
+    "cwv"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "5m",
+  "templating": {
+    "list": [
+      {
+        "name": "nav",
+        "label": "이동",
+        "type": "custom",
+        "query": "첫 로드 : navigate|reload|back-forward|prerender|restore,SPA 이동 : soft-navigation,bfcache 복원 : back-forward-cache,전체 : .*",
+        "current": {
+          "text": "첫 로드",
+          "value": "navigate|reload|back-forward|prerender|restore"
+        },
+        "options": [
+          {
+            "text": "첫 로드",
+            "value": "navigate|reload|back-forward|prerender|restore",
+            "selected": true
+          },
+          {
+            "text": "SPA 이동",
+            "value": "soft-navigation",
+            "selected": false
+          },
+          {
+            "text": "bfcache 복원",
+            "value": "back-forward-cache",
+            "selected": false
+          },
+          {
+            "text": "전체",
+            "value": ".*",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "route",
+        "label": "화면",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "query": {
+          "query": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, page_route)",
+          "refId": "route"
+        },
+        "definition": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, page_route)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "refresh": 2
+      },
+      {
+        "name": "lang",
+        "label": "언어",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "query": {
+          "query": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, page_lang)",
+          "refId": "lang"
+        },
+        "definition": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, page_lang)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "refresh": 2
+      },
+      {
+        "name": "device",
+        "label": "기기",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "query": {
+          "query": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, device_class)",
+          "refId": "device"
+        },
+        "definition": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, device_class)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "refresh": 2
+      },
+      {
+        "name": "engine",
+        "label": "엔진",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "query": {
+          "query": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, browser_engine)",
+          "refId": "engine"
+        },
+        "definition": "label_values(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\"}, browser_engine)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "refresh": 2
+      },
+      {
+        "name": "window",
+        "label": "추이 창",
+        "type": "custom",
+        "query": "1h,6h,1d",
+        "current": {
+          "text": "1h",
+          "value": "1h"
+        },
+        "options": [
+          {
+            "text": "1h",
+            "value": "1h",
+            "selected": true
+          },
+          {
+            "text": "6h",
+            "value": "6h",
+            "selected": false
+          },
+          {
+            "text": "1d",
+            "value": "1d",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "지금 얼마나 느린가 (선택 구간 전체의 p75)",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "LCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "INP p75",
+      "description": "페이지가 처음 숨겨진 시점의 값이다. 다시 보였다가 숨겨지며 바뀐 값은 넣지 않는다(CWV 원인 분석 대시보드의 'CLS, INP 갱신' 패널).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 5,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CLS p75",
+      "description": "페이지가 처음 숨겨진 시점의 값이다. 다시 보였다가 숨겨지며 바뀐 값은 넣지 않는다(CWV 원인 분석 대시보드의 'CLS, INP 갱신' 패널).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_cls_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.25
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 10,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "FCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_fcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1800
+              },
+              {
+                "color": "red",
+                "value": 3000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "TTFB p75",
+      "description": "bfcache 복원은 TTFB 를 기록하지 않는다. web-vitals 가 재지 않고 0 을 넣기 때문이다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_ttfb_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 800
+              },
+              {
+                "color": "red",
+                "value": 1800
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "good 비율 (good 경계 버킷 / 전체)",
+      "collapsed": false,
+      "panels": [],
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "LCP good 비율",
+      "description": "le=\"2500\" 버킷이 good 경계와 정확히 같아서 보간 없이 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\",le=\"2500\"}[$__range])) / sum(sum_over_time(cwv_lcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "INP good 비율",
+      "description": "le=\"200\" 버킷이 good 경계와 정확히 같아서 보간 없이 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\",le=\"200\"}[$__range])) / sum(sum_over_time(cwv_inp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 5,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CLS good 비율",
+      "description": "le=\"0.1\" 버킷이 good 경계와 정확히 같아서 보간 없이 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_cls_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\",le=\"0.1\"}[$__range])) / sum(sum_over_time(cwv_cls_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 10,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "FCP good 비율",
+      "description": "le=\"1800\" 버킷이 good 경계와 정확히 같아서 보간 없이 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_fcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\",le=\"1800\"}[$__range])) / sum(sum_over_time(cwv_fcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 15,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "TTFB good 비율",
+      "description": "le=\"800\" 버킷이 good 경계와 정확히 같아서 보간 없이 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_ttfb_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\",le=\"800\"}[$__range])) / sum(sum_over_time(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 20,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "나빠졌는가 (p75 추이)",
+      "collapsed": false,
+      "panels": [],
+      "id": 13,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "LCP p75 추이",
+      "description": "방문이 드문 블로그라 짧은 창은 비어 있는 구간이 많다. 위쪽의 '추이 창' 으로 창 길이를 바꾼다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$window])))",
+          "legendFormat": "p75",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 14,
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "INP p75 추이",
+      "description": "방문이 드문 블로그라 짧은 창은 비어 있는 구간이 많다. 위쪽의 '추이 창' 으로 창 길이를 바꾼다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$window])))",
+          "legendFormat": "p75",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 15,
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CLS p75 추이",
+      "description": "방문이 드문 블로그라 짧은 창은 비어 있는 구간이 많다. 위쪽의 '추이 창' 으로 창 길이를 바꾼다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_cls_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$window])))",
+          "legendFormat": "p75",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.25
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 16,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "FCP p75 추이",
+      "description": "방문이 드문 블로그라 짧은 창은 비어 있는 구간이 많다. 위쪽의 '추이 창' 으로 창 길이를 바꾼다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_fcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$window])))",
+          "legendFormat": "p75",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1800
+              },
+              {
+                "color": "red",
+                "value": 3000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 17,
+      "gridPos": {
+        "x": 8,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "TTFB p75 추이",
+      "description": "방문이 드문 블로그라 짧은 창은 비어 있는 구간이 많다. 위쪽의 '추이 창' 으로 창 길이를 바꾼다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le) (sum_over_time(cwv_ttfb_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$window])))",
+          "legendFormat": "p75",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 800
+              },
+              {
+                "color": "red",
+                "value": 1800
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 18,
+      "gridPos": {
+        "x": 16,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "row",
+      "title": "누구에게 느린가",
+      "collapsed": false,
+      "panels": [],
+      "id": 19,
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "기기별 LCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, device_class) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{device_class}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.device_class}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 20,
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "브라우저 엔진별 LCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, browser_engine) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{browser_engine}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.browser_engine}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 21,
+      "gridPos": {
+        "x": 8,
+        "y": 26,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "언어별 LCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page_lang) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{page_lang}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.page_lang}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 22,
+      "gridPos": {
+        "x": 16,
+        "y": 26,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "기기별 INP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, device_class) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{device_class}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.device_class}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 23,
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "브라우저 엔진별 INP p75",
+      "description": "엔진마다 지원하는 지표가 달라 엔진별 건수가 다를 수 있다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, browser_engine) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{browser_engine}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.browser_engine}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 24,
+      "gridPos": {
+        "x": 8,
+        "y": 32,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "언어별 INP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page_lang) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{page_lang}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.page_lang}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 25,
+      "gridPos": {
+        "x": 16,
+        "y": 32,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "row",
+      "title": "어디가 느린가",
+      "collapsed": false,
+      "panels": [],
+      "id": 26,
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "화면별 LCP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page_route) (sum_over_time(cwv_lcp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{page_route}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2500
+              },
+              {
+                "color": "red",
+                "value": 4000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.page_route}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 27,
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "화면별 INP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page_route) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{page_route}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.page_route}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 28,
+      "gridPos": {
+        "x": 8,
+        "y": 39,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "입력 종류별 INP p75",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, interaction_type) (sum_over_time(cwv_inp_milliseconds_bucket{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__range])))",
+          "legendFormat": "{{interaction_type}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.interaction_type}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 29,
+      "gridPos": {
+        "x": 16,
+        "y": 39,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "type": "row",
+      "title": "얼마나 왔나",
+      "collapsed": false,
+      "panels": [],
+      "id": 30,
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "화면별 페이지 로드",
+      "description": "TTFB 는 페이지 로드마다 한 번 보고되므로 TTFB 건수를 페이지 로드 수로 쓴다. 블로그 안의 클라이언트 이동과 bfcache 복원은 세지 않는다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum by (page_route) (sum_over_time(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "{{page_route}}",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            },
+            "drawStyle": "bars"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 31,
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "화면별 SPA 이동",
+      "description": "블로그 안에서 링크로 옮겨 간 횟수. SPA 이동 뒤 첫 contentful paint(FCP)가 보고된 수로 센다. Chromium 151 이상만 보고하고, 이동 변수와 상관없이 SPA 이동만 센다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum by (page_route) (sum_over_time(cwv_fcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=\"soft-navigation\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "{{page_route}}",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            },
+            "drawStyle": "bars"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 32,
+      "gridPos": {
+        "x": 12,
+        "y": 46,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "화면별 bfcache 복원",
+      "description": "뒤로, 앞으로 가기로 bfcache 에서 복원된 횟수. 복원 뒤 첫 contentful paint(FCP)가 보고된 수로 센다. 복원 TTFB 는 기록하지 않으므로 '화면별 페이지 로드' 에는 들어가지 않는다. 이동 변수와 상관없이 복원만 센다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum by (page_route) (sum_over_time(cwv_fcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=\"back-forward-cache\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "{{page_route}}",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            },
+            "drawStyle": "bars"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 33,
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "LCP 등급별 건수",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum by (rating) (sum_over_time(cwv_lcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "{{rating}}",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            },
+            "drawStyle": "bars"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 34,
+      "gridPos": {
+        "x": 12,
+        "y": 53,
+        "w": 12,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "지표별 표본 수",
+      "description": "지표마다 보고 조건이 달라 건수가 다르다. INP 는 입력이 있어야, CLS 는 배치가 바뀌거나 페이지가 숨겨져야 나온다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_lcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "LCP",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_inp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "INP",
+          "instant": false,
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_cls_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "CLS",
+          "instant": false,
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_fcp_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "FCP",
+          "instant": false,
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"$nav\", page_route=~\"$route\", page_lang=~\"$lang\", device_class=~\"$device\", browser_engine=~\"$engine\"}[$__interval]))",
+          "legendFormat": "TTFB",
+          "instant": false,
+          "range": true,
+          "refId": "E"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 35,
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 7
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Tempo 에 저장된 첫 로드 (선택 구간)",
+      "description": "trace 는 TTFB 가 나온 뒤 5초 안에 나가고 metric 은 페이지가 숨겨질 때만 나간다. 두 수의 차이가 hidden 이 오지 않은 채 끝난 세션의 metric 손실에 tail sampling 과 같은 밀리초 중복 손실을 더한 어림값이다. 위쪽 필터와 상관없다.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "queryType": "traceql",
+          "query": "{resource.service.name=\"cheonbi-blog\" && name=\"cwv.ttfb\" && span.cwv.navigation_type=~\"navigate|reload|back-forward|prerender|restore\"} | count_over_time()",
+          "metricsQueryType": "instant",
+          "step": "5m",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 36,
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 12,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Mimir 에 저장된 첫 로드 (선택 구간)",
+      "description": "trace 는 TTFB 가 나온 뒤 5초 안에 나가고 metric 은 페이지가 숨겨질 때만 나간다. 두 수의 차이가 hidden 이 오지 않은 채 끝난 세션의 metric 손실에 tail sampling 과 같은 밀리초 중복 손실을 더한 어림값이다. 위쪽 필터와 상관없다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "sum(sum_over_time(cwv_ttfb_milliseconds_count{job=\"cheonbi-blog\", navigation_type=~\"navigate|reload|back-forward|prerender|restore\"}[$__range]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 37,
+      "gridPos": {
+        "x": 12,
+        "y": 67,
+        "w": 12,
+        "h": 4
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Mimir 가 버린 표본 (Mimir 시작 뒤 누적)",
+      "description": "표본은 시리즈 하나의 값이다. 페이지 로드 하나의 지표 값은 버킷과 count, sum 을 합쳐 표본 11~13개다. sample_duplicate_timestamp 는 같은 시리즈의 값이 같은 밀리초에 두 번 들어와 하나를 버린 것이다. 위쪽 필터와 상관없다. collector 가 1분마다 Mimir 와 자기 지표를 긁어 넣는다. 버리는 일이 드물어 처음 생긴 시리즈의 첫 값을 increase() 가 세지 못하므로(blog-experiments 의 E8 과 같은 이유) 카운터의 최신값, 즉 지금 프로세스가 시작한 뒤의 누적값을 보여 준다. 값은 그 대상을 3분 안에 정상으로 긁었을 때만 표시하고, 긁지 못했거나 3분 넘게 새 값이 없으면 '수집 안 됨' 이다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "(max by (reason) (cortex_discarded_samples_total{job=\"mimir\", user=\"blog\"}) or on() label_replace(vector(0), \"reason\", \"없음\", \"\", \"\")) and on() max((up{job=\"mimir\"} == 1) and (time() - timestamp(up{job=\"mimir\"}) < 180))",
+          "legendFormat": "{{reason}}",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.reason}",
+          "noValue": "수집 안 됨"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "id": 38,
+      "gridPos": {
+        "x": 0,
+        "y": 71,
+        "w": 12,
+        "h": 6
+      }
+    },
+    {
+      "type": "stat",
+      "title": "collector 가 받지 못하거나 내보내지 못한 수 (collector 시작 뒤 누적)",
+      "description": "metric 데이터 포인트와 span 의 합이다. 위쪽 필터와 상관없다. collector 가 1분마다 Mimir 와 자기 지표를 긁어 넣는다. 버리는 일이 드물어 처음 생긴 시리즈의 첫 값을 increase() 가 세지 못하므로(blog-experiments 의 E8 과 같은 이유) 카운터의 최신값, 즉 지금 프로세스가 시작한 뒤의 누적값을 보여 준다. 값은 그 대상을 3분 안에 정상으로 긁었을 때만 표시하고, 긁지 못했거나 3분 넘게 새 값이 없으면 '수집 안 됨' 이다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "expr": "(sum({__name__=~\"otelcol_(receiver_refused|exporter_send_failed)_(metric_points|spans)_total\", job=\"collector\"}) or on() vector(0)) and on() max((up{job=\"collector\"} == 1) and (time() - timestamp(up{job=\"collector\"}) < 180))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "수집 안 됨"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "id": 39,
+      "gridPos": {
+        "x": 12,
+        "y": 71,
+        "w": 12,
+        "h": 6
+      }
+    }
+  ]
+}

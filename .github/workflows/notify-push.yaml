@@ -1,0 +1,75 @@
+name: Notify new posts
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/blog/posts/**', 'apps/blog/series/**']
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'Explicit post or series paths, separated by spaces'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  deployments: read
+
+concurrency:
+  group: notify-posts
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: vars.PUSH_NOTIFICATIONS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Detect newly published personal content
+        id: files
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          NOTIFY_FILES: ${{ inputs.files }}
+        run: |
+          node scripts/push-notifications.mjs
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          const files = JSON.parse(fs.readFileSync('.cache/notification-files.json', 'utf8'))
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `has_files=${files.length > 0}\n`)
+          JS
+      - name: Wait for the production deployment containing this commit
+        if: steps.files.outputs.has_files == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_ENVIRONMENT: ${{ vars.BLOG_DEPLOYMENT_ENVIRONMENT || 'Production – blog' }}
+        run: |
+          for _ in $(seq 1 90); do
+            git fetch --quiet origin main
+            while read -r id sha; do
+              if git merge-base --is-ancestor "$GITHUB_SHA" "$sha" 2>/dev/null; then
+                state=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" --jq '.[0].state // empty')
+                if [ "$state" = success ]; then exit 0; fi
+              fi
+            done < <(gh api "repos/$GITHUB_REPOSITORY/deployments" -X GET -f environment="$DEPLOYMENT_ENVIRONMENT" -f per_page=10 --jq '.[] | "\(.id) \(.sha)"')
+            sleep 20
+          done
+          echo 'No successful production deployment containing this commit was found.'
+          exit 1
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+        if: steps.files.outputs.has_files == 'true'
+      - name: Send notifications
+        if: steps.files.outputs.has_files == 'true'
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: node apps/blog/scripts/notify-push.mjs --files-json .cache/notification-files.json

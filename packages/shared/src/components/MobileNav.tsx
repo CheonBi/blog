@@ -3,7 +3,10 @@
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 import {memo, useCallback, useEffect, useRef, useState} from 'react'
+import type {PointerEvent as ReactPointerEvent, MouseEvent} from 'react'
 import {createPortal} from 'react-dom'
+
+import {mobileNavClassNames as classNames} from './MobileNav.styles'
 
 interface MenuItem {
   label: string
@@ -14,7 +17,22 @@ interface MobileNavProps {
   menu: MenuItem[]
 }
 
-const EXIT_MS = 280
+// 닫힘 전환(220ms)이 끝난 뒤에 언마운트한다
+const EXIT_MS = 260
+// 이 거리를 넘기면 탭이 아니라 드래그로 본다
+const DRAG_SLOP_PX = 6
+const DISMISS_RATIO = 0.3
+const DISMISS_VELOCITY = 0.5 // px/ms
+const DECELERATE = 'cubic-bezier(0.32, 0.72, 0, 1)'
+
+interface DragState {
+  pointerId: number
+  startY: number
+  lastY: number
+  lastTime: number
+  velocity: number
+  offset: number
+}
 
 const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
   const pathname = usePathname() ?? '/'
@@ -22,6 +40,10 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
   const [open, setOpen] = useState(false)
   const rafRef = useRef<number | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const backdropRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<DragState | null>(null)
+  const draggedRef = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -79,6 +101,84 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, closeNav])
 
+  const onPointerDown = (e: ReactPointerEvent<HTMLDialogElement>) => {
+    if (!open || !e.isPrimary || e.button !== 0) {
+      return
+    }
+    draggedRef.current = false
+    dragRef.current = {
+      pointerId: e.pointerId,
+      startY: e.clientY,
+      lastY: e.clientY,
+      lastTime: e.timeStamp,
+      velocity: 0,
+      offset: 0,
+    }
+  }
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDialogElement>) => {
+    const drag = dragRef.current
+    const sheet = sheetRef.current
+    const backdrop = backdropRef.current
+    if (!drag || e.pointerId !== drag.pointerId || !sheet || !backdrop) {
+      return
+    }
+    const offset = Math.max(0, e.clientY - drag.startY)
+    if (!draggedRef.current) {
+      if (offset < DRAG_SLOP_PX) {
+        return
+      }
+      draggedRef.current = true
+      e.currentTarget.setPointerCapture(e.pointerId)
+      sheet.style.transition = 'none'
+      backdrop.style.transition = 'none'
+    }
+    const dt = e.timeStamp - drag.lastTime
+    if (dt > 0) {
+      drag.velocity = (e.clientY - drag.lastY) / dt
+    }
+    drag.lastY = e.clientY
+    drag.lastTime = e.timeStamp
+    drag.offset = offset
+    sheet.style.translate = `0 ${offset}px`
+    backdrop.style.opacity = String(1 - offset / sheet.offsetHeight)
+  }
+
+  const onPointerEnd = (e: ReactPointerEvent<HTMLDialogElement>) => {
+    const drag = dragRef.current
+    const sheet = sheetRef.current
+    const backdrop = backdropRef.current
+    if (!drag || e.pointerId !== drag.pointerId) {
+      return
+    }
+    dragRef.current = null
+    if (!draggedRef.current || !sheet || !backdrop) {
+      return
+    }
+    // 인라인 값을 지우면 클래스의 전환이 현재 위치에서 이어받는다
+    sheet.style.transition = ''
+    sheet.style.translate = ''
+    backdrop.style.transition = ''
+    backdrop.style.opacity = ''
+    const dismiss =
+      e.type === 'pointerup' &&
+      (drag.offset > sheet.offsetHeight * DISMISS_RATIO ||
+        drag.velocity > DISMISS_VELOCITY)
+    if (dismiss) {
+      // 이미 움직이는 중이므로 가속 대신 감속 곡선으로 빠져나간다
+      sheet.style.transitionTimingFunction = DECELERATE
+      closeNav()
+    }
+  }
+
+  const onClickCapture = (e: MouseEvent) => {
+    if (draggedRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      draggedRef.current = false
+    }
+  }
+
   const isActive = (path: string) => {
     if (path.startsWith('http')) {
       return false
@@ -91,17 +191,17 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
   }
 
   return (
-    <div className="sm:hidden">
+    <div className={classNames.root}>
       <button
         type="button"
-        className="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+        className={classNames.toggle}
         aria-label="Toggle Menu"
         aria-expanded={open}
         onClick={toggleNav}
         style={{color: 'var(--ink-2)'}}
       >
         <svg
-          className="h-6 w-6"
+          className={classNames.toggleIcon}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -119,8 +219,9 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
         createPortal(
           <>
             <div
-              className={`fixed inset-0 z-[100] transition-opacity duration-300 ${
-                open ? 'opacity-100' : 'pointer-events-none opacity-0'
+              ref={backdropRef}
+              className={`${classNames.backdrop} ${
+                open ? classNames.visible : classNames.hidden
               }`}
               style={{
                 background: 'rgba(0, 0, 0, 0.55)',
@@ -132,32 +233,37 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
             />
 
             <div
-              className={`fixed inset-x-0 bottom-0 z-[101] transition-[translate,opacity] duration-300 ease-out ${
-                open
-                  ? 'translate-y-0 opacity-100'
-                  : 'pointer-events-none translate-y-full opacity-0'
+              ref={sheetRef}
+              className={`${classNames.sheet} ${
+                open ? classNames.sheetVisible : classNames.sheetHidden
               }`}
             >
               <dialog
                 open
-                className="block w-full rounded-t-[28px] px-5 pb-7 pt-3"
+                className={classNames.dialog}
                 style={{
                   background: 'var(--surface)',
                   borderTop: '1px solid var(--border-2)',
                   boxShadow: '0 -24px 60px -20px rgba(0, 0, 0, 0.45)',
+                  touchAction: 'none',
                 }}
                 aria-modal="true"
                 aria-label="Navigation menu"
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerEnd}
+                onPointerCancel={onPointerEnd}
+                onClickCapture={onClickCapture}
               >
-                <div className="mb-5 flex justify-center">
+                <div className={classNames.handleContainer}>
                   <div
-                    className="h-[5px] w-11 rounded-full"
+                    className={classNames.handle}
                     style={{background: 'var(--border-2)'}}
                   />
                 </div>
 
                 <div
-                  className="mb-3 px-3 text-[10px] font-medium uppercase"
+                  className={classNames.heading}
                   style={{
                     color: 'var(--ink-4)',
                     fontFamily: 'var(--font-mono), monospace',
@@ -167,7 +273,7 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
                   Navigation
                 </div>
 
-                <nav className="flex flex-col gap-1">
+                <nav className={classNames.nav}>
                   {menu.map((link, i) => {
                     const external = link.path.startsWith('http')
                     const active = isActive(link.path)
@@ -182,13 +288,12 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
                               'inset 0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent)',
                           }
                         : undefined,
-                      className:
-                        'group relative flex items-center gap-4 rounded-2xl px-4 py-3.5 transition-colors',
+                      className: classNames.link,
                     } as const
                     const content = (
                       <>
                         <span
-                          className="text-[11px] tabular-nums"
+                          className={classNames.index}
                           style={{
                             fontFamily: 'var(--font-mono), monospace',
                             color: active ? 'var(--primary)' : 'var(--ink-4)',
@@ -198,7 +303,7 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         <span
-                          className="flex-1 text-[17px] font-semibold"
+                          className={classNames.label}
                           style={{
                             color: active ? 'var(--ink)' : 'var(--ink-2)',
                             letterSpacing: '-0.01em',
@@ -224,7 +329,7 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
                           </svg>
                         ) : active ? (
                           <span
-                            className="h-1.5 w-1.5 rounded-full"
+                            className={classNames.activeDot}
                             style={{
                               background: 'var(--primary-3)',
                               boxShadow: '0 0 10px var(--primary-3)',
@@ -269,7 +374,7 @@ const MobileNav = memo(function MobileNavBase({menu}: MobileNavProps) {
 
                 <button
                   type="button"
-                  className="mt-5 w-full rounded-2xl py-3.5 text-sm font-medium transition-colors"
+                  className={classNames.close}
                   style={{
                     background: 'var(--surface-2)',
                     color: 'var(--ink-3)',

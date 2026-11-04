@@ -1,13 +1,20 @@
-import {existsSync, watch} from 'node:fs'
+import {existsSync, readFileSync, watch} from 'node:fs'
 import {utimes} from 'node:fs/promises'
 import {dirname, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
+import frontMatter from 'front-matter'
+import {sync as globSync} from 'glob'
 import type {NextConfig} from 'next'
 
 const blogRoot = dirname(fileURLToPath(import.meta.url))
 const postsDir = resolve(blogRoot, 'posts')
 const postsModule = resolve(blogRoot, 'src/utils/Post.ts')
+
+// 태그 정리(scripts/retag-posts.mjs)로 병합된 태그는 새 태그로, 없어진 태그는 목록으로 보낸다
+const tagRedirects: Record<string, string | null> = JSON.parse(
+  readFileSync(resolve(blogRoot, 'data/tag-vocabulary.json'), 'utf8'),
+).redirects
 
 const globalWithPostWatcher = globalThis as typeof globalThis & {
   __blogPostWatcher?: ReturnType<typeof watch>
@@ -51,19 +58,43 @@ if (process.env.NODE_ENV === 'development') {
   watchPostsInDevelopment()
 }
 
+// proxy가 없는 글 URL을 404로 보내는 데 쓰는 공개 글 목록. getAllPosts와 같은 규칙으로 빌드마다 만든다.
+// 번역 글은 `2026/09/slug.en`처럼 `.en`이 붙는다
+function getPublishedPostSlugs(): string[] {
+  return globSync('**/*.md*', {cwd: postsDir})
+    .filter(
+      (file) =>
+        frontMatter<{published?: boolean}>(
+          readFileSync(resolve(postsDir, file), 'utf8'),
+        ).attributes.published,
+    )
+    .map((file) => file.replaceAll('\\', '/').replace(/\.mdx?$/, ''))
+}
+
 const config: NextConfig = {
+  // Local bundle analysis gets its own build and browser source maps.
+  ...(process.env.COLDPATH === '1'
+    ? {distDir: '.next/coldpath', productionBrowserSourceMaps: true}
+    : {}),
   reactStrictMode: true,
   cacheComponents: true,
+  env: {
+    PUBLISHED_POSTS: JSON.stringify(getPublishedPostSlugs()),
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     localPatterns: [
       // 코드 생성 썸네일은 쿼리 스트링(v, slug, dpl)을 허용해야 한다
       {pathname: '/api/og/art'},
+      // 생성 썸네일은 파일 수정 시각(v)을 쿼리로 붙여 캐시를 깬다
+      {pathname: '/thumbnails/**'},
       {pathname: '/**', search: ''},
     ],
   },
+  // @yceffort/markdown-rs 는 import.meta.url 기준으로 wasm 을 읽으므로 번들에 넣지 않는다.
+  serverExternalPackages: ['@yceffort/markdown-rs'],
   outputFileTracingIncludes: {
-    '/*': ['./posts/**/*'],
+    '/*': ['./posts/**/*', '../../packages/markdown-rs/pkg/**/*'],
   },
   async headers() {
     return [
@@ -94,6 +125,11 @@ const config: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/series/control-room-dispatch',
+        destination: '/series/event-distance-to-mms',
+        permanent: true,
+      },
+      {
         source: '/index',
         destination: '/',
         permanent: true,
@@ -110,12 +146,7 @@ const config: NextConfig = {
       },
       {
         source: '/generate-screenshot',
-        destination: '/2020/12/generate-serverless-thumbnail',
-        permanent: true,
-      },
-      {
-        source: '/series/control-room-dispatch',
-        destination: '/series/event-distance-to-mms',
+        destination: '/2026/09/thumbnail-generation',
         permanent: true,
       },
       {
@@ -134,6 +165,11 @@ const config: NextConfig = {
         destination: '/tags/:tag/pages/:no',
         permanent: true,
       },
+      ...Object.entries(tagRedirects).map(([from, to]) => ({
+        source: `/tags/${from}/:path*`,
+        destination: to ? `/tags/${to}/pages/1` : '/tags',
+        permanent: true,
+      })),
       {
         source: '/tags/:tag/pages/((?!\\d).*)',
         destination: '/tags/:tag/pages/1',
@@ -142,6 +178,16 @@ const config: NextConfig = {
       {
         source: '/tags/:tag',
         destination: '/tags/:tag/pages/1',
+        permanent: true,
+      },
+      {
+        source: '/en/tags/:tag/pages/((?!\\d).*)',
+        destination: '/en/tags/:tag/pages/1',
+        permanent: true,
+      },
+      {
+        source: '/en/tags/:tag',
+        destination: '/en/tags/:tag/pages/1',
         permanent: true,
       },
       {

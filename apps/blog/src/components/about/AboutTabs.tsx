@@ -1,14 +1,37 @@
 import Link from 'next/link'
 
-export function AboutTabs({active}: {active: 'about' | 'resume'}) {
+import * as aboutStyles from '@/components/about/about.styles'
+import {pathPrefixOf, type Locale} from '@/utils/postPaths'
+
+export function AboutTabs({
+  active,
+  locale,
+}: {
+  active: 'about' | 'resume'
+  locale: Locale
+}) {
+  const prefix = pathPrefixOf(locale)
   return (
-    <div className="tabs">
-      <Link href="/about" data-active={active === 'about'}>
+    <nav
+      className={`tabs ${aboutStyles.tabs}`}
+      aria-label={locale === 'en' ? 'About and resume' : '소개 및 이력'}
+    >
+      <Link
+        href={`${prefix}/about`}
+        data-active={active === 'about'}
+        aria-current={active === 'about' ? 'page' : undefined}
+        className={aboutStyles.about_tab_link}
+      >
         About
       </Link>
-      <Link href="/resume" data-active={active === 'resume'}>
+      <Link
+        href={`${prefix}/resume`}
+        data-active={active === 'resume'}
+        aria-current={active === 'resume' ? 'page' : undefined}
+        className={aboutStyles.about_tab_link}
+      >
         Resume
       </Link>
-    </div>
+    </nav>
   )
 }

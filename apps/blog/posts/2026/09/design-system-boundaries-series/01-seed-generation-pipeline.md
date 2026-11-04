@@ -10,6 +10,9 @@ date: 2026-09-22 10:00:00
 description: 당근 SEED Design의 5단 생성 파이프라인을 토큰 YAML부터 생성 CSS까지 층별로 읽고, 손으로 쓰는 것과 기계가 만드는 것의 경계를 확인한다.
 series: 경계를 긋는 디자인 시스템
 seriesOrder: 1
+art:
+  undraw: factory
+slide: design-system-boundaries
 ---
 
 ## Table Of Contents

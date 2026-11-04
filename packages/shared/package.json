@@ -1,5 +1,5 @@
 {
-  "name": "@cheonbi/shared",
+  "name": "@yceffort/shared",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -8,23 +8,31 @@
   "exports": {
     ".": "./src/index.ts",
     "./components": "./src/components/index.ts",
-    "./utils": "./src/utils/index.ts"
+    "./utils": "./src/utils/index.ts",
+    "./og": "./src/og/index.ts",
+    "./hooks": "./src/hooks/usePushSubscription.ts",
+    "./server": "./src/server/index.ts",
+    "./scripts/*": "./scripts/*.mjs"
   },
   "scripts": {},
   "dependencies": {
-    "date-fns": "^4.4.0",
-    "next-themes": "^0.4.6",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "@stylexjs/stylex": "catalog:",
+    "isbot": "catalog:",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sharp": "catalog:"
   },
   "peerDependencies": {
     "next": ">=14.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "next": "^16.3.1",
-    "typescript": "^7.0.2"
+    "@anthropic-ai/sdk": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "next": "catalog:",
+    "typescript": "catalog:",
+    "undraw-svg": "catalog:"
   }
 }

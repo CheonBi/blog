@@ -10,6 +10,9 @@ date: 2026-09-18
 description: 이름으로 추론하던 노드 종류를 외래키로 옮기고, 실행계획과 버퍼를 비교하며 잘못된 가정과 소프트 삭제 버그를 바로잡은 과정을 기록한다.
 series: 거리값을 위치로 해석하는 법
 seriesOrder: 4
+art:
+  undraw: database-tables
+slide: event-distance-to-mms
 ---
 
 ## Table Of Contents

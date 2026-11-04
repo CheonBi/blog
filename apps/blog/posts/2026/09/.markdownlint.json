@@ -1,0 +1,5 @@
+{
+  "extends": "../../../../../.markdownlint.jsonc",
+  "fenced-code-language": false,
+  "emphasis-style": false
+}

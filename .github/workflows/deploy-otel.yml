@@ -1,0 +1,34 @@
+name: Deploy otel server
+
+on:
+  push:
+    branches: [main]
+    paths: ['infra/otel/**', '.github/workflows/deploy-otel.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-otel
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.OTEL_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Deploy the reviewed server configuration
+        env:
+          SSH_KEY: ${{ secrets.OTEL_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ vars.OTEL_DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ vars.OTEL_DEPLOY_HOST }}
+          USER: ${{ vars.OTEL_DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=15 "$USER@$HOST" "$GITHUB_SHA"

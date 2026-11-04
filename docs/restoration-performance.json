@@ -1,0 +1,634 @@
+{
+  "metadata": {
+    "startedAt": "2026-11-04T04:36:17.552Z",
+    "harnessSha256": "26207841f7ffe9cc026fd8a0601471105955bdf21b03730ae9cc8d5d3da1b53b",
+    "settings": {
+      "rounds": 5,
+      "repeatVisit": false,
+      "cpuSlowdown": 20,
+      "latencyMs": 400,
+      "downloadKbps": 400,
+      "uploadKbps": 400,
+      "settleMs": 5000,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 2,
+      "routes": ["/", "/2026/09/blog-java-functional-interface-lambda"]
+    },
+    "host": {
+      "platform": "win32",
+      "arch": "x64",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700"
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "HeadlessChrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Mobile Safari/537.36",
+    "notes": [
+      "Production servers; each trial launches a fresh Chrome with an isolated profile.",
+      "Server routes/assets are warmed once; browser HTTP cache is disabled and cleared every trial.",
+      "CPU and network throttling use Chrome DevTools Protocol, not simulated Lighthouse throttling.",
+      "Animations and canvas rendering run normally. Tracing is enabled equally for both variants.",
+      "All metrics stop five seconds after load, document.fonts.ready, and network idle.",
+      "loadBlockingMs sums long-task time beyond 50 ms from FCP to the measurement end; it is not Lighthouse TBT.",
+      "LCP/CLS are lab observations within this window, not field Core Web Vitals or an INP measurement.",
+      "Main-thread Performance counters are cumulative over each trial observation window, and that window varies per trial; compare them only alongside observationEndMs. Throttling is relative to this host CPU.",
+      "transferBytes and the per-type byte counts include only requests that finished inside the window; unfinishedRequests reports how many were dropped."
+    ],
+    "browserFlavor": "Playwright Chromium Headless Shell",
+    "candidateBuildId": "EG-rY_X_8PBTN85iHMAmO",
+    "referenceBuildId": "Z1rH4AmgHs_vsePXpviHo",
+    "upstreamCommit": "74913e3827db645e1a5ae6bbbb37a3211ec852b8",
+    "beforeCommit": "2748692fecdd173eda7287297616d65cadb81633",
+    "finalBuildId": "Vx0mP16mUdjsurwurBIna",
+    "finalClientAssetCheck": {
+      "measuredAssetCount": 14,
+      "finalInitialHtmlAssetCount": 13,
+      "additionalAssets": [],
+      "note": "Final rebuild updates a legacy redirect target. Initial modern-browser JS/CSS content-hash paths match the measured build; unused nomodule polyfills are excluded."
+    }
+  },
+  "groups": [
+    {
+      "route": "/",
+      "variant": "reference",
+      "runs": 5,
+      "lcpTargetMismatch": false,
+      "metrics": {
+        "lcpMs": {
+          "median": 3488,
+          "min": 3156,
+          "max": 4200,
+          "stddev": 342.838970947003
+        },
+        "cls": {
+          "median": 0.0696074857212298,
+          "min": 0,
+          "max": 0.0696074857212298,
+          "stddev": 0.027842994288491917
+        },
+        "longTaskCount": {
+          "median": 5,
+          "min": 3,
+          "max": 11,
+          "stddev": 2.7129319932501073
+        },
+        "longTaskMs": {
+          "median": 1096,
+          "min": 499,
+          "max": 1304,
+          "stddev": 272.1076257659825
+        },
+        "loadBlockingMs": {
+          "median": 752,
+          "min": 88,
+          "max": 805,
+          "stddev": 270.8420942172763
+        },
+        "jsBytes": {
+          "median": 187992,
+          "min": 187992,
+          "max": 187992,
+          "stddev": 0.0
+        },
+        "cssBytes": {
+          "median": 26070,
+          "min": 26070,
+          "max": 26070,
+          "stddev": 0.0
+        },
+        "taskMs": {
+          "median": 8966.671,
+          "min": 8352.845000000001,
+          "max": 9136.292,
+          "stddev": 326.0255289742813
+        },
+        "observationEndMs": {
+          "median": 13323.10000000894,
+          "min": 13045.59999999404,
+          "max": 13675.79999999702,
+          "stddev": 242.6920732130625
+        }
+      }
+    },
+    {
+      "route": "/",
+      "variant": "restored",
+      "runs": 5,
+      "lcpTargetMismatch": false,
+      "metrics": {
+        "lcpMs": {
+          "median": 3396,
+          "min": 3184,
+          "max": 4072,
+          "stddev": 341.426653909738
+        },
+        "cls": {
+          "median": 0.0696074857212298,
+          "min": 0,
+          "max": 0.0696074857212298,
+          "stddev": 0.034100564459015784
+        },
+        "longTaskCount": {
+          "median": 6,
+          "min": 4,
+          "max": 7,
+          "stddev": 1.2
+        },
+        "longTaskMs": {
+          "median": 691,
+          "min": 523,
+          "max": 1470,
+          "stddev": 388.62990106269484
+        },
+        "loadBlockingMs": {
+          "median": 395,
+          "min": 130,
+          "max": 1026,
+          "stddev": 352.46049424013466
+        },
+        "jsBytes": {
+          "median": 187937,
+          "min": 187937,
+          "max": 187937,
+          "stddev": 0.0
+        },
+        "cssBytes": {
+          "median": 26070,
+          "min": 26070,
+          "max": 26070,
+          "stddev": 0.0
+        },
+        "taskMs": {
+          "median": 8938.879,
+          "min": 8229.566,
+          "max": 10100.681,
+          "stddev": 605.5596288932742
+        },
+        "observationEndMs": {
+          "median": 13618.5,
+          "min": 13049.59999999404,
+          "max": 13691.79999999702,
+          "stddev": 293.0989634923009
+        }
+      }
+    },
+    {
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "reference",
+      "runs": 5,
+      "lcpTargetMismatch": false,
+      "metrics": {
+        "lcpMs": {
+          "median": 3620,
+          "min": 3032,
+          "max": 3872,
+          "stddev": 295.539100627988
+        },
+        "cls": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stddev": 0.0
+        },
+        "longTaskCount": {
+          "median": 6,
+          "min": 4,
+          "max": 8,
+          "stddev": 1.3266499161421599
+        },
+        "longTaskMs": {
+          "median": 1109,
+          "min": 564,
+          "max": 1442,
+          "stddev": 308.28726863106107
+        },
+        "loadBlockingMs": {
+          "median": 613,
+          "min": 302,
+          "max": 1075,
+          "stddev": 263.85981126348133
+        },
+        "jsBytes": {
+          "median": 197424,
+          "min": 197424,
+          "max": 197424,
+          "stddev": 0.0
+        },
+        "cssBytes": {
+          "median": 33001,
+          "min": 33001,
+          "max": 33001,
+          "stddev": 0.0
+        },
+        "taskMs": {
+          "median": 9150.474,
+          "min": 8047.751,
+          "max": 10477.072000000002,
+          "stddev": 859.5388536240587
+        },
+        "observationEndMs": {
+          "median": 15163,
+          "min": 12054.79999999702,
+          "max": 15413.800000011921,
+          "stddev": 1540.1793454026374
+        }
+      }
+    },
+    {
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "restored",
+      "runs": 5,
+      "lcpTargetMismatch": false,
+      "metrics": {
+        "lcpMs": {
+          "median": 3368,
+          "min": 3208,
+          "max": 4112,
+          "stddev": 314.284966232876
+        },
+        "cls": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stddev": 0.0
+        },
+        "longTaskCount": {
+          "median": 6,
+          "min": 4,
+          "max": 8,
+          "stddev": 1.3266499161421599
+        },
+        "longTaskMs": {
+          "median": 816,
+          "min": 567,
+          "max": 1270,
+          "stddev": 237.47555663688843
+        },
+        "loadBlockingMs": {
+          "median": 483,
+          "min": 81,
+          "max": 884,
+          "stddev": 265.08338310803265
+        },
+        "jsBytes": {
+          "median": 197361,
+          "min": 197361,
+          "max": 197361,
+          "stddev": 0.0
+        },
+        "cssBytes": {
+          "median": 33001,
+          "min": 33001,
+          "max": 33001,
+          "stddev": 0.0
+        },
+        "taskMs": {
+          "median": 9290.903,
+          "min": 7774.6759999999995,
+          "max": 10094.357,
+          "stddev": 866.248698330127
+        },
+        "observationEndMs": {
+          "median": 14801,
+          "min": 12051.5,
+          "max": 15512.40000000596,
+          "stddev": 1379.9594292605796
+        }
+      }
+    }
+  ],
+  "budget": [
+    {
+      "route": "/",
+      "changePercent": {
+        "lcpMs": -2.6376146788990806,
+        "jsBytes": -0.029256564109114702,
+        "cssBytes": 0.0
+      },
+      "passed": true
+    },
+    {
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "changePercent": {
+        "lcpMs": -6.961325966850829,
+        "jsBytes": -0.031911013858498816,
+        "cssBytes": 0.0
+      },
+      "passed": true
+    }
+  ],
+  "trials": [
+    {
+      "name": "home-before-1",
+      "route": "/",
+      "variant": "before",
+      "round": 1,
+      "lcpMs": 3156,
+      "cls": 0,
+      "longTaskCount": 5,
+      "longTaskMs": 499,
+      "loadBlockingMs": 88,
+      "jsBytes": 187992,
+      "cssBytes": 26070,
+      "taskMs": 8352.845000000001,
+      "observationEndMs": 13675.79999999702
+    },
+    {
+      "name": "home-after-1",
+      "route": "/",
+      "variant": "after",
+      "round": 1,
+      "lcpMs": 3396,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 4,
+      "longTaskMs": 523,
+      "loadBlockingMs": 239,
+      "jsBytes": 187937,
+      "cssBytes": 26070,
+      "taskMs": 8938.879,
+      "observationEndMs": 13049.59999999404
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-after-1",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "after",
+      "round": 1,
+      "lcpMs": 3368,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 1270,
+      "loadBlockingMs": 884,
+      "jsBytes": 197361,
+      "cssBytes": 33001,
+      "taskMs": 8067.893000000002,
+      "observationEndMs": 12667.29999999702
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-before-1",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "before",
+      "round": 1,
+      "lcpMs": 3368,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 1126,
+      "loadBlockingMs": 706,
+      "jsBytes": 197424,
+      "cssBytes": 33001,
+      "taskMs": 9304.145,
+      "observationEndMs": 15283.10000000894
+    },
+    {
+      "name": "home-after-2",
+      "route": "/",
+      "variant": "after",
+      "round": 2,
+      "lcpMs": 4072,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 7,
+      "longTaskMs": 1470,
+      "loadBlockingMs": 1026,
+      "jsBytes": 187937,
+      "cssBytes": 26070,
+      "taskMs": 10100.681,
+      "observationEndMs": 13691.79999999702
+    },
+    {
+      "name": "home-before-2",
+      "route": "/",
+      "variant": "before",
+      "round": 2,
+      "lcpMs": 3488,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 5,
+      "longTaskMs": 1096,
+      "loadBlockingMs": 752,
+      "jsBytes": 187992,
+      "cssBytes": 26070,
+      "taskMs": 8966.671,
+      "observationEndMs": 13077.5
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-before-2",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "before",
+      "round": 2,
+      "lcpMs": 3620,
+      "cls": 0,
+      "longTaskCount": 8,
+      "longTaskMs": 1109,
+      "loadBlockingMs": 613,
+      "jsBytes": 197424,
+      "cssBytes": 33001,
+      "taskMs": 10477.072000000002,
+      "observationEndMs": 15413.800000011921
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-after-2",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "after",
+      "round": 2,
+      "lcpMs": 4112,
+      "cls": 0,
+      "longTaskCount": 4,
+      "longTaskMs": 816,
+      "loadBlockingMs": 538,
+      "jsBytes": 197361,
+      "cssBytes": 33001,
+      "taskMs": 9364.307999999999,
+      "observationEndMs": 14801
+    },
+    {
+      "name": "home-before-3",
+      "route": "/",
+      "variant": "before",
+      "round": 3,
+      "lcpMs": 4200,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 3,
+      "longTaskMs": 1030,
+      "loadBlockingMs": 799,
+      "jsBytes": 187992,
+      "cssBytes": 26070,
+      "taskMs": 8425.226999999999,
+      "observationEndMs": 13504.20000000298
+    },
+    {
+      "name": "home-after-3",
+      "route": "/",
+      "variant": "after",
+      "round": 3,
+      "lcpMs": 3392,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 4,
+      "longTaskMs": 691,
+      "loadBlockingMs": 395,
+      "jsBytes": 187937,
+      "cssBytes": 26070,
+      "taskMs": 8229.566,
+      "observationEndMs": 13065.5
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-after-3",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "after",
+      "round": 3,
+      "lcpMs": 3208,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 713,
+      "loadBlockingMs": 314,
+      "jsBytes": 197361,
+      "cssBytes": 33001,
+      "taskMs": 7774.6759999999995,
+      "observationEndMs": 12051.5
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-before-3",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "before",
+      "round": 3,
+      "lcpMs": 3724,
+      "cls": 0,
+      "longTaskCount": 4,
+      "longTaskMs": 564,
+      "loadBlockingMs": 302,
+      "jsBytes": 197424,
+      "cssBytes": 33001,
+      "taskMs": 9150.474,
+      "observationEndMs": 15163
+    },
+    {
+      "name": "home-after-4",
+      "route": "/",
+      "variant": "after",
+      "round": 4,
+      "lcpMs": 3920,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 1230,
+      "loadBlockingMs": 865,
+      "jsBytes": 187937,
+      "cssBytes": 26070,
+      "taskMs": 8834.960000000001,
+      "observationEndMs": 13618.5
+    },
+    {
+      "name": "home-before-4",
+      "route": "/",
+      "variant": "before",
+      "round": 4,
+      "lcpMs": 3492,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 11,
+      "longTaskMs": 1304,
+      "loadBlockingMs": 633,
+      "jsBytes": 187992,
+      "cssBytes": 26070,
+      "taskMs": 9136.292,
+      "observationEndMs": 13323.10000000894
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-before-4",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "before",
+      "round": 4,
+      "lcpMs": 3872,
+      "cls": 0,
+      "longTaskCount": 5,
+      "longTaskMs": 751,
+      "loadBlockingMs": 439,
+      "jsBytes": 197424,
+      "cssBytes": 33001,
+      "taskMs": 8289.484,
+      "observationEndMs": 12054.79999999702
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-after-4",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "after",
+      "round": 4,
+      "lcpMs": 3368,
+      "cls": 0,
+      "longTaskCount": 7,
+      "longTaskMs": 927,
+      "loadBlockingMs": 483,
+      "jsBytes": 197361,
+      "cssBytes": 33001,
+      "taskMs": 10094.357,
+      "observationEndMs": 15512.40000000596
+    },
+    {
+      "name": "home-before-5",
+      "route": "/",
+      "variant": "before",
+      "round": 5,
+      "lcpMs": 3488,
+      "cls": 0.0696074857212298,
+      "longTaskCount": 5,
+      "longTaskMs": 1132,
+      "loadBlockingMs": 805,
+      "jsBytes": 187992,
+      "cssBytes": 26070,
+      "taskMs": 9027.716,
+      "observationEndMs": 13045.59999999404
+    },
+    {
+      "name": "home-after-5",
+      "route": "/",
+      "variant": "after",
+      "round": 5,
+      "lcpMs": 3184,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 531,
+      "loadBlockingMs": 130,
+      "jsBytes": 187937,
+      "cssBytes": 26070,
+      "taskMs": 9011.037999999999,
+      "observationEndMs": 13651.29999999702
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-after-5",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "after",
+      "round": 5,
+      "lcpMs": 3516,
+      "cls": 0,
+      "longTaskCount": 8,
+      "longTaskMs": 567,
+      "loadBlockingMs": 81,
+      "jsBytes": 197361,
+      "cssBytes": 33001,
+      "taskMs": 9290.903,
+      "observationEndMs": 15010
+    },
+    {
+      "name": "2026_09_blog-java-functional-interface-lambda-before-5",
+      "route": "/2026/09/blog-java-functional-interface-lambda",
+      "variant": "before",
+      "round": 5,
+      "lcpMs": 3032,
+      "cls": 0,
+      "longTaskCount": 6,
+      "longTaskMs": 1442,
+      "loadBlockingMs": 1075,
+      "jsBytes": 197424,
+      "cssBytes": 33001,
+      "taskMs": 8047.751,
+      "observationEndMs": 12243.800000011921
+    }
+  ],
+  "legacy": {
+    "status": "invalid-resource-check",
+    "reason": "The legacy home prefetches /en which returns HTTP 404. This trial was not included in performance medians.",
+    "evidence": ".cache/performance/legacy/home-before-1.invalid.json"
+  }
+}

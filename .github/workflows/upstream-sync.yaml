@@ -1,0 +1,76 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 09:00 Asia/Seoul
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: vars.UPSTREAM_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ vars.UPSTREAM_APP_CLIENT_ID }}
+          private-key: ${{ secrets.UPSTREAM_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ steps.app.outputs.token }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Apply upstream changes
+        id: changes
+        run: |
+          git switch -C codex/feature/upstream-sync
+          node scripts/sync-upstream.mjs
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          const result = JSON.parse(fs.readFileSync('.cache/upstream-result.json', 'utf8'))
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${result.changed}\nconflicts=${result.conflicts.length > 0}\n`)
+          const body = `Upstream: ${result.base} → ${result.head}\n\nApplied: ${result.applied.length}\nProtected/excluded: ${result.ignored.length}\n\n${result.conflicts.map(x => `- ${x.path}: ${x.reason}`).join('\n')}\n\nThe upstream source lock advances only after all conflicts are resolved. Review CI and Vercel previews before merging.\n`
+          fs.writeFileSync('.cache/upstream-pr.md', body)
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, body)
+          JS
+      - name: Refresh selected workspace lockfile
+        if: steps.changes.outputs.changed == 'true' && steps.changes.outputs.conflicts == 'false'
+        run: |
+          pnpm install --lockfile-only --ignore-scripts
+          python3 infra/otel/grafana/build-dashboards.py
+      - name: Create or update the single review PR
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          HAS_CONFLICTS: ${{ steps.changes.outputs.conflicts }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then exit 0; fi
+          git -c core.hooksPath=/dev/null commit -m 'chore: sync upstream blog and research'
+          git push --force-with-lease origin HEAD:codex/feature/upstream-sync
+          pr=$(gh pr list --head codex/feature/upstream-sync --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title 'chore: sync upstream blog and research' --body-file .cache/upstream-pr.md
+            if [ "$HAS_CONFLICTS" = true ]; then gh pr ready "$pr" --undo || true; fi
+          elif [ "$HAS_CONFLICTS" = true ]; then
+            gh pr create --base main --head codex/feature/upstream-sync --title 'chore: sync upstream blog and research' --body-file .cache/upstream-pr.md --draft
+          else
+            gh pr create --base main --head codex/feature/upstream-sync --title 'chore: sync upstream blog and research' --body-file .cache/upstream-pr.md
+          fi

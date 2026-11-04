@@ -6,8 +6,7 @@ import {sync} from 'glob'
 import {cache} from 'react'
 
 import type {Series} from '../type'
-import {getPopularPostViews} from './analytics'
-import {getSeriesPosts} from './Post'
+import {getAllPosts, getSeriesPosts} from './Post'
 import type {Locale} from './postPaths'
 
 const SERIES_ROOT = path.join(process.cwd(), 'series')
@@ -26,23 +25,42 @@ function latestPostDate(series: Series): string {
   )
 }
 
+function readSeriesFile(filePath: string) {
+  return frontMatter<SeriesFrontMatter>(
+    fs.readFileSync(filePath, {encoding: 'utf8'}),
+  )
+}
+
 export const getAllSeries = cache(async function getAllSeriesImpl(
   locale: Locale = 'ko',
 ): Promise<Series[]> {
   const files = sync(`${SERIES_ROOT}/*.md`).filter((f) => !f.endsWith('.en.md'))
+  const enPosts = locale === 'en' ? await getAllPosts('en') : []
 
   const series = await Promise.all(
     files.map(async (filePath): Promise<Series> => {
-      const file = fs.readFileSync(filePath, {encoding: 'utf8'})
-      const {attributes, body} = frontMatter<SeriesFrontMatter>(file)
+      const ko = readSeriesFile(filePath)
+      const koPosts = await getSeriesPosts(ko.attributes.name)
+      // 영문본의 series 값은 글마다 표기가 달라 이름으로 묶지 않고, 한국어 원문 글의 번역본을 같은 순서로 모은다
+      const enPath = filePath.replace(/\.md$/, '.en.md')
+      const readmePath =
+        locale === 'en' && fs.existsSync(enPath) ? enPath : filePath
+      const {attributes, body} =
+        readmePath === filePath ? ko : readSeriesFile(readmePath)
       return {
         slug: path.basename(filePath, '.md'),
         name: attributes.name,
         title: attributes.title ?? attributes.name,
         description: attributes.description,
         body,
-        path: filePath,
-        posts: await getSeriesPosts(attributes.name, locale),
+        path: readmePath,
+        posts:
+          locale === 'en'
+            ? koPosts.flatMap(
+                (post) =>
+                  enPosts.find((p) => p.fields.slug === post.fields.slug) ?? [],
+              )
+            : koPosts,
       }
     }),
   )
@@ -60,39 +78,14 @@ export const findSeriesBySlug = cache(async function findSeriesBySlugImpl(
   return series.find((s) => s.slug === slug)
 })
 
-export const getPopularSeries = cache(async function getPopularSeriesImpl(
-  locale: Locale = 'ko',
-): Promise<Series | null> {
-  const [series, views] = await Promise.all([
-    getAllSeries(locale),
-    getPopularPostViews(50),
-  ])
-  if (views.length === 0) {
-    return null
-  }
-
-  const viewMap = new Map(views.map((row) => [row.slug, row.views]))
-  let best: Series | null = null
-  let bestAverage = 0
-  for (const s of series) {
-    const total = s.posts.reduce(
-      (sum, post) => sum + (viewMap.get(post.fields.slug) ?? 0),
-      0,
+export const findSeriesByPostSlug = cache(
+  async function findSeriesByPostSlugImpl(
+    postSlug: string,
+    locale: Locale = 'ko',
+  ): Promise<Series | undefined> {
+    const series = await getAllSeries(locale)
+    return series.find((s) =>
+      s.posts.some((post) => post.fields.slug === postSlug),
     )
-    const average = total / s.posts.length
-    if (average > bestAverage) {
-      best = s
-      bestAverage = average
-    }
-  }
-  return best
-})
-
-export const findSeriesSlugByName = cache(
-  async function findSeriesSlugByNameImpl(
-    name: string,
-  ): Promise<string | undefined> {
-    const series = await getAllSeries()
-    return series.find((s) => s.name === name)?.slug
   },
 )
