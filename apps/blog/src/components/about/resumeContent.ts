@@ -50,13 +50,13 @@ export interface ResumeContent {
 
 const ko: ResumeContent = {
   eyebrow: 'EXPERIENCE & CONTRIBUTIONS',
-  title: '화면과 데이터를 연결하는 소프트웨어를 만듭니다.',
-  lead: '관제 웹 서비스와 데이터 처리 시스템을 개발해 왔습니다. React와 TypeScript로 화면을 만들고 Java와 Spring Boot로 데이터 흐름을 연결합니다. 개발과 운영에서 얻은 판단을 이 블로그에 기록합니다.',
-  status: 'Software Engineer, ENITT 재직 중',
+  title: '사용하기 편하고, 확장하기 쉬운 서비스를 만듭니다.',
+  lead: '여러 분야에 관심이 많고, 읽고 수정하기 편한 코드를 좋아합니다. 개발하며 배운 내용과 경험을 블로그에 기록합니다.',
+  status: '소프트웨어 엔지니어, 재직 중',
   expertise: [
     {term: '웹 서비스', detail: 'React, TypeScript, JavaScript'},
     {term: '백엔드와 데이터', detail: 'Java, Spring Boot, 데이터 처리'},
-    {term: '운영과 시각화', detail: '관제 시스템, Linux, 컨테이너'},
+    {term: '운영과 성능', detail: '관제 시스템, Linux, 컨테이너'},
   ],
   navLabel: '이력서 목차',
   sections: [
@@ -106,8 +106,8 @@ const ko: ResumeContent = {
 
 const en: ResumeContent = {
   ...ko,
-  title: 'Software that connects interfaces and data',
-  lead: 'I build monitoring web services and data processing systems with React, TypeScript, Java, and Spring Boot. This blog records the decisions and lessons from development and operations.',
+  title: 'Software engineer working on web services',
+  lead: 'I have worked on monitoring web services and software for power data. I am interested in frontend development and like code that is easy to read and change. I share what I learn from development on this blog.',
   status: 'Software Engineer at ENITT',
   navLabel: 'Resume contents',
   sections: [

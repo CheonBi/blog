@@ -60,7 +60,7 @@ export const educations: ResumeEntry[] = [
     title: '목포대학교',
     organization: '컴퓨터공학과',
     period: '2016.03 ~ 2022.02',
-    role: '컴퓨터공학과 전공 학사 졸업 (151 학점, GPA 3.9 / 4.0)',
+    role: '컴퓨터공학과 전공 학사 졸업 (151 학점, GPA 3.9 / 4.5)',
     highlights: [],
     techStack: [],
   },

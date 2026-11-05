@@ -13,7 +13,7 @@
 > 슬라이드 뷰어, 오프라인 저장과 성능 측정까지 이 저장소의 토대는
 > yceffort님이 공개한 코드에서 `fork` 받았습니다.
 
-글 한 편을 읽는 경험부터 렌더링과 운영을 다루는 세부 구현까지, 이렇게 세심하게 만든 블로그의 소스를 공개하고   
+글 한 편을 읽는 경험부터 렌더링과 운영을 다루는 세부 구현까지, 이렇게 세심하게 만든 블로그의 소스를 공개하고  
 다른 사람이 이어서 만들 수 있게 해 주신 **yceffort님께 큰 감사를 보냅니다.**
 
 이 블로그가 마음에 드셨다면 원작자의 **[블로그](https://yceffort.kr)** 와
@@ -55,7 +55,7 @@ docs/                 # 운영, 동기화, 검증 기록과 개인 학습 문서
 Markdown → Rust/WASM → HAST → React 컴포넌트 → 페이지
 ```
 
-Rust/WASM이 코드 강조, 목차, MathML 수식과 이미지 메타데이터를 처리하고, 앱의 `renderPost`가 결과 트리를 React 컴포넌트로 연결합니다.   
+Rust/WASM이 코드 강조, 목차, MathML 수식과 이미지 메타데이터를 처리하고, 앱의 `renderPost`가 결과 트리를 React 컴포넌트로 연결합니다.  
 WASM은 서버에서 실행하며, 일반 빌드는 저장소에 포함된 바이너리를 사용합니다.
 
 - **탐색:** 홈·시리즈·태그·MiniSearch 기반 검색
@@ -77,11 +77,11 @@ Research 빌드는 Next.js 빌드 후 오프라인 실행 파일도 생성합니
 
 ### 공통 패키지와 화면
 
-`@yceffort/shared`는 Providers, 내비게이션, 테마와 화면 효과, 소셜 아이콘, 연락처·제목 유틸리티와 OG 이미지 생성 코드를 공유합니다.   
+`@yceffort/shared`는 Providers, 내비게이션, 테마와 화면 효과, 소셜 아이콘, 연락처·제목 유틸리티와 OG 이미지 생성 코드를 공유합니다.  
 두 앱은 StyleX로 컴포넌트 스타일을 정의하고 문서·마크다운·생성 콘텐츠에는 CSS를 사용합니다.
 
 사이트 이름·연락처·홈 문구·공유 설명은 각 앱의 `src/config.ts`에서 관리합니다.  
-Blog의 개인 경력 데이터는 `apps/blog/src/data/profile.ts`에 있습니다.  
+Blog의 개인 경력 데이터는 `apps/blog/src/data/profile.ts`에 있습니다.
 
 ## 기술 스택
 
@@ -120,7 +120,7 @@ pnpm build:research
 pnpm preview:research
 ```
 
-일반 빌드에는 Rust와 WASI SDK 설치가 필요하지 않습니다.   
+일반 빌드에는 Rust와 WASI SDK 설치가 필요하지 않습니다.  
 마크다운 처리기의 Rust 소스를 수정할 때는 [패키지 문서](packages/markdown-rs/README.md)의 빌드·검증 절차를 따릅니다.
 
 ## 배포
@@ -132,7 +132,7 @@ pnpm preview:research
 | Blog     | `cheonbi.kr`          | `apps/blog`     |
 | Research | `research.cheonbi.kr` | `apps/research` |
 
-각 프로젝트의 빌드 명령은 `pnpm build`, 설치 명령은 `pnpm install --frozen-lockfile`입니다.   
+각 프로젝트의 빌드 명령은 `pnpm build`, 설치 명령은 `pnpm install --frozen-lockfile`입니다.  
 분석·성능 수집·푸시 알림 등 운영 연결은 [운영 문서](docs/operations.md)에서 설명합니다.
 
 ## 검증
@@ -163,7 +163,7 @@ pnpm test:browser
 
 ## 라이선스
 
-[MIT License](LICENSE).    
+[MIT License](LICENSE).
 
 원작자의 저작권 고지는 [Blog 라이선스](apps/blog/LICENSE)에 보존합니다.  
 포함된 라이브러리·폰트 등은 각 디렉터리의 라이선스와 출처 고지를 따릅니다.

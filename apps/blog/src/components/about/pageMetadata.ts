@@ -9,8 +9,8 @@ const pages = {
   about: {
     title: 'About',
     description: {
-      ko: `소프트웨어 엔지니어 ${SiteConfig.author.name}. React와 TypeScript, Java와 Spring Boot로 서비스를 만들며 개발과 운영에서 얻은 경험을 기록합니다.`,
-      en: `${SiteConfig.author.name}, a software engineer building services with React, TypeScript, Java, and Spring Boot.`,
+      ko: `소프트웨어 엔지니어 ${SiteConfig.author.name}. 프론트엔드 개발에 관심을 두고 웹 서비스 개발에서 배운 내용과 경험을 기록합니다.`,
+      en: `${SiteConfig.author.name}, a software engineer interested in frontend development, sharing notes from building web services.`,
     },
   },
   resume: {

@@ -11,10 +11,10 @@ import {useLocale} from '@/hooks/useLocale'
 
 const intro = {
   ko: {
-    sub: 'React와 TypeScript, Java와 Spring Boot로 관제 웹 서비스와 데이터 처리 시스템을 만듭니다. 개발 과정의 선택과 시행착오를 기록합니다.',
+    sub: '다양한 분야의 소프트웨어 개발에 관심이 많습니다. 보기 편하고 쓰기 쉬운 화면, 읽고 확장하기 편한 코드를 좋아합니다.',
   },
   en: {
-    sub: 'I build monitoring web services and data processing systems with React, TypeScript, Java, and Spring Boot, and record the decisions and lessons along the way.',
+    sub: 'I enjoy frontend development, easy-to-use interfaces, and code that is easy to read and change.',
   },
 }
 
